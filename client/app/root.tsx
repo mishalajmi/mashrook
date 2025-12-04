@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import {
+	Links,
+	Meta,
 	Outlet,
 	Scripts,
 	ScrollRestoration,
@@ -21,6 +23,8 @@ export function Layout({ children }: LayoutProps): ReactNode {
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<Meta />
+				<Links />
 				<link rel="stylesheet" href={indexStylesHref} />
 			</head>
 			<body>
