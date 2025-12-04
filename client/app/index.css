@@ -7,13 +7,13 @@
 	/* Light mode colors (default) */
 	--color-background: #FBF9FF;
 	--color-foreground: #1a1a2e;
-	--color-primary: #6366f1;
+	--color-primary: #02F5D4;
 	--color-primary-foreground: #ffffff;
-	--color-secondary: #468C98;
-	--color-secondary-foreground: #ffffff;
+	--color-secondary: #6366f1;
+	--color-secondary-foreground: #000807;
 	--color-muted: #f1f0f5;
 	--color-muted-foreground: #64748b;
-	--color-accent: #6366f1;
+	--color-accent: #02F5D4;
 	--color-accent-foreground: #ffffff;
 	--color-card: #ffffff;
 	--color-card-foreground: #1a1a2e;
@@ -35,13 +35,13 @@
 .dark {
 	--color-background: #000807;
 	--color-foreground: #f0f0f5;
-	--color-primary: #818cf8;
+	--color-primary: #02F5D4;
 	--color-primary-foreground: #000807;
-	--color-secondary: #5BA3AF;
+	--color-secondary: #02F5D4;
 	--color-secondary-foreground: #000807;
 	--color-muted: #1a1f1e;
 	--color-muted-foreground: #94a3b8;
-	--color-accent: #818cf8;
+	--color-accent: #02F5D4;
 	--color-accent-foreground: #000807;
 	--color-card: #0d1211;
 	--color-card-foreground: #f0f0f5;
@@ -150,6 +150,20 @@
 
 html {
 	scroll-behavior: smooth;
+}
+
+/* RTL Support */
+html[dir="rtl"] {
+	direction: rtl;
+}
+
+/* RTL-specific adjustments for animations */
+html[dir="rtl"] .animate-slide-in-left {
+	animation-name: slide-in-right;
+}
+
+html[dir="rtl"] .animate-slide-in-right {
+	animation-name: slide-in-left;
 }
 
 body {

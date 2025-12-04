@@ -1,66 +1,68 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
-interface FooterLink {
-	label: string;
+interface FooterLinkConfig {
+	labelKey: string;
 	href: string;
 }
 
-interface FooterSection {
-	title: string;
-	links: FooterLink[];
+interface FooterSectionConfig {
+	titleKey: string;
+	links: FooterLinkConfig[];
 }
 
-const footerSections: FooterSection[] = [
+const footerSectionConfigs: FooterSectionConfig[] = [
 	{
-		title: "Platform",
+		titleKey: "footer.sections.platform.title",
 		links: [
-			{ label: "How It Works", href: "#how-it-works" },
-			{ label: "Features", href: "#features" },
-			{ label: "Pricing", href: "#pricing" },
-			{ label: "Active Campaigns", href: "#" },
-			{ label: "Success Stories", href: "#testimonials" },
+			{ labelKey: "footer.sections.platform.howItWorks", href: "#how-it-works" },
+			{ labelKey: "footer.sections.platform.features", href: "#features" },
+			{ labelKey: "footer.sections.platform.pricing", href: "#pricing" },
+			{ labelKey: "footer.sections.platform.activeCampaigns", href: "#" },
+			{ labelKey: "footer.sections.platform.successStories", href: "#testimonials" },
 		],
 	},
 	{
-		title: "For Buyers",
+		titleKey: "footer.sections.buyers.title",
 		links: [
-			{ label: "Join Campaigns", href: "#" },
-			{ label: "Organization Setup", href: "#" },
-			{ label: "Pledge Management", href: "#" },
-			{ label: "Order History", href: "#" },
-			{ label: "Buyer FAQ", href: "#" },
+			{ labelKey: "footer.sections.buyers.joinCampaigns", href: "#" },
+			{ labelKey: "footer.sections.buyers.organizationSetup", href: "#" },
+			{ labelKey: "footer.sections.buyers.pledgeManagement", href: "#" },
+			{ labelKey: "footer.sections.buyers.orderHistory", href: "#" },
+			{ labelKey: "footer.sections.buyers.faq", href: "#" },
 		],
 	},
 	{
-		title: "For Suppliers",
+		titleKey: "footer.sections.suppliers.title",
 		links: [
-			{ label: "Launch Campaign", href: "#" },
-			{ label: "Pricing Tiers", href: "#" },
-			{ label: "Order Fulfillment", href: "#" },
-			{ label: "Supplier Dashboard", href: "#" },
-			{ label: "Supplier FAQ", href: "#" },
+			{ labelKey: "footer.sections.suppliers.launchCampaign", href: "#" },
+			{ labelKey: "footer.sections.suppliers.pricingTiers", href: "#" },
+			{ labelKey: "footer.sections.suppliers.orderFulfillment", href: "#" },
+			{ labelKey: "footer.sections.suppliers.dashboard", href: "#" },
+			{ labelKey: "footer.sections.suppliers.faq", href: "#" },
 		],
 	},
 	{
-		title: "Legal",
+		titleKey: "footer.sections.legal.title",
 		links: [
-			{ label: "Privacy Policy", href: "#" },
-			{ label: "Terms of Service", href: "#" },
-			{ label: "Cookie Policy", href: "#" },
-			{ label: "Security", href: "#" },
-			{ label: "Compliance", href: "#" },
+			{ labelKey: "footer.sections.legal.privacyPolicy", href: "#" },
+			{ labelKey: "footer.sections.legal.termsOfService", href: "#" },
+			{ labelKey: "footer.sections.legal.cookiePolicy", href: "#" },
+			{ labelKey: "footer.sections.legal.security", href: "#" },
+			{ labelKey: "footer.sections.legal.compliance", href: "#" },
 		],
 	},
-];
-
-const socialLinks = [
-	{ label: "Twitter", href: "#", ariaLabel: "Follow us on Twitter" },
-	{ label: "LinkedIn", href: "#", ariaLabel: "Connect on LinkedIn" },
-	{ label: "GitHub", href: "#", ariaLabel: "View our GitHub" },
 ];
 
 function Footer(): ReactNode {
+	const { t } = useTranslation();
 	const currentYear = new Date().getFullYear();
+
+	const socialLinks = [
+		{ label: "Twitter", href: "#", ariaLabelKey: "footer.socialLinks.twitter" },
+		{ label: "LinkedIn", href: "#", ariaLabelKey: "footer.socialLinks.linkedin" },
+		{ label: "GitHub", href: "#", ariaLabelKey: "footer.socialLinks.github" },
+	];
 
 	return (
 		<footer
@@ -77,13 +79,12 @@ function Footer(): ReactNode {
 							<a
 								href="/"
 								className="text-xl font-bold text-foreground hover:text-primary transition-colors duration-200"
-								aria-label="Mashrook - Home"
+								aria-label={`${t("common.appName")} - ${t("common.home")}`}
 							>
-								Mashrook
+								{t("common.appName")}
 							</a>
 							<p className="mt-4 text-sm text-muted-foreground max-w-xs">
-								The B2B group buying platform that delivers volume discounts
-								to businesses of all sizes through collective purchasing power.
+								{t("footer.description")}
 							</p>
 							{/* Social Links */}
 							<nav
@@ -95,7 +96,7 @@ function Footer(): ReactNode {
 										key={link.label}
 										href={link.href}
 										className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
-										aria-label={link.ariaLabel}
+										aria-label={t(link.ariaLabelKey)}
 									>
 										{link.label}
 									</a>
@@ -104,53 +105,56 @@ function Footer(): ReactNode {
 						</div>
 
 						{/* Link Sections */}
-						{footerSections.map((section) => (
-							<div key={section.title}>
-								<h3 className="text-sm font-semibold text-foreground mb-4">
-									{section.title}
-								</h3>
-								<nav aria-label={`${section.title} links`}>
-									<ul className="space-y-3" role="list">
-										{section.links.map((link) => (
-											<li key={link.label}>
-												<a
-													href={link.href}
-													className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
-												>
-													{link.label}
-												</a>
-											</li>
-										))}
-									</ul>
-								</nav>
-							</div>
-						))}
+						{footerSectionConfigs.map((section) => {
+							const title = t(section.titleKey);
+							return (
+								<div key={section.titleKey}>
+									<h3 className="text-sm font-semibold text-foreground mb-4">
+										{title}
+									</h3>
+									<nav aria-label={`${title} links`}>
+										<ul className="space-y-3" role="list">
+											{section.links.map((link) => (
+												<li key={link.labelKey}>
+													<a
+														href={link.href}
+														className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+													>
+														{t(link.labelKey)}
+													</a>
+												</li>
+											))}
+										</ul>
+									</nav>
+								</div>
+							);
+						})}
 					</div>
 				</div>
 
 				{/* Bottom Bar */}
 				<div className="border-t border-border py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
 					<p className="text-sm text-muted-foreground">
-						{currentYear} Mashrook. All rights reserved.
+						{t("footer.copyright", { year: currentYear })}
 					</p>
 					<div className="flex items-center gap-6">
 						<a
 							href="#"
 							className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
 						>
-							Privacy
+							{t("footer.privacy")}
 						</a>
 						<a
 							href="#"
 							className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
 						>
-							Terms
+							{t("footer.terms")}
 						</a>
 						<a
 							href="#"
 							className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
 						>
-							Cookies
+							{t("footer.cookies")}
 						</a>
 					</div>
 				</div>

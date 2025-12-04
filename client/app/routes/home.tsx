@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import type { MetaDescriptor } from "react-router";
+import { useTranslation } from "react-i18next";
 import {
 	Header,
 	Hero,
@@ -69,7 +70,8 @@ function getInitialTheme(): boolean {
 	return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-export default function Home(): ReactNode {
+function HomeContent(): ReactNode {
+	const { t } = useTranslation();
 	const [isDark, setIsDark] = useState(false);
 	const [mounted, setMounted] = useState(false);
 
@@ -105,7 +107,7 @@ export default function Home(): ReactNode {
 	if (!mounted) {
 		return (
 			<div className="min-h-screen bg-background" aria-busy="true" aria-live="polite">
-				<span className="sr-only">Loading...</span>
+				<span className="sr-only">{t("common.loading")}</span>
 			</div>
 		);
 	}
@@ -114,9 +116,9 @@ export default function Home(): ReactNode {
 		<div className="min-h-screen bg-background text-foreground">
 			<a
 				href="#main-content"
-				className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+				className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
 			>
-				Skip to main content
+				{t("common.skipToContent")}
 			</a>
 
 			<Header isDark={isDark} onThemeToggle={handleThemeToggle} />
@@ -133,4 +135,8 @@ export default function Home(): ReactNode {
 			<Footer />
 		</div>
 	);
+}
+
+export default function Home(): ReactNode {
+	return <HomeContent />;
 }

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Moon, Sun } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
 
 interface ThemeToggleProps {
@@ -8,12 +9,14 @@ interface ThemeToggleProps {
 }
 
 function ThemeToggle({ isDark, onToggle }: ThemeToggleProps): ReactNode {
+	const { t } = useTranslation();
+
 	return (
 		<Button
 			variant="ghost"
 			size="icon"
 			onClick={onToggle}
-			aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+			aria-label={isDark ? t("theme.switchToLight") : t("theme.switchToDark")}
 			aria-pressed={isDark}
 			className="relative overflow-hidden"
 		>

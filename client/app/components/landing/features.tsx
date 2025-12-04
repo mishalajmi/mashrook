@@ -7,54 +7,51 @@ import {
 	Clock,
 	BadgeCheck,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardHeader, CardTitle, CardDescription } from "../ui/card";
 
 interface Feature {
 	icon: ReactNode;
-	title: string;
-	description: string;
+	titleKey: string;
+	descriptionKey: string;
 }
 
-const features: Feature[] = [
+const featureConfigs: Feature[] = [
 	{
 		icon: <TrendingDown className="h-6 w-6" aria-hidden="true" />,
-		title: "Volume Discounts",
-		description:
-			"Access enterprise-level pricing through collective buying power. Save 20-40% on purchases that would otherwise be out of reach.",
+		titleKey: "features.items.volumeDiscounts.title",
+		descriptionKey: "features.items.volumeDiscounts.description",
 	},
 	{
 		icon: <Shield className="h-6 w-6" aria-hidden="true" />,
-		title: "Secure Payments",
-		description:
-			"Payment intents protect all parties. Funds are only charged when campaigns successfully complete their targets.",
+		titleKey: "features.items.securePayments.title",
+		descriptionKey: "features.items.securePayments.description",
 	},
 	{
 		icon: <BarChart3 className="h-6 w-6" aria-hidden="true" />,
-		title: "Transparent Pricing",
-		description:
-			"See exactly how volume affects pricing with tiered price brackets. Know your discount before you commit.",
+		titleKey: "features.items.transparentPricing.title",
+		descriptionKey: "features.items.transparentPricing.description",
 	},
 	{
 		icon: <Users className="h-6 w-6" aria-hidden="true" />,
-		title: "Aggregate Purchase Orders",
-		description:
-			"Multiple buyers consolidated into single purchase orders. Suppliers get predictable, large-volume orders.",
+		titleKey: "features.items.aggregatePurchaseOrders.title",
+		descriptionKey: "features.items.aggregatePurchaseOrders.description",
 	},
 	{
 		icon: <Clock className="h-6 w-6" aria-hidden="true" />,
-		title: "60-Day Fulfillment",
-		description:
-			"Guaranteed fulfillment within 60 days of campaign completion. Certainty for both buyers and suppliers.",
+		titleKey: "features.items.fulfillment.title",
+		descriptionKey: "features.items.fulfillment.description",
 	},
 	{
 		icon: <BadgeCheck className="h-6 w-6" aria-hidden="true" />,
-		title: "Verified Organizations",
-		description:
-			"Admin verification ensures only legitimate businesses participate. Trade with confidence on a trusted platform.",
+		titleKey: "features.items.verifiedOrganizations.title",
+		descriptionKey: "features.items.verifiedOrganizations.description",
 	},
 ];
 
 function Features(): ReactNode {
+	const { t } = useTranslation();
+
 	return (
 		<section
 			id="features"
@@ -68,11 +65,10 @@ function Features(): ReactNode {
 						id="features-heading"
 						className="text-3xl sm:text-4xl font-bold text-foreground mb-4"
 					>
-						Built for B2B Procurement Excellence
+						{t("features.title")}
 					</h2>
 					<p className="text-lg text-muted-foreground">
-						A win-win marketplace connecting buyers and suppliers through
-						group buying campaigns. Better prices for buyers, predictable orders for suppliers.
+						{t("features.subtitle")}
 					</p>
 				</div>
 
@@ -80,11 +76,11 @@ function Features(): ReactNode {
 				<div
 					className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
 					role="list"
-					aria-label="Product features"
+					aria-label={t("features.ariaLabel")}
 				>
-					{features.map((feature, index) => (
+					{featureConfigs.map((feature, index) => (
 						<Card
-							key={feature.title}
+							key={feature.titleKey}
 							className="group hover:shadow-lg hover:border-primary/20 hover:-translate-y-1 transition-all duration-300 bg-card/50 backdrop-blur-sm"
 							role="listitem"
 							style={{ animationDelay: `${index * 0.1}s` }}
@@ -97,10 +93,10 @@ function Features(): ReactNode {
 									{feature.icon}
 								</div>
 								<CardTitle className="group-hover:text-primary transition-colors duration-200">
-									{feature.title}
+									{t(feature.titleKey)}
 								</CardTitle>
 								<CardDescription className="text-muted-foreground leading-relaxed">
-									{feature.description}
+									{t(feature.descriptionKey)}
 								</CardDescription>
 							</CardHeader>
 						</Card>

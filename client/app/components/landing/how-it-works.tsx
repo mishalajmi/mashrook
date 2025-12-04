@@ -1,39 +1,38 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
-interface Step {
-	number: string;
-	title: string;
-	description: string;
+interface StepConfig {
+	numberKey: string;
+	titleKey: string;
+	descriptionKey: string;
 }
 
-const steps: Step[] = [
+const stepConfigs: StepConfig[] = [
 	{
-		number: "01",
-		title: "Suppliers Launch Campaigns",
-		description:
-			"Suppliers create group buying campaigns with tiered pricing. The more organizations join, the bigger the discount for everyone.",
+		numberKey: "howItWorks.steps.step1.number",
+		titleKey: "howItWorks.steps.step1.title",
+		descriptionKey: "howItWorks.steps.step1.description",
 	},
 	{
-		number: "02",
-		title: "Buyers Join and Pledge",
-		description:
-			"Browse active campaigns and commit to the quantities your organization needs. Watch real-time progress toward volume targets.",
+		numberKey: "howItWorks.steps.step2.number",
+		titleKey: "howItWorks.steps.step2.title",
+		descriptionKey: "howItWorks.steps.step2.description",
 	},
 	{
-		number: "03",
-		title: "Target Met, Campaign Locks",
-		description:
-			"When the target quantity is reached, the campaign locks in the best price tier. All participants get the volume discount.",
+		numberKey: "howItWorks.steps.step3.number",
+		titleKey: "howItWorks.steps.step3.title",
+		descriptionKey: "howItWorks.steps.step3.description",
 	},
 	{
-		number: "04",
-		title: "Fulfillment Within 60 Days",
-		description:
-			"Orders are processed and fulfilled within 60 days. Secure payments are collected only after campaign success.",
+		numberKey: "howItWorks.steps.step4.number",
+		titleKey: "howItWorks.steps.step4.title",
+		descriptionKey: "howItWorks.steps.step4.description",
 	},
 ];
 
 function HowItWorks(): ReactNode {
+	const { t } = useTranslation();
+
 	return (
 		<section
 			id="how-it-works"
@@ -47,11 +46,10 @@ function HowItWorks(): ReactNode {
 						id="how-it-works-heading"
 						className="text-3xl sm:text-4xl font-bold text-foreground mb-4"
 					>
-						How Group Buying Works
+						{t("howItWorks.title")}
 					</h2>
 					<p className="text-lg text-muted-foreground">
-						A simple, transparent process that delivers volume discounts
-						to businesses of all sizes through collective purchasing power.
+						{t("howItWorks.subtitle")}
 					</p>
 				</div>
 
@@ -59,17 +57,17 @@ function HowItWorks(): ReactNode {
 				<div className="relative">
 					{/* Connection line - visible on desktop */}
 					<div
-						className="hidden lg:block absolute top-24 left-1/2 -translate-x-1/2 w-3/4 h-0.5 bg-border"
+						className="hidden lg:block absolute top-24 start-1/2 -translate-x-1/2 rtl:translate-x-1/2 w-3/4 h-0.5 bg-border"
 						aria-hidden="true"
 					/>
 
 					<ol
 						className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4"
-						aria-label="Steps to get started"
+						aria-label={t("howItWorks.ariaLabel")}
 					>
-						{steps.map((step, index) => (
+						{stepConfigs.map((step, index) => (
 							<li
-								key={step.number}
+								key={step.numberKey}
 								className="relative group"
 								style={{ animationDelay: `${index * 0.15}s` }}
 							>
@@ -79,15 +77,15 @@ function HowItWorks(): ReactNode {
 										className="relative z-10 mb-6 flex items-center justify-center w-16 h-16 rounded-full bg-background border-2 border-primary text-primary font-bold text-xl group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
 										aria-hidden="true"
 									>
-										{step.number}
+										{t(step.numberKey)}
 									</div>
 
 									{/* Step Content */}
 									<h3 className="text-xl font-semibold text-foreground mb-3">
-										{step.title}
+										{t(step.titleKey)}
 									</h3>
 									<p className="text-muted-foreground leading-relaxed">
-										{step.description}
+										{t(step.descriptionKey)}
 									</p>
 								</div>
 							</li>

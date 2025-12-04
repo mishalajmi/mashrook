@@ -1,76 +1,38 @@
 import type { ReactNode } from "react";
 import { Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { cn } from "../../lib/utils";
 
-interface PricingPlan {
-	name: string;
-	description: string;
-	price: string;
-	period: string;
-	features: string[];
+interface PlanConfig {
+	planKey: string;
 	highlighted: boolean;
-	buttonText: string;
 	buttonVariant: "default" | "outline";
 }
 
-const plans: PricingPlan[] = [
+const planConfigs: PlanConfig[] = [
 	{
-		name: "For Buyers",
-		description: "SMEs and enterprises seeking cost savings",
-		price: "Free",
-		period: "to join",
-		features: [
-			"Browse and join active campaigns",
-			"Access volume-based discounts",
-			"Real-time campaign progress tracking",
-			"Secure payment protection",
-			"Order history and management",
-			"Multi-user organization accounts",
-		],
+		planKey: "pricing.plans.buyers",
 		highlighted: false,
-		buttonText: "Join as Buyer",
 		buttonVariant: "outline",
 	},
 	{
-		name: "Success-Based",
-		description: "Our aligned incentive model",
-		price: "Small %",
-		period: "of savings",
-		features: [
-			"Pay only when campaigns succeed",
-			"Percentage of discount achieved",
-			"No upfront platform fees",
-			"No monthly subscriptions",
-			"Aligned incentives for all parties",
-			"Transparent fee structure",
-		],
+		planKey: "pricing.plans.successBased",
 		highlighted: true,
-		buttonText: "Learn More",
 		buttonVariant: "default",
 	},
 	{
-		name: "For Suppliers",
-		description: "B2B sellers seeking volume orders",
-		price: "Free",
-		period: "to launch",
-		features: [
-			"Create group buying campaigns",
-			"Set tiered pricing brackets",
-			"Consolidated purchase orders",
-			"Predictable sales pipeline",
-			"Verified buyer organizations",
-			"Streamlined fulfillment",
-		],
+		planKey: "pricing.plans.suppliers",
 		highlighted: false,
-		buttonText: "Launch Campaign",
 		buttonVariant: "outline",
 	},
 ];
 
 function Pricing(): ReactNode {
+	const { t } = useTranslation();
+
 	return (
 		<section
 			id="pricing"
@@ -84,11 +46,10 @@ function Pricing(): ReactNode {
 						id="pricing-heading"
 						className="text-3xl sm:text-4xl font-bold text-foreground mb-4"
 					>
-						Aligned Incentives, Zero Risk
+						{t("pricing.title")}
 					</h2>
 					<p className="text-lg text-muted-foreground">
-						Free to join, free to launch. We only succeed when you save.
-						Our platform fee is a small percentage of the discounts achieved.
+						{t("pricing.subtitle")}
 					</p>
 				</div>
 
@@ -96,74 +57,83 @@ function Pricing(): ReactNode {
 				<div
 					className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-6"
 					role="list"
-					aria-label="Pricing plans"
+					aria-label={t("pricing.ariaLabel")}
 				>
-					{plans.map((plan, index) => (
-						<Card
-							key={plan.name}
-							className={cn(
-								"relative flex flex-col transition-all duration-300 hover:shadow-xl",
-								plan.highlighted
-									? "border-primary shadow-lg scale-[1.02] md:scale-105 bg-card"
-									: "bg-card/50 hover:-translate-y-1"
-							)}
-							role="listitem"
-							style={{ animationDelay: `${index * 0.1}s` }}
-						>
-							{plan.highlighted && (
-								<div className="absolute -top-3 left-1/2 -translate-x-1/2">
-									<Badge variant="default" className="px-3 py-1">
-										Most Popular
-									</Badge>
-								</div>
-							)}
+					{planConfigs.map((config, index) => {
+						const name = t(`${config.planKey}.name`);
+						const description = t(`${config.planKey}.description`);
+						const price = t(`${config.planKey}.price`);
+						const period = t(`${config.planKey}.period`);
+						const buttonText = t(`${config.planKey}.buttonText`);
+						const features = t(`${config.planKey}.features`, { returnObjects: true }) as string[];
 
-							<CardHeader className="text-center pb-2">
-								<CardTitle className="text-xl">{plan.name}</CardTitle>
-								<CardDescription>{plan.description}</CardDescription>
-							</CardHeader>
+						return (
+							<Card
+								key={config.planKey}
+								className={cn(
+									"relative flex flex-col transition-all duration-300 hover:shadow-xl",
+									config.highlighted
+										? "border-primary shadow-lg scale-[1.02] md:scale-105 bg-card"
+										: "bg-card/50 hover:-translate-y-1"
+								)}
+								role="listitem"
+								style={{ animationDelay: `${index * 0.1}s` }}
+							>
+								{config.highlighted && (
+									<div className="absolute -top-3 start-1/2 -translate-x-1/2 rtl:translate-x-1/2">
+										<Badge variant="default" className="px-3 py-1">
+											{t("pricing.mostPopular")}
+										</Badge>
+									</div>
+								)}
 
-							<CardContent className="flex-1">
-								{/* Price */}
-								<div className="text-center mb-6">
-									<span className="text-4xl font-bold text-foreground">
-										{plan.price}
-									</span>
-									{plan.period && (
-										<span className="text-muted-foreground">{plan.period}</span>
-									)}
-								</div>
+								<CardHeader className="text-center pb-2">
+									<CardTitle className="text-xl">{name}</CardTitle>
+									<CardDescription>{description}</CardDescription>
+								</CardHeader>
 
-								{/* Features */}
-								<ul className="space-y-3" role="list" aria-label={`${plan.name} features`}>
-									{plan.features.map((feature) => (
-										<li
-											key={feature}
-											className="flex items-start gap-3"
-										>
-											<Check
-												className="h-5 w-5 text-primary flex-shrink-0 mt-0.5"
-												aria-hidden="true"
-											/>
-											<span className="text-sm text-muted-foreground">
-												{feature}
-											</span>
-										</li>
-									))}
-								</ul>
-							</CardContent>
+								<CardContent className="flex-1">
+									{/* Price */}
+									<div className="text-center mb-6">
+										<span className="text-4xl font-bold text-foreground">
+											{price}
+										</span>
+										{period && (
+											<span className="text-muted-foreground ms-1">{period}</span>
+										)}
+									</div>
 
-							<CardFooter>
-								<Button
-									variant={plan.buttonVariant}
-									className="w-full"
-									size="lg"
-								>
-									{plan.buttonText}
-								</Button>
-							</CardFooter>
-						</Card>
-					))}
+									{/* Features */}
+									<ul className="space-y-3" role="list" aria-label={`${name} features`}>
+										{features.map((feature) => (
+											<li
+												key={feature}
+												className="flex items-start gap-3"
+											>
+												<Check
+													className="h-5 w-5 text-primary flex-shrink-0 mt-0.5"
+													aria-hidden="true"
+												/>
+												<span className="text-sm text-muted-foreground">
+													{feature}
+												</span>
+											</li>
+										))}
+									</ul>
+								</CardContent>
+
+								<CardFooter>
+									<Button
+										variant={config.buttonVariant}
+										className="w-full"
+										size="lg"
+									>
+										{buttonText}
+									</Button>
+								</CardFooter>
+							</Card>
+						);
+					})}
 				</div>
 			</div>
 		</section>

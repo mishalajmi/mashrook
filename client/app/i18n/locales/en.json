@@ -1,0 +1,239 @@
+{
+  "common": {
+    "appName": "Mashrook",
+    "home": "Home",
+    "loading": "Loading...",
+    "skipToContent": "Skip to main content",
+    "language": "Language",
+    "english": "English",
+    "arabic": "Arabic",
+    "switchToArabic": "Switch to Arabic",
+    "switchToEnglish": "Switch to English"
+  },
+  "header": {
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "pricing": "Pricing",
+    "testimonials": "Testimonials",
+    "signIn": "Sign In",
+    "getStarted": "Get Started",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "badge": "First-of-its-kind B2B Group Buy Platform",
+    "titleLine1": "Unlock Enterprise Pricing",
+    "titleLine2": "Through Group Buying Power",
+    "subtitle": "The B2B procurement platform that aggregates purchase orders to deliver volume discounts to businesses of all sizes. Save 20-40% on every order.",
+    "ctaPrimary": "Join Campaigns and Save",
+    "ctaSecondary": "See How It Works",
+    "trusted": "Trusted by SMEs and enterprises across industries",
+    "stats": {
+      "savings": {
+        "value": "20-40%",
+        "label": "Average Savings"
+      },
+      "fulfillment": {
+        "value": "60 Days",
+        "label": "Fulfillment Guarantee"
+      },
+      "security": {
+        "value": "100%",
+        "label": "Payment Security"
+      }
+    }
+  },
+  "features": {
+    "title": "Built for B2B Procurement Excellence",
+    "subtitle": "A win-win marketplace connecting buyers and suppliers through group buying campaigns. Better prices for buyers, predictable orders for suppliers.",
+    "ariaLabel": "Product features",
+    "items": {
+      "volumeDiscounts": {
+        "title": "Volume Discounts",
+        "description": "Access enterprise-level pricing through collective buying power. Save 20-40% on purchases that would otherwise be out of reach."
+      },
+      "securePayments": {
+        "title": "Secure Payments",
+        "description": "Payment intents protect all parties. Funds are only charged when campaigns successfully complete their targets."
+      },
+      "transparentPricing": {
+        "title": "Transparent Pricing",
+        "description": "See exactly how volume affects pricing with tiered price brackets. Know your discount before you commit."
+      },
+      "aggregatePurchaseOrders": {
+        "title": "Aggregate Purchase Orders",
+        "description": "Multiple buyers consolidated into single purchase orders. Suppliers get predictable, large-volume orders."
+      },
+      "fulfillment": {
+        "title": "60-Day Fulfillment",
+        "description": "Guaranteed fulfillment within 60 days of campaign completion. Certainty for both buyers and suppliers."
+      },
+      "verifiedOrganizations": {
+        "title": "Verified Organizations",
+        "description": "Admin verification ensures only legitimate businesses participate. Trade with confidence on a trusted platform."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How Group Buying Works",
+    "subtitle": "A simple, transparent process that delivers volume discounts to businesses of all sizes through collective purchasing power.",
+    "ariaLabel": "Steps to get started",
+    "steps": {
+      "step1": {
+        "number": "01",
+        "title": "Suppliers Launch Campaigns",
+        "description": "Suppliers create group buying campaigns with tiered pricing. The more organizations join, the bigger the discount for everyone."
+      },
+      "step2": {
+        "number": "02",
+        "title": "Buyers Join and Pledge",
+        "description": "Browse active campaigns and commit to the quantities your organization needs. Watch real-time progress toward volume targets."
+      },
+      "step3": {
+        "number": "03",
+        "title": "Target Met, Campaign Locks",
+        "description": "When the target quantity is reached, the campaign locks in the best price tier. All participants get the volume discount."
+      },
+      "step4": {
+        "number": "04",
+        "title": "Fulfillment Within 60 Days",
+        "description": "Orders are processed and fulfilled within 60 days. Secure payments are collected only after campaign success."
+      }
+    }
+  },
+  "pricing": {
+    "title": "Aligned Incentives, Zero Risk",
+    "subtitle": "Free to join, free to launch. We only succeed when you save. Our platform fee is a small percentage of the discounts achieved.",
+    "ariaLabel": "Pricing plans",
+    "mostPopular": "Most Popular",
+    "plans": {
+      "buyers": {
+        "name": "For Buyers",
+        "description": "SMEs and enterprises seeking cost savings",
+        "price": "Free",
+        "period": "to join",
+        "buttonText": "Join as Buyer",
+        "features": [
+          "Browse and join active campaigns",
+          "Access volume-based discounts",
+          "Real-time campaign progress tracking",
+          "Secure payment protection",
+          "Order history and management",
+          "Multi-user organization accounts"
+        ]
+      },
+      "successBased": {
+        "name": "Success-Based",
+        "description": "Our aligned incentive model",
+        "price": "Small %",
+        "period": "of savings",
+        "buttonText": "Learn More",
+        "features": [
+          "Pay only when campaigns succeed",
+          "Percentage of discount achieved",
+          "No upfront platform fees",
+          "No monthly subscriptions",
+          "Aligned incentives for all parties",
+          "Transparent fee structure"
+        ]
+      },
+      "suppliers": {
+        "name": "For Suppliers",
+        "description": "B2B sellers seeking volume orders",
+        "price": "Free",
+        "period": "to launch",
+        "buttonText": "Launch Campaign",
+        "features": [
+          "Create group buying campaigns",
+          "Set tiered pricing brackets",
+          "Consolidated purchase orders",
+          "Predictable sales pipeline",
+          "Verified buyer organizations",
+          "Streamlined fulfillment"
+        ]
+      }
+    }
+  },
+  "testimonials": {
+    "title": "Trusted by Buyers and Suppliers",
+    "subtitle": "See how businesses are saving on procurement and suppliers are growing their volume through group buying campaigns.",
+    "ariaLabel": "Customer testimonials",
+    "ratingLabel": "{{rating}} out of 5 stars",
+    "items": {
+      "testimonial1": {
+        "quote": "We saved 35% on our office supplies procurement by joining group campaigns. As a mid-sized company, we never had access to these volume discounts before.",
+        "author": "Sarah Chen",
+        "role": "Procurement Manager",
+        "company": "TechFlow Inc."
+      },
+      "testimonial2": {
+        "quote": "Mashrook gave us predictable, large-volume orders that transformed our sales pipeline. The consolidated purchase orders make fulfillment seamless.",
+        "author": "Marcus Rodriguez",
+        "role": "Sales Director",
+        "company": "Industrial Supply Co."
+      },
+      "testimonial3": {
+        "quote": "The transparent tiered pricing let us plan our budget accurately. We knew exactly what discount we'd get once the campaign reached its target.",
+        "author": "Emily Watson",
+        "role": "CFO",
+        "company": "Growth Ventures"
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready to Unlock Volume Discounts?",
+    "subtitle": "Join the B2B group buying revolution. Whether you're looking to save on procurement or grow your sales volume, Mashrook connects you with the right partners.",
+    "buyerButton": "Join as Buyer",
+    "supplierButton": "Launch as Supplier"
+  },
+  "footer": {
+    "description": "The B2B group buying platform that delivers volume discounts to businesses of all sizes through collective purchasing power.",
+    "copyright": "{{year}} Mashrook. All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "cookies": "Cookies",
+    "socialLinks": {
+      "twitter": "Follow us on Twitter",
+      "linkedin": "Connect on LinkedIn",
+      "github": "View our GitHub"
+    },
+    "sections": {
+      "platform": {
+        "title": "Platform",
+        "howItWorks": "How It Works",
+        "features": "Features",
+        "pricing": "Pricing",
+        "activeCampaigns": "Active Campaigns",
+        "successStories": "Success Stories"
+      },
+      "buyers": {
+        "title": "For Buyers",
+        "joinCampaigns": "Join Campaigns",
+        "organizationSetup": "Organization Setup",
+        "pledgeManagement": "Pledge Management",
+        "orderHistory": "Order History",
+        "faq": "Buyer FAQ"
+      },
+      "suppliers": {
+        "title": "For Suppliers",
+        "launchCampaign": "Launch Campaign",
+        "pricingTiers": "Pricing Tiers",
+        "orderFulfillment": "Order Fulfillment",
+        "dashboard": "Supplier Dashboard",
+        "faq": "Supplier FAQ"
+      },
+      "legal": {
+        "title": "Legal",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service",
+        "cookiePolicy": "Cookie Policy",
+        "security": "Security",
+        "compliance": "Compliance"
+      }
+    }
+  },
+  "theme": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode"
+  }
+}

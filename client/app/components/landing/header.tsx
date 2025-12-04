@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../ui/button";
 import { ThemeToggle } from "../theme-toggle";
+import { LanguageSwitcher } from "../language-switcher";
 import { cn } from "../../lib/utils";
 
 interface HeaderProps {
@@ -11,6 +13,7 @@ interface HeaderProps {
 }
 
 function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
+	const { t } = useTranslation();
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isScrolled, setIsScrolled] = useState(false);
 
@@ -23,16 +26,16 @@ function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
 	}, []);
 
 	const navLinks = [
-		{ href: "#features", label: "Features" },
-		{ href: "#how-it-works", label: "How It Works" },
-		{ href: "#pricing", label: "Pricing" },
-		{ href: "#testimonials", label: "Testimonials" },
+		{ href: "#features", label: t("header.features") },
+		{ href: "#how-it-works", label: t("header.howItWorks") },
+		{ href: "#pricing", label: t("header.pricing") },
+		{ href: "#testimonials", label: t("header.testimonials") },
 	];
 
 	return (
 		<header
 			className={cn(
-				"fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+				"fixed top-0 start-0 end-0 z-50 transition-all duration-300",
 				isScrolled
 					? "bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
 					: "bg-transparent"
@@ -50,14 +53,14 @@ function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
 						<a
 							href="/"
 							className="text-xl font-bold text-foreground hover:text-primary transition-colors duration-200"
-							aria-label="Mashrook - Home"
+							aria-label={`${t("common.appName")} - ${t("common.home")}`}
 						>
-							Mashrook
+							{t("common.appName")}
 						</a>
 					</div>
 
 					{/* Desktop Navigation */}
-					<div className="hidden md:flex md:items-center md:space-x-8">
+					<div className="hidden md:flex md:items-center md:gap-8">
 						{navLinks.map((link) => (
 							<a
 								key={link.href}
@@ -70,18 +73,20 @@ function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
 					</div>
 
 					{/* Desktop Actions */}
-					<div className="hidden md:flex md:items-center md:space-x-4">
+					<div className="hidden md:flex md:items-center md:gap-4">
+						<LanguageSwitcher />
 						<ThemeToggle isDark={isDark} onToggle={onThemeToggle} />
 						<Button variant="ghost" size="sm">
-							Sign In
+							{t("header.signIn")}
 						</Button>
 						<Button size="sm">
-							Get Started
+							{t("header.getStarted")}
 						</Button>
 					</div>
 
 					{/* Mobile Menu Button */}
-					<div className="flex items-center space-x-2 md:hidden">
+					<div className="flex items-center gap-2 md:hidden">
+						<LanguageSwitcher />
 						<ThemeToggle isDark={isDark} onToggle={onThemeToggle} />
 						<Button
 							variant="ghost"
@@ -89,7 +94,7 @@ function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
 							onClick={() => setIsMenuOpen(!isMenuOpen)}
 							aria-expanded={isMenuOpen}
 							aria-controls="mobile-menu"
-							aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+							aria-label={isMenuOpen ? t("header.closeMenu") : t("header.openMenu")}
 						>
 							{isMenuOpen ? (
 								<X className="h-5 w-5" aria-hidden="true" />
@@ -121,12 +126,12 @@ function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
 								{link.label}
 							</a>
 						))}
-						<div className="flex flex-col space-y-2 px-3 pt-4">
+						<div className="flex flex-col gap-2 px-3 pt-4">
 							<Button variant="outline" className="w-full" tabIndex={isMenuOpen ? 0 : -1}>
-								Sign In
+								{t("header.signIn")}
 							</Button>
 							<Button className="w-full" tabIndex={isMenuOpen ? 0 : -1}>
-								Get Started
+								{t("header.getStarted")}
 							</Button>
 						</div>
 					</div>

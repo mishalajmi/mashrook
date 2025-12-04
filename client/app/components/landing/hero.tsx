@@ -1,9 +1,20 @@
 import type { ReactNode } from "react";
 import { ArrowRight, Play } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import { useLanguage } from "../../i18n/language-context";
 
 function Hero(): ReactNode {
+	const { t } = useTranslation();
+	const { isRtl } = useLanguage();
+
+	const stats = [
+		{ value: t("hero.stats.savings.value"), label: t("hero.stats.savings.label") },
+		{ value: t("hero.stats.fulfillment.value"), label: t("hero.stats.fulfillment.label") },
+		{ value: t("hero.stats.security.value"), label: t("hero.stats.security.label") },
+	];
+
 	return (
 		<section
 			className="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden"
@@ -11,8 +22,8 @@ function Hero(): ReactNode {
 		>
 			{/* Background decorative elements */}
 			<div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-				<div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float animate-breathe" />
-				<div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/5 rounded-full blur-3xl animate-float animate-breathe" style={{ animationDelay: "2s" }} />
+				<div className="absolute top-1/4 start-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float animate-breathe" />
+				<div className="absolute bottom-1/4 end-1/4 w-80 h-80 bg-secondary/5 rounded-full blur-3xl animate-float animate-breathe" style={{ animationDelay: "2s" }} />
 			</div>
 
 			<div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
@@ -20,8 +31,8 @@ function Hero(): ReactNode {
 					{/* Announcement Badge */}
 					<div className="animate-fade-in-down">
 						<Badge variant="outline" className="mb-6 px-4 py-1.5">
-							<span className="mr-2 inline-block w-2 h-2 rounded-full bg-primary animate-pulse-subtle" aria-hidden="true" />
-							First-of-its-kind B2B Group Buy Platform
+							<span className="me-2 inline-block w-2 h-2 rounded-full bg-primary animate-pulse-subtle" aria-hidden="true" />
+							{t("hero.badge")}
 						</Badge>
 					</div>
 
@@ -31,9 +42,9 @@ function Hero(): ReactNode {
 						className="animate-fade-in-up text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6"
 						style={{ animationDelay: "0.1s" }}
 					>
-						Unlock Enterprise Pricing
+						{t("hero.titleLine1")}
 						<br />
-						<span className="text-primary">Through Group Buying Power</span>
+						<span className="text-primary">{t("hero.titleLine2")}</span>
 					</h1>
 
 					{/* Subheading */}
@@ -41,8 +52,7 @@ function Hero(): ReactNode {
 						className="animate-fade-in-up mx-auto max-w-2xl text-lg sm:text-xl text-muted-foreground mb-10"
 						style={{ animationDelay: "0.2s" }}
 					>
-						The B2B procurement platform that aggregates purchase orders to deliver
-						volume discounts to businesses of all sizes. Save 20-40% on every order.
+						{t("hero.subtitle")}
 					</p>
 
 					{/* CTA Buttons */}
@@ -51,18 +61,18 @@ function Hero(): ReactNode {
 						style={{ animationDelay: "0.3s" }}
 					>
 						<Button size="xl" className="group">
-							Join Campaigns and Save
+							{t("hero.ctaPrimary")}
 							<ArrowRight
-								className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
+								className={`h-5 w-5 transition-transform duration-200 ${isRtl ? "me-2 group-hover:-translate-x-1 rotate-180" : "ms-2 group-hover:translate-x-1"}`}
 								aria-hidden="true"
 							/>
 						</Button>
 						<Button variant="outline" size="xl" className="group">
 							<Play
-								className="mr-2 h-5 w-5"
+								className="me-2 h-5 w-5"
 								aria-hidden="true"
 							/>
-							See How It Works
+							{t("hero.ctaSecondary")}
 						</Button>
 					</div>
 
@@ -72,14 +82,10 @@ function Hero(): ReactNode {
 						style={{ animationDelay: "0.4s" }}
 					>
 						<p className="text-sm text-muted-foreground mb-4">
-							Trusted by SMEs and enterprises across industries
+							{t("hero.trusted")}
 						</p>
 						<div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-							{[
-								{ value: "20-40%", label: "Average Savings" },
-								{ value: "60 Days", label: "Fulfillment Guarantee" },
-								{ value: "100%", label: "Payment Security" },
-							].map((stat) => (
+							{stats.map((stat) => (
 								<div key={stat.label} className="text-center">
 									<span className="block text-2xl sm:text-3xl font-bold text-primary">
 										{stat.value}

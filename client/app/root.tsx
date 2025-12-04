@@ -9,6 +9,8 @@ import {
 } from "react-router";
 
 import indexStylesHref from "./index.css?url";
+import "./i18n";
+import { LanguageProvider } from "./i18n/language-context";
 
 interface LayoutProps {
 	children: ReactNode;
@@ -81,5 +83,9 @@ export function HydrateFallback(): ReactNode {
 }
 
 export default function App(): ReactNode {
-	return <Outlet />;
+	return (
+		<LanguageProvider>
+			<Outlet />
+		</LanguageProvider>
+	);
 }
