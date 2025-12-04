@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+	--font-sans: system-ui, sans-serif;
+	--font-serif: Georgia, serif;
+}
+
+:root {
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body {
+	@apply bg-gray-50 text-gray-900 font-sans leading-relaxed;
+	margin: 0;
+	padding: 0;
+}
+
+h1 {
+	@apply text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight;
+}
+
+h2 {
+	@apply text-2xl font-semibold text-gray-900 mb-4 leading-tight;
+}
+
+h3 {
+	@apply text-xl font-semibold text-gray-900 mb-5 leading-snug;
+}
+
+h4 {
+	@apply text-lg font-medium text-gray-900 mb-3;
+}
+
+p {
+	@apply text-gray-900 leading-relaxed mb-4;
+}
+
+#error-page {
+	@apply flex flex-col items-center justify-center min-h-screen p-8;
+}
+
+#loading-splash {
+	@apply flex flex-col items-center justify-center min-h-screen;
+}
+
+#loading-splash-spinner {
+	@apply w-8 h-8 border-4 border-gray-200 border-t-gray-600 rounded-full animate-spin mb-4;
+}
