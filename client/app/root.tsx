@@ -10,7 +10,8 @@ import {
 
 import indexStylesHref from "./index.css?url";
 import "./i18n";
-import { LanguageProvider } from "./i18n/language-context";
+import { LanguageProvider } from "@/i18n/language-context";
+import { Toaster } from "@/components/ui";
 
 interface LayoutProps {
 	children: ReactNode;
@@ -86,6 +87,7 @@ export default function App(): ReactNode {
 	return (
 		<LanguageProvider>
 			<Outlet />
+			<Toaster />
 		</LanguageProvider>
 	);
 }

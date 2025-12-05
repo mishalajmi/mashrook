@@ -4,20 +4,51 @@
 	--font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	--font-serif: Georgia, "Times New Roman", serif;
 
-	/* Light mode colors (default) */
+	/* Light mode colors (default) - Mashrook Brand */
 	--color-background: #FBF9FF;
 	--color-foreground: #1a1a2e;
 	--color-primary: #02F5D4;
-	--color-primary-foreground: #ffffff;
+	--color-primary-foreground: #000807;
 	--color-secondary: #6366f1;
-	--color-secondary-foreground: #000807;
+	--color-secondary-foreground: #ffffff;
 	--color-muted: #f1f0f5;
 	--color-muted-foreground: #64748b;
 	--color-accent: #02F5D4;
-	--color-accent-foreground: #ffffff;
+	--color-accent-foreground: #000807;
 	--color-card: #ffffff;
 	--color-card-foreground: #1a1a2e;
 	--color-border: #e2e1e8;
+
+	/* Additional shadcn/ui required colors */
+	--color-destructive: #ef4444;
+	--color-destructive-foreground: #ffffff;
+	--color-input: #e2e1e8;
+	--color-ring: #02F5D4;
+	--color-popover: #ffffff;
+	--color-popover-foreground: #1a1a2e;
+
+	/* Chart colors for data visualization */
+	--color-chart-1: #02F5D4;
+	--color-chart-2: #6366f1;
+	--color-chart-3: #f59e0b;
+	--color-chart-4: #10b981;
+	--color-chart-5: #ec4899;
+
+	/* Sidebar colors */
+	--color-sidebar: #f8f7fc;
+	--color-sidebar-foreground: #1a1a2e;
+	--color-sidebar-primary: #02F5D4;
+	--color-sidebar-primary-foreground: #000807;
+	--color-sidebar-accent: #f1f0f5;
+	--color-sidebar-accent-foreground: #1a1a2e;
+	--color-sidebar-border: #e2e1e8;
+	--color-sidebar-ring: #02F5D4;
+
+	/* Radius */
+	--radius-sm: 0.25rem;
+	--radius-md: 0.375rem;
+	--radius-lg: 0.5rem;
+	--radius-xl: 0.75rem;
 
 	/* Animation timing */
 	--animate-fade-in: fade-in 0.5s ease-out;
@@ -29,16 +60,18 @@
 	--animate-float: float 6s ease-in-out infinite;
 	--animate-pulse-subtle: pulse-subtle 2s ease-in-out infinite;
 	--animate-breathe: breathe 4s ease-in-out infinite;
+	--animate-accordion-down: accordion-down 0.2s ease-out;
+	--animate-accordion-up: accordion-up 0.2s ease-out;
 }
 
-/* Dark mode colors */
+/* Dark mode colors - Mashrook Brand */
 .dark {
 	--color-background: #000807;
 	--color-foreground: #f0f0f5;
 	--color-primary: #02F5D4;
 	--color-primary-foreground: #000807;
-	--color-secondary: #02F5D4;
-	--color-secondary-foreground: #000807;
+	--color-secondary: #6366f1;
+	--color-secondary-foreground: #ffffff;
 	--color-muted: #1a1f1e;
 	--color-muted-foreground: #94a3b8;
 	--color-accent: #02F5D4;
@@ -46,6 +79,31 @@
 	--color-card: #0d1211;
 	--color-card-foreground: #f0f0f5;
 	--color-border: #1f2a28;
+
+	/* Additional shadcn/ui required colors - dark mode */
+	--color-destructive: #dc2626;
+	--color-destructive-foreground: #ffffff;
+	--color-input: #1f2a28;
+	--color-ring: #02F5D4;
+	--color-popover: #0d1211;
+	--color-popover-foreground: #f0f0f5;
+
+	/* Chart colors for data visualization - dark mode */
+	--color-chart-1: #02F5D4;
+	--color-chart-2: #818cf8;
+	--color-chart-3: #fbbf24;
+	--color-chart-4: #34d399;
+	--color-chart-5: #f472b6;
+
+	/* Sidebar colors - dark mode */
+	--color-sidebar: #0d1211;
+	--color-sidebar-foreground: #f0f0f5;
+	--color-sidebar-primary: #02F5D4;
+	--color-sidebar-primary-foreground: #000807;
+	--color-sidebar-accent: #1a1f1e;
+	--color-sidebar-accent-foreground: #f0f0f5;
+	--color-sidebar-border: #1f2a28;
+	--color-sidebar-ring: #02F5D4;
 }
 
 @keyframes fade-in {
@@ -138,6 +196,24 @@
 	50% {
 		transform: scale(1.02);
 		opacity: 0.95;
+	}
+}
+
+@keyframes accordion-down {
+	from {
+		height: 0;
+	}
+	to {
+		height: var(--radix-accordion-content-height);
+	}
+}
+
+@keyframes accordion-up {
+	from {
+		height: var(--radix-accordion-content-height);
+	}
+	to {
+		height: 0;
 	}
 }
 

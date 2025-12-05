@@ -8,7 +8,7 @@ import {
 	BadgeCheck,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Card, CardHeader, CardTitle, CardDescription } from "../ui/card";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui";
 
 interface Feature {
 	icon: ReactNode;

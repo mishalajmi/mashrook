@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
 import { ArrowRight, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import { useLanguage } from "../../i18n/language-context";
+import { Button, Badge } from "@/components/ui";
+import { useLanguage } from "@/i18n/language-context";
 
 function Hero(): ReactNode {
 	const { t } = useTranslation();

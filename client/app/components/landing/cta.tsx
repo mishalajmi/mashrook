@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/button";
-import { useLanguage } from "../../i18n/language-context";
+import { Button } from "@/components/ui";
+import { useLanguage } from "@/i18n/language-context";
 
 function CTA(): ReactNode {
 	const { t } = useTranslation();
@@ -43,7 +43,7 @@ function CTA(): ReactNode {
 						<Button
 							size="xl"
 							variant="outline"
-							className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+							className="border-primary-foreground/30 text-foreground text-primary-foreground hover:bg-primary-foreground/10"
 						>
 							{t("cta.supplierButton")}
 						</Button>

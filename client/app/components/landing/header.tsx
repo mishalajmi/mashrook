@@ -1,11 +1,19 @@
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/button";
-import { ThemeToggle } from "../theme-toggle";
-import { LanguageSwitcher } from "../language-switcher";
-import { cn } from "../../lib/utils";
+import {
+	Button,
+	Sheet,
+	SheetContent,
+	SheetTrigger,
+	SheetHeader,
+	SheetTitle,
+	Separator,
+} from "@/components/ui";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
 	isDark: boolean;
@@ -84,56 +92,49 @@ function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
 						</Button>
 					</div>
 
-					{/* Mobile Menu Button */}
+					{/* Mobile Menu */}
 					<div className="flex items-center gap-2 md:hidden">
 						<LanguageSwitcher />
 						<ThemeToggle isDark={isDark} onToggle={onThemeToggle} />
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={() => setIsMenuOpen(!isMenuOpen)}
-							aria-expanded={isMenuOpen}
-							aria-controls="mobile-menu"
-							aria-label={isMenuOpen ? t("header.closeMenu") : t("header.openMenu")}
-						>
-							{isMenuOpen ? (
-								<X className="h-5 w-5" aria-hidden="true" />
-							) : (
-								<Menu className="h-5 w-5" aria-hidden="true" />
-							)}
-						</Button>
-					</div>
-				</div>
-
-				{/* Mobile Menu */}
-				<div
-					id="mobile-menu"
-					className={cn(
-						"md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-						isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-					)}
-					aria-hidden={!isMenuOpen}
-				>
-					<div className="space-y-1 pb-4 pt-2">
-						{navLinks.map((link) => (
-							<a
-								key={link.href}
-								href={link.href}
-								className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors duration-200"
-								onClick={() => setIsMenuOpen(false)}
-								tabIndex={isMenuOpen ? 0 : -1}
-							>
-								{link.label}
-							</a>
-						))}
-						<div className="flex flex-col gap-2 px-3 pt-4">
-							<Button variant="outline" className="w-full" tabIndex={isMenuOpen ? 0 : -1}>
-								{t("header.signIn")}
-							</Button>
-							<Button className="w-full" tabIndex={isMenuOpen ? 0 : -1}>
-								{t("header.getStarted")}
-							</Button>
-						</div>
+						<Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+							<SheetTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									aria-label={t("header.openMenu")}
+								>
+									<Menu className="h-5 w-5" aria-hidden="true" />
+								</Button>
+							</SheetTrigger>
+							<SheetContent side="right" className="w-[300px] sm:w-[350px]">
+								<SheetHeader>
+									<SheetTitle>{t("common.appName")}</SheetTitle>
+								</SheetHeader>
+								<div className="flex flex-col gap-4 mt-6">
+									<nav className="flex flex-col gap-2">
+										{navLinks.map((link) => (
+											<a
+												key={link.href}
+												href={link.href}
+												className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors duration-200"
+												onClick={() => setIsMenuOpen(false)}
+											>
+												{link.label}
+											</a>
+										))}
+									</nav>
+									<Separator />
+									<div className="flex flex-col gap-2 px-3">
+										<Button variant="outline" className="w-full" onClick={() => setIsMenuOpen(false)}>
+											{t("header.signIn")}
+										</Button>
+										<Button className="w-full" onClick={() => setIsMenuOpen(false)}>
+											{t("header.getStarted")}
+										</Button>
+									</div>
+								</div>
+							</SheetContent>
+						</Sheet>
 					</div>
 				</div>
 			</nav>

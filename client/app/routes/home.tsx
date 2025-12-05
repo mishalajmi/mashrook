@@ -11,7 +11,7 @@ import {
 	Testimonials,
 	CTA,
 	Footer,
-} from "../components/landing";
+} from "@/components/landing";
 
 // SEO and Open Graph metadata
 export function meta(): MetaDescriptor[] {

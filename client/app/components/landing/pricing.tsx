@@ -1,10 +1,17 @@
 import type { ReactNode } from "react";
 import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../ui/card";
-import { Badge } from "../ui/badge";
-import { cn } from "../../lib/utils";
+import {
+	Button,
+	Card,
+	CardHeader,
+	CardTitle,
+	CardDescription,
+	CardContent,
+	CardFooter,
+	Badge,
+} from "@/components/ui";
+import { cn } from "@/lib/utils";
 
 interface PlanConfig {
 	planKey: string;

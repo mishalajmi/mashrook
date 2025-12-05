@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Card, CardContent } from "../ui/card";
+import { Card, CardContent, Avatar, AvatarFallback } from "@/components/ui";
 
 interface TestimonialConfig {
 	testimonialKey: string;
@@ -81,17 +81,14 @@ function Testimonials(): ReactNode {
 
 									{/* Author */}
 									<footer className="flex items-center gap-3">
-										<div
-											className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
-											aria-hidden="true"
-										>
-											<span className="text-sm font-semibold text-primary">
+										<Avatar>
+											<AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
 												{author
 													.split(" ")
 													.map((n: string) => n[0])
 													.join("")}
-											</span>
-										</div>
+											</AvatarFallback>
+										</Avatar>
 										<div>
 											<cite className="not-italic">
 												<p className="text-sm font-semibold text-foreground">

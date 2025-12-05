@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { Languages } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "./ui/button";
-import { useLanguage } from "../i18n/language-context";
-import { languageNames, type SupportedLanguage } from "../i18n";
+import { Button } from "@/components/ui";
+import { useLanguage } from "@/i18n/language-context";
+import { languageNames, type SupportedLanguage } from "@/i18n";
 
 function LanguageSwitcher(): ReactNode {
 	const { t } = useTranslation();
