@@ -3,10 +3,11 @@ package sa.elm.mashrook.organizations.domain;
 public enum OrganizationStatus {
     PENDING("pending"),
     ACTIVE("active"),
+    INACTIVE("inactive"),
     DISABLED("disabled"),
     DELETED("deleted");
 
-    private String value;
+    private final String value;
     OrganizationStatus(String value) {
         this.value = value;
     }

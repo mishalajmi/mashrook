@@ -77,6 +77,7 @@ function HomeContent(): ReactNode {
 
 	// Handle initial theme setup on client
 	useEffect(() => {
+		if (typeof window === "undefined") return;
 		setMounted(true);
 		// Check localStorage first, then system preference
 		const savedTheme = localStorage.getItem("theme");
@@ -89,6 +90,7 @@ function HomeContent(): ReactNode {
 
 	// Apply theme class to document
 	useEffect(() => {
+		if (typeof window === "undefined") return;
 		if (mounted) {
 			if (isDark) {
 				document.documentElement.classList.add("dark");

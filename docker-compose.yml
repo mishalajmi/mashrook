@@ -16,13 +16,38 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - mashrook-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mashrook-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
   server:
     build:
       context: ./server
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
     ports:
@@ -31,6 +56,8 @@ services:
       - DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     networks:
       - mashrook-network
   client:
@@ -44,10 +71,11 @@ services:
       - "3000:3000"
     networks:
       - mashrook-network
-
 volumes:
   postgres_data:
     name: ${APP_NAME:-mashrook-app}_postgres_data
+  redis_data:
+    name: ${APP_NAME:-mashrook-app}_redis_data
 
 networks:
   mashrook-network:

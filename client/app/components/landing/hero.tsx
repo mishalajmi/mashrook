@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router";
 import { ArrowRight, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button, Badge } from "@/components/ui";
@@ -21,8 +22,8 @@ function Hero(): ReactNode {
 		>
 			{/* Background decorative elements */}
 			<div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-				<div className="absolute top-1/4 start-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float animate-breathe" />
-				<div className="absolute bottom-1/4 end-1/4 w-80 h-80 bg-secondary/5 rounded-full blur-3xl animate-float animate-breathe" style={{ animationDelay: "2s" }} />
+				<div className="absolute top-1/4 start-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-breathe" />
+				<div className="absolute bottom-1/4 end-1/4 w-80 h-80 bg-secondary/5 rounded-full blur-3xl animate-breathe" style={{ animationDelay: "2s" }} />
 			</div>
 
 			<div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
@@ -59,19 +60,23 @@ function Hero(): ReactNode {
 						className="animate-fade-in-up flex flex-col sm:flex-row items-center justify-center gap-4"
 						style={{ animationDelay: "0.3s" }}
 					>
-						<Button size="xl" className="group">
-							{t("hero.ctaPrimary")}
-							<ArrowRight
-								className={`h-5 w-5 transition-transform duration-200 ${isRtl ? "me-2 group-hover:-translate-x-1 rotate-180" : "ms-2 group-hover:translate-x-1"}`}
-								aria-hidden="true"
-							/>
+						<Button size="xl" className="group" asChild>
+							<Link to="/register">
+								{t("hero.ctaPrimary")}
+								<ArrowRight
+									className={`h-5 w-5 transition-transform duration-200 ${isRtl ? "me-2 group-hover:-translate-x-1 rotate-180" : "ms-2 group-hover:translate-x-1"}`}
+									aria-hidden="true"
+								/>
+							</Link>
 						</Button>
-						<Button variant="outline" size="xl" className="group">
-							<Play
-								className="me-2 h-5 w-5"
-								aria-hidden="true"
-							/>
-							{t("hero.ctaSecondary")}
+						<Button variant="outline" size="xl" className="group" asChild>
+							<a href="#how-it-works">
+								<Play
+									className="me-2 h-5 w-5"
+									aria-hidden="true"
+								/>
+								{t("hero.ctaSecondary")}
+							</a>
 						</Button>
 					</div>
 
@@ -86,10 +91,10 @@ function Hero(): ReactNode {
 						<div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
 							{stats.map((stat) => (
 								<div key={stat.label} className="text-center">
-									<span className="block text-2xl sm:text-3xl font-bold text-primary">
+									<span className="block text-[40px] font-bold text-primary leading-none">
 										{stat.value}
 									</span>
-									<span className="text-sm text-muted-foreground">
+									<span className="text-sm font-medium text-gray-600">
 										{stat.label}
 									</span>
 								</div>

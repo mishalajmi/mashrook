@@ -43,7 +43,7 @@ function CTA(): ReactNode {
 						<Button
 							size="xl"
 							variant="outline"
-							className="border-primary-foreground/30 text-foreground text-primary-foreground hover:bg-primary-foreground/10"
+							className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
 						>
 							{t("cta.supplierButton")}
 						</Button>

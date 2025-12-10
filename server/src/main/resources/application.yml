@@ -19,6 +19,27 @@ spring:
     driver-class-name: org.postgresql.Driver
   jackson:
     property-naming-strategy: SNAKE_CASE
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 5000ms
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+    default-encoding: UTF-8
 
 server:
   servlet:
@@ -28,3 +49,21 @@ server:
 logging:
   level:
     root: info
+
+mashrook:
+  auth:
+    jwt:
+      secret: ${JWT_SECRET_KEY}
+      issuer: mashrook.sa
+      accessTokenExpirationMs: ${JWT_ACCESS_EXPIRATION_IN_MS}
+      refreshTokenExpirationMs: ${JWT_REFRESH_EXPIRATION_IN_MS}
+    cookie:
+      secure: ${COOKIE_SECURE:true}
+      same-site: Lax
+      path: /api/v1/auth/refresh
+      name: refresh_token
+    verification:
+      emailVerificationTtlMs: ${EMAIL_VERIFICATION_TTL_MS:86400000}
+      passwordResetTtlMs: ${PASSWORD_RESET_TTL_MS:3600000}
+      accountActivationTtlMs: ${ACCOUNT_ACTIVATION_TTL_MS:172800000}
+      frontendBaseUrl: ${FRONTEND_BASE_URL:http://localhost:5173}

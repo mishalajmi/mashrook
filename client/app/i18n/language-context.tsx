@@ -27,6 +27,9 @@ export function LanguageProvider({ children }: LanguageProviderProps): ReactNode
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
+		// SSR guard - only run in browser environment
+		if (typeof window === "undefined") return;
+
 		setMounted(true);
 		const storedLang = getStoredLanguage();
 		setLanguage(storedLang);
@@ -34,6 +37,9 @@ export function LanguageProvider({ children }: LanguageProviderProps): ReactNode
 	}, []);
 
 	useEffect(() => {
+		// SSR guard - only run in browser environment
+		if (typeof window === "undefined") return;
+
 		if (mounted) {
 			const dir = isRtlLanguage(language) ? "rtl" : "ltr";
 			document.documentElement.setAttribute("dir", dir);

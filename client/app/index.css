@@ -1,34 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-	--font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 	--font-serif: Georgia, "Times New Roman", serif;
 
 	/* Light mode colors (default) - Mashrook Brand */
-	--color-background: #FBF9FF;
-	--color-foreground: #1a1a2e;
-	--color-primary: #02F5D4;
-	--color-primary-foreground: #000807;
+	--color-background: #FFFFFF;
+	--color-foreground: #111827;
+	--color-primary: #0F766E;
+	--color-primary-hover: #115E59;
+	--color-primary-active: #134E4A;
+	--color-primary-light: #14B8A6;
+	--color-primary-foreground: #FFFFFF;
 	--color-secondary: #6366f1;
 	--color-secondary-foreground: #ffffff;
-	--color-muted: #f1f0f5;
-	--color-muted-foreground: #64748b;
-	--color-accent: #02F5D4;
-	--color-accent-foreground: #000807;
+	--color-muted: #F9FAFB;
+	--color-muted-foreground: #6B7280;
+	--color-accent: #0F766E;
+	--color-accent-foreground: #FFFFFF;
 	--color-card: #ffffff;
-	--color-card-foreground: #1a1a2e;
-	--color-border: #e2e1e8;
+	--color-card-foreground: #111827;
+	--color-border: #E5E7EB;
+
+	/* Text color hierarchy */
+	--color-text-primary: #111827;
+	--color-text-secondary: #4B5563;
+	--color-text-tertiary: #6B7280;
+	--color-text-disabled: #9CA3AF;
+
+	/* Shadow system */
+	--shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	--shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
 	/* Additional shadcn/ui required colors */
 	--color-destructive: #ef4444;
 	--color-destructive-foreground: #ffffff;
-	--color-input: #e2e1e8;
-	--color-ring: #02F5D4;
+	--color-input: #E5E7EB;
+	--color-ring: #0F766E;
 	--color-popover: #ffffff;
-	--color-popover-foreground: #1a1a2e;
+	--color-popover-foreground: #111827;
 
 	/* Chart colors for data visualization */
-	--color-chart-1: #02F5D4;
+	--color-chart-1: #0F766E;
 	--color-chart-2: #6366f1;
 	--color-chart-3: #f59e0b;
 	--color-chart-4: #10b981;
@@ -36,19 +52,19 @@
 
 	/* Sidebar colors */
 	--color-sidebar: #f8f7fc;
-	--color-sidebar-foreground: #1a1a2e;
-	--color-sidebar-primary: #02F5D4;
-	--color-sidebar-primary-foreground: #000807;
-	--color-sidebar-accent: #f1f0f5;
-	--color-sidebar-accent-foreground: #1a1a2e;
-	--color-sidebar-border: #e2e1e8;
-	--color-sidebar-ring: #02F5D4;
+	--color-sidebar-foreground: #111827;
+	--color-sidebar-primary: #0F766E;
+	--color-sidebar-primary-foreground: #FFFFFF;
+	--color-sidebar-accent: #F9FAFB;
+	--color-sidebar-accent-foreground: #111827;
+	--color-sidebar-border: #E5E7EB;
+	--color-sidebar-ring: #0F766E;
 
-	/* Radius */
-	--radius-sm: 0.25rem;
-	--radius-md: 0.375rem;
-	--radius-lg: 0.5rem;
-	--radius-xl: 0.75rem;
+	/* Radius - buttons 6px, cards 8px, large cards 12px */
+	--radius-sm: 4px;
+	--radius-md: 6px;
+	--radius-lg: 8px;
+	--radius-xl: 12px;
 
 	/* Animation timing */
 	--animate-fade-in: fade-in 0.5s ease-out;
@@ -68,28 +84,37 @@
 .dark {
 	--color-background: #000807;
 	--color-foreground: #f0f0f5;
-	--color-primary: #02F5D4;
+	--color-primary: #14B8A6;
+	--color-primary-hover: #0F766E;
+	--color-primary-active: #115E59;
+	--color-primary-light: #2DD4BF;
 	--color-primary-foreground: #000807;
 	--color-secondary: #6366f1;
 	--color-secondary-foreground: #ffffff;
 	--color-muted: #1a1f1e;
 	--color-muted-foreground: #94a3b8;
-	--color-accent: #02F5D4;
+	--color-accent: #14B8A6;
 	--color-accent-foreground: #000807;
 	--color-card: #0d1211;
 	--color-card-foreground: #f0f0f5;
 	--color-border: #1f2a28;
 
+	/* Text color hierarchy - dark mode */
+	--color-text-primary: #F9FAFB;
+	--color-text-secondary: #D1D5DB;
+	--color-text-tertiary: #9CA3AF;
+	--color-text-disabled: #6B7280;
+
 	/* Additional shadcn/ui required colors - dark mode */
 	--color-destructive: #dc2626;
 	--color-destructive-foreground: #ffffff;
 	--color-input: #1f2a28;
-	--color-ring: #02F5D4;
+	--color-ring: #14B8A6;
 	--color-popover: #0d1211;
 	--color-popover-foreground: #f0f0f5;
 
 	/* Chart colors for data visualization - dark mode */
-	--color-chart-1: #02F5D4;
+	--color-chart-1: #14B8A6;
 	--color-chart-2: #818cf8;
 	--color-chart-3: #fbbf24;
 	--color-chart-4: #34d399;
@@ -98,12 +123,12 @@
 	/* Sidebar colors - dark mode */
 	--color-sidebar: #0d1211;
 	--color-sidebar-foreground: #f0f0f5;
-	--color-sidebar-primary: #02F5D4;
+	--color-sidebar-primary: #14B8A6;
 	--color-sidebar-primary-foreground: #000807;
 	--color-sidebar-accent: #1a1f1e;
 	--color-sidebar-accent-foreground: #f0f0f5;
 	--color-sidebar-border: #1f2a28;
-	--color-sidebar-ring: #02F5D4;
+	--color-sidebar-ring: #14B8A6;
 }
 
 @keyframes fade-in {
@@ -310,4 +335,50 @@ p {
 
 .dark::-webkit-scrollbar-thumb:hover {
 	background: var(--color-muted-foreground);
+}
+
+/* Animation utility classes */
+.animate-breathe {
+	animation: breathe 4s ease-in-out infinite;
+}
+
+.animate-float {
+	animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+	animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+.animate-fade-in {
+	animation: fade-in 0.5s ease-out;
+}
+
+.animate-fade-in-up {
+	animation: fade-in-up 0.6s ease-out;
+}
+
+.animate-fade-in-down {
+	animation: fade-in-down 0.6s ease-out;
+}
+
+.animate-slide-in-left {
+	animation: slide-in-left 0.5s ease-out;
+}
+
+.animate-slide-in-right {
+	animation: slide-in-right 0.5s ease-out;
+}
+
+.animate-scale-in {
+	animation: scale-in 0.4s ease-out;
+}
+
+/* Card hover lift - explicit transform to ensure it works */
+.hover\:-translate-y-0\.5:hover {
+	transform: translateY(-2px);
+}
+
+.hover\:-translate-y-1:hover {
+	transform: translateY(-4px);
 }

@@ -13,15 +13,29 @@ type Pages = {
   "/": {
     params: {};
   };
+  "/login": {
+    params: {};
+  };
+  "/register": {
+    params: {};
+  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/";
+    page: "/" | "/login" | "/register";
   };
   "routes/home.tsx": {
     id: "routes/home";
     page: "/";
+  };
+  "routes/login.tsx": {
+    id: "routes/login";
+    page: "/login";
+  };
+  "routes/register.tsx": {
+    id: "routes/register";
+    page: "/register";
   };
 };

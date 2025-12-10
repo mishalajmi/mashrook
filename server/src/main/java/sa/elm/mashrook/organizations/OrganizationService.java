@@ -3,10 +3,12 @@ package sa.elm.mashrook.organizations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import sa.elm.mashrook.exceptions.OrganizationNotFoundException;
 import sa.elm.mashrook.organizations.dto.OrganizationCreateRequest;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationRepository;
+import sa.elm.mashrook.organizations.domain.OrganizationStatus;
 import sa.elm.mashrook.organizations.domain.OrganizationType;
 
 import java.util.List;
@@ -35,7 +37,22 @@ public class OrganizationService {
     }
 
     public OrganizationEntity createOrganization(OrganizationCreateRequest request) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        OrganizationEntity organization = OrganizationEntity.from(request);
+        return organizationRepository.save(organization);
     }
 
+    /**
+     * Activates an organization by setting its status to ACTIVE.
+     *
+     * @param organizationId the organization ID to activate
+     * @return the activated organization
+     */
+    @Transactional
+    public OrganizationEntity activateOrganization(UUID organizationId) {
+        OrganizationEntity organization = findByOrganizationId(organizationId);
+        organization.setStatus(OrganizationStatus.ACTIVE);
+        organizationRepository.save(organization);
+        log.info("Activated organization: {}", organizationId);
+        return organization;
+    }
 }

@@ -18,7 +18,11 @@
     "signIn": "Sign In",
     "getStarted": "Get Started",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "userMenu": "User menu",
+    "profile": "Profile",
+    "dashboard": "Dashboard",
+    "logout": "Logout"
   },
   "hero": {
     "badge": "First-of-its-kind B2B Group Buy Platform",
@@ -235,5 +239,68 @@
   "theme": {
     "switchToLight": "Switch to light mode",
     "switchToDark": "Switch to dark mode"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "subtitle": "Enter your credentials to access your account",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign In",
+      "submitting": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "register": "Sign up",
+      "forgotPassword": "Forgot password?",
+      "error": "Invalid email or password"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Enter your details to create your account",
+      "name": {
+        "first": "First Name",
+        "last": "Last Name"
+      },
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "organizationName": "Organization Name",
+      "organizationNameEn": "Organization Name (English)",
+      "organizationNameAr": "Organization Name (Arabic)",
+      "organizationType": "Organization Type",
+      "organizationIndustry": "Industry",
+      "selectType": "Select organization type",
+      "supplier": "Supplier",
+      "buyer": "Buyer",
+      "submit": "Create Account",
+      "submitting": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "login": "Sign in",
+      "error": "Registration failed. Please try again.",
+      "emailTaken": "This email is already registered",
+      "checkingEmail": "Checking email availability...",
+      "emailAvailable": "Email is available",
+      "passwordStrengthLabel": "Password strength"
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "passwordStrength": {
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "passwordUppercase": "Password must contain at least one uppercase letter",
+      "passwordLowercase": "Password must contain at least one lowercase letter",
+      "passwordNumber": "Password must contain at least one number",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordsMatch": "Passwords do not match",
+      "organizationNameRequired": "Organization name is required",
+      "organizationNameMinLength": "Organization name must be at least 2 characters",
+      "organizationTypeRequired": "Please select an organization type"
+    }
   }
 }

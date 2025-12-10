@@ -1,0 +1,68 @@
+# Integration Test Configuration
+# This profile is automatically activated when running integration tests that extend AbstractIntegrationTest.
+# Database and Redis connection properties are dynamically injected by Testcontainers via @DynamicPropertySource.
+
+spring:
+  application:
+    name: mashrook-integration-test
+
+  # JPA/Hibernate configuration for tests
+  jpa:
+    hibernate:
+      ddl-auto: none  # Let Flyway handle schema management
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true  # Enable SQL logging for debugging tests
+
+  # Flyway configuration
+  # Connection properties are injected dynamically by Testcontainers
+  flyway:
+    enabled: true
+    validate-migration-naming: true
+    validate-on-migrate: true
+    clean-disabled: false  # Allow cleaning in tests (BE CAREFUL - only for test profile!)
+    driver-class-name: org.postgresql.Driver
+
+  # Jackson configuration (consistent with main application)
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+
+  # Redis configuration
+  # Host and port are injected dynamically by Testcontainers
+  data:
+    redis:
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+# Server configuration
+server:
+  servlet:
+    context-path: /api
+
+# Logging configuration for tests
+logging:
+  level:
+    root: INFO
+    sa.elm.mashrook: DEBUG
+    org.springframework.jdbc: DEBUG
+    org.testcontainers: INFO
+    org.flywaydb: INFO
+
+# Application-specific test configuration
+mashrook:
+  auth:
+    jwt:
+      secret: test-jwt-secret-key-for-integration-tests-must-be-at-least-256-bits-long
+      issuer: mashrook-test.sa
+      accessTokenExpirationMs: 3600000   # 1 hour for tests
+      refreshTokenExpirationMs: 86400000  # 24 hours for tests
+    cookie:
+      secure: false  # Disable secure flag for tests (HTTP in test environment)
+      same-site: Lax
+      path: /api/v1/auth
+      name: refresh_token

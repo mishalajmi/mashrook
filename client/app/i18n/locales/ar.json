@@ -18,7 +18,11 @@
     "signIn": "تسجيل الدخول",
     "getStarted": "ابدأ الآن",
     "openMenu": "فتح القائمة",
-    "closeMenu": "إغلاق القائمة"
+    "closeMenu": "إغلاق القائمة",
+    "userMenu": "قائمة المستخدم",
+    "profile": "الملف الشخصي",
+    "dashboard": "لوحة التحكم",
+    "logout": "تسجيل الخروج"
   },
   "hero": {
     "badge": "أول منصة شراء جماعي للشركات من نوعها",
@@ -235,5 +239,68 @@
   "theme": {
     "switchToLight": "التبديل للوضع الفاتح",
     "switchToDark": "التبديل للوضع الداكن"
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "subtitle": "أدخل بياناتك للوصول إلى حسابك",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "submitting": "جاري تسجيل الدخول...",
+      "noAccount": "ليس لديك حساب؟",
+      "register": "إنشاء حساب",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "error": "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+    },
+    "register": {
+      "title": "إنشاء حساب",
+      "subtitle": "أدخل بياناتك لإنشاء حسابك",
+      "name": {
+        "first": "الاسم الأول",
+        "last": "اسم العائلة"
+      },
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "organizationName": "اسم المؤسسة",
+      "organizationNameEn": "اسم المؤسسة (بالإنجليزية)",
+      "organizationNameAr": "اسم المؤسسة (بالعربية)",
+      "organizationType": "نوع المؤسسة",
+      "organizationIndustry": "المجال",
+      "selectType": "اختر نوع المؤسسة",
+      "supplier": "مورد",
+      "buyer": "مشتري",
+      "submit": "إنشاء حساب",
+      "submitting": "جاري إنشاء الحساب...",
+      "hasAccount": "لديك حساب بالفعل؟",
+      "login": "تسجيل الدخول",
+      "error": "فشل إنشاء الحساب. يرجى المحاولة مرة أخرى.",
+      "emailTaken": "هذا البريد الإلكتروني مسجل بالفعل",
+      "checkingEmail": "جاري التحقق من توفر البريد الإلكتروني...",
+      "emailAvailable": "البريد الإلكتروني متاح",
+      "passwordStrengthLabel": "قوة كلمة المرور"
+    },
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
+    "passwordStrength": {
+      "weak": "ضعيفة",
+      "medium": "متوسطة",
+      "strong": "قوية"
+    },
+    "validation": {
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "emailInvalid": "يرجى إدخال بريد إلكتروني صحيح",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "passwordMinLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+      "passwordUppercase": "يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل",
+      "passwordLowercase": "يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل",
+      "passwordNumber": "يجب أن تحتوي كلمة المرور على رقم واحد على الأقل",
+      "confirmPasswordRequired": "يرجى تأكيد كلمة المرور",
+      "passwordsMatch": "كلمات المرور غير متطابقة",
+      "organizationNameRequired": "اسم المؤسسة مطلوب",
+      "organizationNameMinLength": "يجب أن يكون اسم المؤسسة حرفين على الأقل",
+      "organizationTypeRequired": "يرجى اختيار نوع المؤسسة"
+    }
   }
 }

@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import sa.elm.mashrook.organizations.dto.OrganizationCreateRequest;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,28 +27,53 @@ public class OrganizationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false, unique = true, name = "organization_id")
     private UUID organizationId;
+
     @Column(nullable = false, unique = true, name = "name_en")
     private String nameEn;
+
     @Column(nullable = false, unique = true, name = "name_ar")
     private String nameAr;
+
     @Column(nullable = false, unique = true, name = "slug")
     private String slug;
+
     @Column(nullable = false, name = "industry")
     private String industry;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "type")
     private OrganizationType type;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, name = "status")
-    private OrganizationStatus status;
+    private OrganizationStatus status = OrganizationStatus.PENDING;
+
     @CreatedDate
     @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;
+
     @LastModifiedDate
-    @Column(name = "update_at")
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public static OrganizationEntity from(OrganizationCreateRequest request) {
+        OrganizationEntity organization = new OrganizationEntity();
+        organization.setOrganizationId(UUID.randomUUID());
+        organization.setNameAr(request.nameAr());
+        organization.setNameEn(request.nameEn());
+        organization.setType(request.type());
+        organization.setIndustry(request.industry());
+        organization.setSlug(organization.generateSlug());
+        organization.setStatus(OrganizationStatus.INACTIVE);
+        organization.setCreatedAt(LocalDateTime.now());
+        return organization;
+    }
 
     @PrePersist
     public void onCreate() {
@@ -57,5 +83,17 @@ public class OrganizationEntity {
     @PreUpdate
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateOrganization(OrganizationStatus status, Long userId) {
+        this.status = status;
+        this.updatedBy =  userId;
+    }
+
+    public String generateSlug() {
+        return nameEn.trim().toLowerCase()
+                .replaceAll("[^a-z0-9\s-]", "")
+                .replaceAll("\s+", "-")
+                .replaceAll("-+", "-");
     }
 }

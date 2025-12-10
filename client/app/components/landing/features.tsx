@@ -81,7 +81,7 @@ function Features(): ReactNode {
 					{featureConfigs.map((feature, index) => (
 						<Card
 							key={feature.titleKey}
-							className="group hover:shadow-lg hover:border-primary/20 hover:-translate-y-1 transition-all duration-300 bg-card/50 backdrop-blur-sm"
+							className="group hover:shadow-md hover:border-gray-300 hover:-translate-y-0.5 transition-all duration-200 bg-card/50 backdrop-blur-sm"
 							role="listitem"
 							style={{ animationDelay: `${index * 0.1}s` }}
 						>

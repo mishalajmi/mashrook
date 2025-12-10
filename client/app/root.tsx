@@ -11,7 +11,9 @@ import {
 import indexStylesHref from "./index.css?url";
 import "./i18n";
 import { LanguageProvider } from "@/i18n/language-context";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui";
+import LoginPage from "@/routes/login";
 
 interface LayoutProps {
 	children: ReactNode;
@@ -86,8 +88,10 @@ export function HydrateFallback(): ReactNode {
 export default function App(): ReactNode {
 	return (
 		<LanguageProvider>
-			<Outlet />
-			<Toaster />
+			<AuthProvider>
+				<Outlet />
+				<Toaster />
+			</AuthProvider>
 		</LanguageProvider>
 	);
 }

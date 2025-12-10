@@ -10,7 +10,7 @@ public enum OrganizationType {
         this.value = value;
     }
 
-    public OrganizationType getType(String value) {
+    public static OrganizationType getType(String value) {
         for (OrganizationType type : OrganizationType.values()) {
             if (type.value.equalsIgnoreCase(value)) {
                 return type;
