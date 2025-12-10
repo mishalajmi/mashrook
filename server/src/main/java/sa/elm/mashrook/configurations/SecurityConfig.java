@@ -68,7 +68,13 @@ public class SecurityConfig {
         return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(requests -> requests
+                        // Actuator endpoints
                         .requestMatchers(HttpMethod.GET,"/actuator/**").permitAll()
+                        // OpenAPI/Swagger documentation endpoints
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        // Authentication endpoints
                         .requestMatchers(HttpMethod.GET, "/v1/auth/me").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/auth/check-email").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/login").permitAll()
@@ -76,6 +82,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/forgot-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/auth/activate").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

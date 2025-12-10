@@ -53,6 +53,19 @@ logging:
     org.testcontainers: INFO
     org.flywaydb: INFO
 
+# SpringDoc OpenAPI Configuration for tests
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
 # Application-specific test configuration
 mashrook:
   auth:

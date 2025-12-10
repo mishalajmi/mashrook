@@ -2,7 +2,6 @@ import { reactRouter } from "@react-router/dev/vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { defineConfig } from "vite";
 import path from "path";
-import { mockApiPlugin } from "./vite-mock-api.js";
 
 export default defineConfig(({ isSsrBuild, mode }) => ({
 	plugins: [
