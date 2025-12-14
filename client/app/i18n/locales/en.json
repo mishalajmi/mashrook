@@ -240,6 +240,111 @@
     "switchToLight": "Switch to light mode",
     "switchToDark": "Switch to dark mode"
   },
+  "dashboard": {
+    "sidebar": {
+      "collapse": "Collapse sidebar",
+      "expand": "Expand sidebar",
+      "openMenu": "Open navigation menu",
+      "navigation": "Main Navigation",
+      "navigationDescription": "Navigate to different sections of the dashboard"
+    },
+    "topbar": {
+      "search": "Search",
+      "notifications": "Notifications",
+      "userMenu": "User menu"
+    },
+    "userMenu": {
+      "profile": "Profile",
+      "logout": "Logout"
+    },
+    "nav": {
+      "mainNavigation": "Main navigation",
+      "dashboard": "Dashboard",
+      "products": "Products & Catalog",
+      "orders": "Orders",
+      "campaigns": "Campaigns",
+      "analytics": "Analytics",
+      "buyers": "Buyers",
+      "messages": "Messages",
+      "settings": "Settings",
+      "procurement": "Procurement",
+      "suppliers": "Suppliers",
+      "team": "Team",
+      "userManagement": "User Management",
+      "organizations": "Organizations",
+      "systemSettings": "System Settings",
+      "reports": "Reports",
+      "moderation": "Moderation",
+      "communications": "Communications",
+      "configuration": "Configuration"
+    },
+    "breadcrumbs": {
+      "navigation": "Breadcrumb navigation",
+      "home": "Home",
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "orders": "Orders",
+      "campaigns": "Campaigns",
+      "analytics": "Analytics",
+      "buyers": "Buyers",
+      "messages": "Messages",
+      "settings": "Settings",
+      "procurement": "Procurement",
+      "suppliers": "Suppliers",
+      "team": "Team",
+      "users": "Users",
+      "organizations": "Organizations",
+      "system-settings": "System Settings",
+      "reports": "Reports",
+      "moderation": "Moderation",
+      "communications": "Communications",
+      "configuration": "Configuration"
+    },
+    "overview": {
+      "title": "Dashboard Overview",
+      "welcome": "Welcome back"
+    },
+    "supplier": {
+      "stats": {
+        "revenue": "Total Revenue",
+        "orders": "Total Orders",
+        "products": "Active Products",
+        "buyers": "Connected Buyers"
+      }
+    },
+    "buyer": {
+      "stats": {
+        "savings": "Total Savings",
+        "orders": "Active Orders",
+        "suppliers": "Connected Suppliers",
+        "team": "Team Members"
+      }
+    },
+    "admin": {
+      "stats": {
+        "users": "Total Users",
+        "organizations": "Organizations",
+        "campaigns": "Active Campaigns",
+        "revenue": "Platform Revenue"
+      }
+    },
+    "periodText": {
+      "lastMonth": "from last month"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "description": "Your latest updates and notifications"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "description": "Common tasks and shortcuts",
+      "comingSoon": "Quick actions coming soon..."
+    },
+    "placeholder": {
+      "description": "This page is under development",
+      "comingSoon": "This feature will be available soon."
+    }
+  },
   "auth": {
     "login": {
       "title": "Sign In",

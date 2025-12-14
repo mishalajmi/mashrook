@@ -13,7 +13,7 @@ import {
 	useCallback,
 	type ReactNode,
 } from "react";
-import { authService, type User, type RegisterRequest } from "@/services/auth.service";
+import {authService, type User, type RegisterRequest, type UserAuthority} from "@/services/auth.service";
 import { getAccessToken, clearTokens } from "@/lib/jwt";
 
 /**
@@ -98,8 +98,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	 * Updates user state on successful login
 	 */
 	const login = useCallback(async (email: string, password: string) => {
-		const response = await authService.login(email, password);
-		setUser(response.user);
+		await authService.login(email, password);
+		// Fetch user data after successful login (token is now stored)
+		const currentUser = await authService.getCurrentUser();
+		setUser(currentUser);
 	}, []);
 
 	/**
@@ -118,11 +120,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 	/**
 	 * Register a new user
-	 * Updates user state on successful registration
+	 * Note: Registration doesn't auto-login - user must verify email first
 	 */
 	const register = useCallback(async (data: RegisterRequest) => {
-		const response = await authService.register(data);
-		setUser(response.user);
+		await authService.register(data);
+		// Registration requires email verification before login
+		// User will be set after they login post-verification
 	}, []);
 
 	const value: AuthContextType = {

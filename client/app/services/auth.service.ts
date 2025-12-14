@@ -11,38 +11,66 @@ import { setAccessToken, clearTokens } from "@/lib/jwt";
 /**
  * User role types
  */
-export type UserRole = "SUPPLIER" | "BUYER" | "ADMIN";
+export type UserRole = "ORGANIZATION_OWNER" | "SUPER_ADMIN" | "ADMIN" | "USER";
+
+export interface UserAuthority {
+    resource: string;
+    read: boolean;
+    write: boolean;
+    update: boolean;
+    delete: boolean;
+}
+
+/**
+ * User status types
+ * */
+export type UserStatus = "ACTIVE" | "INACTIVE"| "DISABLED";
 
 /**
  * Organization type for registration
  */
 export type OrganizationType = "SUPPLIER" | "BUYER";
 
+
+export interface GetCurrentUserResponse {
+    id: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    authorities: Array<string>;
+    status: UserStatus;
+    organizationId?: string;
+    organizationName?: string;
+}
+
 /**
  * User interface representing an authenticated user
  */
 export interface User {
-	/** Unique user identifier */
 	id: string;
-	/** User email address */
+    firstName: string;
+    lastName: string;
+    username: string;
 	email: string;
-	/** User role in the system */
-	role: UserRole;
-	/** Optional organization ID */
+    authorities: Array<UserAuthority>;
+    status: UserStatus;
 	organizationId?: string;
-	/** Optional organization name */
 	organizationName?: string;
 }
 
 /**
- * Authentication response from login/register/refresh endpoints
+ * Authentication response from login/refresh endpoints
  * Note: refreshToken is now sent as HTTP-only cookie by the server
+ * Note: User data must be fetched separately via /v1/auth/me endpoint
  */
 export interface AuthResponse {
 	/** JWT access token */
 	accessToken: string;
-	/** Authenticated user data */
-	user: User;
+	/** Token type (always "Bearer") */
+	tokenType: string;
+	/** Token expiration time in seconds */
+	expiresIn: number;
 }
 
 /**
@@ -93,6 +121,56 @@ export interface ResetPasswordRequest {
 export interface MessageResponse {
 	/** Response message */
 	message: string;
+}
+
+function mapResponseToUser(userResponse: GetCurrentUserResponse): User {
+    return {
+        id: userResponse.id,
+        firstName: userResponse.firstName,
+        lastName: userResponse.lastName,
+        email: userResponse.email,
+        username: userResponse.username,
+        authorities: mapUserAuthorities(userResponse.authorities),
+        status: userResponse.status,
+        organizationId: userResponse.organizationId,
+        organizationName: userResponse.organizationName
+    };
+}
+
+function mapUserAuthorities(authorities: Array<string> | undefined): Array<UserAuthority> {
+    if (!authorities) return [];
+
+    const userAuthoritiesMap = new Map<string, UserAuthority>();
+    for (const authority of authorities) {
+        const [resource, permission] = authority.split(":");
+        if (!resource || !permission) continue;
+        if (!userAuthoritiesMap.has(resource)) {
+            userAuthoritiesMap.set(resource, {
+                resource,
+                read: false,
+                write: false,
+                update: false,
+                delete: false
+            })
+        }
+        const userAuthority = userAuthoritiesMap.get(resource)!;
+        switch (permission) {
+            case "read":
+                userAuthority.read = true;
+                break;
+            case "write":
+                userAuthority.write = true;
+                break;
+            case "update":
+                userAuthority.update = true;
+                break;
+            case "delete":
+                userAuthority.delete = true;
+                break;
+        }
+    }
+    return Array.from(userAuthoritiesMap.values());
+
 }
 
 /**
@@ -181,7 +259,8 @@ export const authService = {
 	 * @throws Error if not authenticated or request fails
 	 */
 	async getCurrentUser(): Promise<User> {
-		return apiClient.get<User>("/v1/auth/me");
+		const userResponse = await apiClient.get<GetCurrentUserResponse>("/v1/auth/me");
+        return mapResponseToUser(userResponse);
 	},
 
 	/**

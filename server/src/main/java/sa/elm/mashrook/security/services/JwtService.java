@@ -14,6 +14,7 @@ import sa.elm.mashrook.security.details.MashrookUserDetails;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ public class JwtService {
         claims.put("type", "access");
         claims.put("organization_id", user.getOrganizationId().toString());
         claims.put("user_id", user.getUserUuid().toString());
+        claims.put("status", user.getUserStatus());
 
         List<String> authorities = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -51,11 +53,14 @@ public class JwtService {
     private String buildToken(String subject, Map<String, Object> claims, Long expiration) {
         Key signingKey = getSigningKey();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(subject)
                 .claims(claims)
                 .issuer(properties.jwt().issuer())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
+                .notBefore(new Date())
+                .audience().add("mashrook.sa").and()
                 .signWith(signingKey)
                 .compact();
     }
@@ -76,7 +81,7 @@ public class JwtService {
 
     @SuppressWarnings("unchecked")
     public List<String> extractAuthorities(String token) {
-        return extractClaim(token, c -> c.get("authorities", List.class));
+        return extractClaim(token, c -> c.get("authorities", ArrayList.class));
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> resolver) {

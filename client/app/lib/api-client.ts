@@ -13,6 +13,7 @@ import {
 	getAccessToken,
 	setAccessToken,
 	clearTokens,
+    isTokenExpired,
 } from "./jwt";
 import {
 	convertKeysToSnakeCase,
@@ -297,8 +298,8 @@ export function createApiClient(baseUrl: string = API_BASE_URL) {
 			if (response.status === 401 && !isRetry) {
 				const currentToken = getAccessToken();
 
-				// Only attempt refresh if user had an access token (was authenticated)
-				if (currentToken) {
+				// Only attempt refresh if user had an access token (was authenticated), and it was expired
+				if (currentToken && isTokenExpired(currentToken)) {
 					const refreshSuccessful = await refreshAccessToken(baseUrl);
 
 					if (refreshSuccessful) {

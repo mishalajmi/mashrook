@@ -99,3 +99,9 @@ export {
 	FormMessage,
 	FormField,
 } from "./form";
+export {
+	Tooltip,
+	TooltipTrigger,
+	TooltipContent,
+	TooltipProvider,
+} from "./tooltip";

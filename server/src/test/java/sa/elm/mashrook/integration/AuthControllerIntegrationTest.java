@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import sa.elm.mashrook.auth.RefreshTokenService;
@@ -21,12 +20,16 @@ import sa.elm.mashrook.auth.dto.AuthenticationResponse;
 import sa.elm.mashrook.auth.dto.LoginRequest;
 import sa.elm.mashrook.configurations.RedisConfig;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
+import sa.elm.mashrook.organizations.domain.OrganizationType;
+import sa.elm.mashrook.security.domain.UserRole;
+import sa.elm.mashrook.users.domain.UserEntity;
 
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -146,7 +149,7 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
             mockMvc.perform(post("/v1/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isUnauthorized());
+                    .andExpect(status().isNotFound());
         }
 
         @Test
@@ -454,6 +457,201 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
             // Assert - Mobile token should be invalidated, web token should still be valid
             assertThat(refreshTokenService.validateRefreshToken(mobileCookie.getValue())).isEmpty();
             assertThat(refreshTokenService.validateRefreshToken(webCookie.getValue())).isPresent();
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /v1/auth/me Tests")
+    class GetCurrentUserTests {
+
+        @Test
+        @DisplayName("should return current user info when authenticated")
+        void shouldReturnCurrentUserInfoWhenAuthenticated() throws Exception {
+            // Arrange - Login to get access token
+            LoginRequest loginRequest = new LoginRequest(TEST_EMAIL, TEST_PASSWORD, "Test Device");
+            MvcResult loginResult = mockMvc.perform(post("/v1/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            AuthenticationResponse authResponse = objectMapper.readValue(
+                    loginResult.getResponse().getContentAsString(),
+                    AuthenticationResponse.class
+            );
+            String accessToken = authResponse.accessToken();
+
+            // Act & Assert
+            mockMvc.perform(get("/v1/auth/me")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").isNotEmpty())
+                    .andExpect(jsonPath("$.first_name").value("Test"))
+                    .andExpect(jsonPath("$.last_name").value("User"))
+                    .andExpect(jsonPath("$.email").value(TEST_EMAIL))
+                    .andExpect(jsonPath("$.username").isNotEmpty())
+                    .andExpect(jsonPath("$.role").isNotEmpty())
+                    .andExpect(jsonPath("$.status").value("ACTIVE"))
+                    .andExpect(jsonPath("$.organization_id").isNotEmpty())
+                    .andExpect(jsonPath("$.organization_name").value("Test Organization"));
+        }
+
+        @Test
+        @DisplayName("should return 401 when not authenticated")
+        void shouldReturnUnauthorizedWhenNotAuthenticated() throws Exception {
+            // Act & Assert - Call without authentication
+            mockMvc.perform(get("/v1/auth/me")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("should return 401 for invalid token")
+        void shouldReturnUnauthorizedForInvalidToken() throws Exception {
+            // Act & Assert
+            mockMvc.perform(get("/v1/auth/me")
+                            .header("Authorization", "Bearer invalid-token")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @DisplayName("should return BUYER role for user in BUYER organization")
+        void shouldReturnBuyerRoleForUserInBuyerOrganization() throws Exception {
+            // The default test organization is BUYER type, so role maps to BUYER
+            // Arrange - Login to get access token
+            LoginRequest loginRequest = new LoginRequest(TEST_EMAIL, TEST_PASSWORD, "Test Device");
+            MvcResult loginResult = mockMvc.perform(post("/v1/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            AuthenticationResponse authResponse = objectMapper.readValue(
+                    loginResult.getResponse().getContentAsString(),
+                    AuthenticationResponse.class
+            );
+            String accessToken = authResponse.accessToken();
+
+            // Act & Assert - Role should be BUYER since test organization is BUYER type
+            mockMvc.perform(get("/v1/auth/me")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.role").value("BUYER"));
+        }
+
+        @Test
+        @DisplayName("should return SUPPLIER role for user in SUPPLIER organization")
+        void shouldReturnSupplierRoleForUserInSupplierOrganization() throws Exception {
+            // Clean up existing data and create supplier organization
+            userRepository.deleteAll();
+            organizationRepository.deleteAll();
+
+            OrganizationEntity org = createTestOrganization();
+            org.setType(OrganizationType.SUPPLIER);
+            organizationRepository.save(org);
+
+            UserEntity supplierUser = createTestUser(org, passwordEncoder.encode(TEST_PASSWORD));
+            supplierUser.getAuthorities().clear();
+            supplierUser.addRole(UserRole.ORGANIZATION_OWNER, null);
+            userRepository.save(supplierUser);
+
+            // Arrange - Login to get access token
+            LoginRequest loginRequest = new LoginRequest(TEST_EMAIL, TEST_PASSWORD, "Test Device");
+            MvcResult loginResult = mockMvc.perform(post("/v1/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            AuthenticationResponse authResponse = objectMapper.readValue(
+                    loginResult.getResponse().getContentAsString(),
+                    AuthenticationResponse.class
+            );
+            String accessToken = authResponse.accessToken();
+
+            // Act & Assert - Role should be SUPPLIER since organization is SUPPLIER type
+            mockMvc.perform(get("/v1/auth/me")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.role").value("SUPPLIER"));
+        }
+
+        @Test
+        @DisplayName("should return BUYER role for organization owner in BUYER organization")
+        void shouldReturnBuyerRoleForOrganizationOwner() throws Exception {
+            // Clean up existing data and create organization owner in BUYER org
+            userRepository.deleteAll();
+            organizationRepository.deleteAll();
+
+            OrganizationEntity org = organizationRepository.save(createTestOrganization());
+
+            UserEntity ownerUser = createTestUser(org, passwordEncoder.encode(TEST_PASSWORD));
+            // Clear existing roles and add ORGANIZATION_OWNER role
+            ownerUser.getAuthorities().clear();
+            ownerUser.addRole(UserRole.ORGANIZATION_OWNER, null);
+            userRepository.save(ownerUser);
+
+            // Arrange - Login to get access token
+            LoginRequest loginRequest = new LoginRequest(TEST_EMAIL, TEST_PASSWORD, "Test Device");
+            MvcResult loginResult = mockMvc.perform(post("/v1/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            AuthenticationResponse authResponse = objectMapper.readValue(
+                    loginResult.getResponse().getContentAsString(),
+                    AuthenticationResponse.class
+            );
+            String accessToken = authResponse.accessToken();
+
+            // Act & Assert - Role maps to BUYER since organization is BUYER type
+            mockMvc.perform(get("/v1/auth/me")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.role").value("BUYER"));
+        }
+
+        @Test
+        @DisplayName("should return ADMIN role when user has ADMIN role")
+        void shouldReturnAdminRoleWhenUserHasAdminRole() throws Exception {
+            // Clean up existing data and create admin user
+            userRepository.deleteAll();
+            organizationRepository.deleteAll();
+
+            OrganizationEntity org = organizationRepository.save(createTestOrganization());
+
+            UserEntity adminUser = createTestUser(org, passwordEncoder.encode(TEST_PASSWORD));
+            // Clear existing roles and add ADMIN role
+            adminUser.getAuthorities().clear();
+            adminUser.addRole(UserRole.ADMIN, null);
+            userRepository.save(adminUser);
+
+            // Arrange - Login to get access token
+            LoginRequest loginRequest = new LoginRequest(TEST_EMAIL, TEST_PASSWORD, "Test Device");
+            MvcResult loginResult = mockMvc.perform(post("/v1/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            AuthenticationResponse authResponse = objectMapper.readValue(
+                    loginResult.getResponse().getContentAsString(),
+                    AuthenticationResponse.class
+            );
+            String accessToken = authResponse.accessToken();
+
+            // Act & Assert
+            mockMvc.perform(get("/v1/auth/me")
+                            .header("Authorization", "Bearer " + accessToken)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.role").value("ADMIN"));
         }
     }
 }

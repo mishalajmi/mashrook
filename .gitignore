@@ -41,6 +41,7 @@ client/node_modules/
 
 ### claude ###
 .claude/
+.playwright-mcp/
 
 ### macOS ###
 .DS_Store

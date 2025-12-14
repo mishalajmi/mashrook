@@ -46,14 +46,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
     private final UserService userService;
     private final OrganizationService organizationService;
-    private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final NotificationService notificationService;
-    private final VerificationTokenService verificationTokenService;
+    private final AuthenticationManager authenticationManager;
     private final AuthenticationConfigurationProperties authConfig;
+    private final VerificationTokenService verificationTokenService;
 
     /**
      * Registers a new user and organization.
@@ -147,18 +147,17 @@ public class AuthenticationService {
      * @throws DisabledException       if the user account is disabled
      */
     public AuthResult login(String email, String password, String deviceInfo) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, password)
-            );
+        long start = System.currentTimeMillis();
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, password)
+        );
+        log.debug("Authentication took: {}", (System.currentTimeMillis() - start));
 
-            MashrookUserDetails userDetails = (MashrookUserDetails) authentication.getPrincipal();
+        MashrookUserDetails userDetails = (MashrookUserDetails) authentication.getPrincipal();
 
-            return generateTokens(userDetails, deviceInfo);
-        } catch (BadCredentialsException bce) {
-            log.error("Invalid credentials: ", bce);
-            throw new AuthenticationException("Invalid credentials");
-        }
+        AuthResult result = generateTokens(userDetails, deviceInfo);
+        log.debug("Full Authentication with token generation took: {}", (System.currentTimeMillis() - start));
+        return result;
     }
 
     /**
@@ -269,5 +268,20 @@ public class AuthenticationService {
 
     public boolean checkIfEmailExists(String email) {
         return userService.checkIfEmailExists(email);
+    }
+
+    /**
+     * Retrieves a user entity by their user ID.
+     * <p>
+     * This method is used to fetch the current authenticated user's information.
+     * </p>
+     *
+     * @param userId the user's UUID
+     * @return the UserEntity
+     * @throws AuthenticationException if the user is not found
+     */
+    public UserEntity getCurrentUser(UUID userId) {
+        return userService.findByUserId(userId)
+                .orElseThrow(() -> new AuthenticationException("User not found"));
     }
 }

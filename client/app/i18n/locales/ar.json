@@ -240,6 +240,111 @@
     "switchToLight": "التبديل للوضع الفاتح",
     "switchToDark": "التبديل للوضع الداكن"
   },
+  "dashboard": {
+    "sidebar": {
+      "collapse": "طي الشريط الجانبي",
+      "expand": "توسيع الشريط الجانبي",
+      "openMenu": "فتح قائمة التنقل",
+      "navigation": "القائمة الرئيسية",
+      "navigationDescription": "انتقل إلى أقسام مختلفة من لوحة التحكم"
+    },
+    "topbar": {
+      "search": "البحث",
+      "notifications": "الإشعارات",
+      "userMenu": "قائمة المستخدم"
+    },
+    "userMenu": {
+      "profile": "الملف الشخصي",
+      "logout": "تسجيل الخروج"
+    },
+    "nav": {
+      "mainNavigation": "التنقل الرئيسي",
+      "dashboard": "لوحة التحكم",
+      "products": "المنتجات والكتالوج",
+      "orders": "الطلبات",
+      "campaigns": "الحملات",
+      "analytics": "التحليلات",
+      "buyers": "المشترين",
+      "messages": "الرسائل",
+      "settings": "الإعدادات",
+      "procurement": "المشتريات",
+      "suppliers": "الموردين",
+      "team": "الفريق",
+      "userManagement": "إدارة المستخدمين",
+      "organizations": "المؤسسات",
+      "systemSettings": "إعدادات النظام",
+      "reports": "التقارير",
+      "moderation": "الإشراف",
+      "communications": "الاتصالات",
+      "configuration": "التكوين"
+    },
+    "breadcrumbs": {
+      "navigation": "مسار التنقل",
+      "home": "الرئيسية",
+      "dashboard": "لوحة التحكم",
+      "products": "المنتجات",
+      "orders": "الطلبات",
+      "campaigns": "الحملات",
+      "analytics": "التحليلات",
+      "buyers": "المشترين",
+      "messages": "الرسائل",
+      "settings": "الإعدادات",
+      "procurement": "المشتريات",
+      "suppliers": "الموردين",
+      "team": "الفريق",
+      "users": "المستخدمين",
+      "organizations": "المؤسسات",
+      "system-settings": "إعدادات النظام",
+      "reports": "التقارير",
+      "moderation": "الإشراف",
+      "communications": "الاتصالات",
+      "configuration": "التكوين"
+    },
+    "overview": {
+      "title": "نظرة عامة على لوحة التحكم",
+      "welcome": "مرحباً بعودتك"
+    },
+    "supplier": {
+      "stats": {
+        "revenue": "إجمالي الإيرادات",
+        "orders": "إجمالي الطلبات",
+        "products": "المنتجات النشطة",
+        "buyers": "المشترين المتصلين"
+      }
+    },
+    "buyer": {
+      "stats": {
+        "savings": "إجمالي التوفير",
+        "orders": "الطلبات النشطة",
+        "suppliers": "الموردين المتصلين",
+        "team": "أعضاء الفريق"
+      }
+    },
+    "admin": {
+      "stats": {
+        "users": "إجمالي المستخدمين",
+        "organizations": "المؤسسات",
+        "campaigns": "الحملات النشطة",
+        "revenue": "إيرادات المنصة"
+      }
+    },
+    "periodText": {
+      "lastMonth": "من الشهر الماضي"
+    },
+    "recentActivity": {
+      "title": "النشاط الأخير",
+      "description": "آخر التحديثات والإشعارات"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "description": "المهام والاختصارات الشائعة",
+      "comingSoon": "الإجراءات السريعة قادمة قريباً..."
+    },
+    "placeholder": {
+      "description": "هذه الصفحة قيد التطوير",
+      "comingSoon": "ستكون هذه الميزة متاحة قريباً."
+    }
+  },
   "auth": {
     "login": {
       "title": "تسجيل الدخول",

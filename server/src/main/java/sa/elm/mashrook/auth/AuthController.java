@@ -33,8 +33,11 @@ import sa.elm.mashrook.auth.dto.AuthResult;
 import sa.elm.mashrook.auth.dto.AuthenticationResponse;
 import sa.elm.mashrook.auth.dto.LoginRequest;
 import sa.elm.mashrook.auth.dto.RegistrationRequest;
+import sa.elm.mashrook.auth.dto.UserResponse;
 import sa.elm.mashrook.configurations.AuthenticationConfigurationProperties;
+import sa.elm.mashrook.exceptions.AuthenticationException;
 import sa.elm.mashrook.security.domain.JwtPrincipal;
+import sa.elm.mashrook.users.domain.UserEntity;
 
 import java.net.URI;
 import java.time.Duration;
@@ -240,6 +243,51 @@ public class AuthController {
             @RequestParam @Email(message = "must be a valid email address") String email) {
         // Return true if email is available (NOT taken), false if already exists
         return !authenticationService.checkIfEmailExists(email);
+    }
+
+    /**
+     * Returns the currently authenticated user's profile information.
+     *
+     * @param principal the authenticated JWT principal
+     * @return UserResponse with user details
+     */
+    @Operation(
+            summary = "Get current user info",
+            description = "Returns the authenticated user's profile information including role and organization details.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "User information retrieved successfully",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Authentication required",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    @GetMapping("/me")
+    public UserResponse getCurrentUser(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal JwtPrincipal principal) {
+
+        if (principal == null) {
+            throw new AuthenticationException("Authentication required");
+        }
+
+        log.debug("Fetching user info for user: {}", principal.getUserId());
+
+        UserEntity user = authenticationService.getCurrentUser(principal.getUserId());
+
+        return UserResponse.from(user);
     }
 
     /**

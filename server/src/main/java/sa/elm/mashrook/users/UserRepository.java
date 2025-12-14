@@ -10,9 +10,10 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    @EntityGraph(attributePaths = {"organization", "roles"})
+    @EntityGraph(attributePaths = {"organization", "authorities"})
     Optional<UserEntity> findByEmail(String email);
     boolean existsByEmail(String email);
+    @EntityGraph(attributePaths = {"organization", "authorities"})
     Optional<UserEntity> findByUserId(UUID userId);
 
 }

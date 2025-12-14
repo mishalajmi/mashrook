@@ -49,6 +49,10 @@ server:
 logging:
   level:
     root: info
+    sa:
+      elm:
+        mashrook:
+          auth: debug
 
 springdoc:
   api-docs:

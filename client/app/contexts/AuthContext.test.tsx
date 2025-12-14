@@ -64,16 +64,20 @@ function renderWithAuth(ui: ReactNode) {
 describe("AuthContext", () => {
 	const mockUser: User = {
 		id: "user-123",
+		firstName: "Test",
+		lastName: "User",
+		username: "testuser",
 		email: "test@example.com",
 		role: "BUYER",
+		status: "ACTIVE",
 		organizationId: "org-456",
 		organizationName: "Test Organization",
 	};
 
 	const mockAuthResponse = {
 		accessToken: "mock-access-token",
-		refreshToken: "mock-refresh-token",
-		user: mockUser,
+		tokenType: "Bearer",
+		expiresIn: 3600,
 	};
 
 	beforeEach(() => {
@@ -233,6 +237,7 @@ describe("AuthContext", () => {
 		it("should update user state after successful login", async () => {
 			(getAccessToken as Mock).mockReturnValue(null);
 			(authService.login as Mock).mockResolvedValue(mockAuthResponse);
+			(authService.getCurrentUser as Mock).mockResolvedValue(mockUser);
 
 			let authContext: AuthContextType;
 
@@ -264,9 +269,10 @@ describe("AuthContext", () => {
 			expect(user.email).toBe("test@example.com");
 		});
 
-		it("should call authService.login with correct credentials", async () => {
+		it("should call authService.login then getCurrentUser", async () => {
 			(getAccessToken as Mock).mockReturnValue(null);
 			(authService.login as Mock).mockResolvedValue(mockAuthResponse);
+			(authService.getCurrentUser as Mock).mockResolvedValue(mockUser);
 
 			let authContext: AuthContextType;
 
@@ -290,6 +296,8 @@ describe("AuthContext", () => {
 				"test@example.com",
 				"password123"
 			);
+			// After login, getCurrentUser should be called to fetch user data
+			expect(authService.getCurrentUser).toHaveBeenCalled();
 		});
 
 		it("should throw error on login failure", async () => {
@@ -411,24 +419,19 @@ describe("AuthContext", () => {
 	describe("register() method for new user registration", () => {
 		const mockRegisterData: RegisterRequest = {
 			email: "newuser@example.com",
+			firstName: "New",
+			lastName: "User",
 			password: "securePassword123",
 			organizationType: "SUPPLIER",
-			organizationName: "New Supplier Co",
+			organizationNameEn: "New Supplier Co",
+			organizationNameAr: "شركة الموردين الجديدة",
+			organizationIndustry: "Technology",
 		};
 
-		const mockRegisterResponse = {
-			accessToken: "new-access-token",
-			refreshToken: "new-refresh-token",
-			user: {
-				id: "new-user-123",
-				email: "newuser@example.com",
-				role: "SUPPLIER" as const,
-				organizationId: "new-org-456",
-				organizationName: "New Supplier Co",
-			},
-		};
+		// Registration returns organization URI, not tokens (requires email verification)
+		const mockRegisterResponse = undefined;
 
-		it("should update user state after successful registration", async () => {
+		it("should NOT auto-login after registration (email verification required)", async () => {
 			(getAccessToken as Mock).mockReturnValue(null);
 			(authService.register as Mock).mockResolvedValue(mockRegisterResponse);
 
@@ -454,13 +457,9 @@ describe("AuthContext", () => {
 				await authContext!.register(mockRegisterData);
 			});
 
-			// Should be authenticated after registration
-			expect(screen.getByTestId("isAuthenticated").textContent).toBe("true");
-
-			const userText = screen.getByTestId("user").textContent;
-			const user = JSON.parse(userText!);
-			expect(user.email).toBe("newuser@example.com");
-			expect(user.role).toBe("SUPPLIER");
+			// Should still NOT be authenticated (email verification required)
+			expect(screen.getByTestId("isAuthenticated").textContent).toBe("false");
+			expect(screen.getByTestId("user").textContent).toBe("null");
 		});
 
 		it("should call authService.register with correct data", async () => {

@@ -235,11 +235,25 @@ public abstract class AbstractIntegrationTest {
     }
 
     /**
-     * Creates a test user
+     * Creates a test user with the USER role.
      *
-     * @return dummy UserEntity
-     * */
+     * @param organization the organization to associate the user with
+     * @param hashedPassword the hashed password for the user
+     * @return a UserEntity configured for testing
+     */
     protected static UserEntity createTestUser(OrganizationEntity organization, String hashedPassword) {
+        return createTestUser(organization, hashedPassword, UserRole.USER);
+    }
+
+    /**
+     * Creates a test user with a specific role.
+     *
+     * @param organization the organization to associate the user with
+     * @param hashedPassword the hashed password for the user
+     * @param role the role to assign to the user
+     * @return a UserEntity configured for testing
+     */
+    protected static UserEntity createTestUser(OrganizationEntity organization, String hashedPassword, UserRole role) {
         UserEntity testUser = new UserEntity();
         testUser.setUserId(UUID.randomUUID());
         testUser.setOrganization(organization);
@@ -248,7 +262,7 @@ public abstract class AbstractIntegrationTest {
         testUser.setEmail(TEST_EMAIL);
         testUser.setPassword(hashedPassword);
         testUser.setStatus(UserStatus.ACTIVE);
-        testUser.addRole(UserRole.USER, null);
+        testUser.addRole(role, null);
         testUser.setCreatedAt(LocalDateTime.now());
         return testUser;
     }

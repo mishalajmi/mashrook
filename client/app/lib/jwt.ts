@@ -4,6 +4,7 @@
  * Provides functions for storing, retrieving, decoding, and validating JWT tokens.
  * Uses localStorage for secure client-side storage.
  */
+import type {UserRole, UserStatus} from "@/services/auth.service";
 
 // Storage keys
 const ACCESS_TOKEN_KEY = "access_token";
@@ -16,10 +17,12 @@ const DEFAULT_REFRESH_THRESHOLD_SECONDS = 5 * 60;
  * Contains standard JWT claims and allows additional custom claims
  */
 export interface DecodedTokenPayload {
-	/** Subject - typically the user ID */
+	/** Subject - username*/
 	sub?: string;
-	/** Email address */
-	email?: string;
+	/** User Id */
+	userId?: string;
+    /** Organization Id */
+    organizationId: string;
 	/** Expiration time (Unix timestamp in seconds) */
 	exp?: number;
 	/** Issued at time (Unix timestamp in seconds) */
@@ -32,6 +35,14 @@ export interface DecodedTokenPayload {
 	aud?: string | string[];
 	/** JWT ID */
 	jti?: string;
+    /** JWT Type */
+    type: string;
+    /** Authorities */
+    authorities: Array<string>;
+    /** User Role */
+    role: UserRole;
+    /** User Status */
+    status: UserStatus;
 	/** Allow additional custom claims */
 	[key: string]: unknown;
 }

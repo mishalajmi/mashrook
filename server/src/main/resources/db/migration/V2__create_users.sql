@@ -22,8 +22,6 @@ CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_organization_id ON users(organization_id);
 CREATE INDEX idx_users_status ON users(status);
 
--- Composite index for common queries (active users in an org)
 CREATE INDEX idx_users_org_status ON users(organization_id, status);
 
--- Partial index for active users only (frequently queried)
 CREATE INDEX idx_users_active ON users(email) WHERE status = 'ACTIVE';
