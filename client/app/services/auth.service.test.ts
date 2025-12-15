@@ -61,21 +61,16 @@ describe("Auth Service", () => {
 	describe("authService.login(email, password) - POST /api/auth/login", () => {
 		const mockLoginResponse: AuthResponse = {
 			accessToken: "mock-access-token",
-			user: {
-				id: "user-123",
-				email: "test@example.com",
-				role: "BUYER",
-				organizationId: "org-456",
-				organizationName: "Test Org",
-			},
+			tokenType: "Bearer",
+			expiresIn: 3600,
 		};
 
-		it("should make POST request to /auth/login with email and password", async () => {
+		it("should make POST request to /v1/auth/login with email and password", async () => {
 			(apiClient.post as Mock).mockResolvedValueOnce(mockLoginResponse);
 
 			await authService.login("test@example.com", "password123");
 
-			expect(apiClient.post).toHaveBeenCalledWith("/auth/login", {
+			expect(apiClient.post).toHaveBeenCalledWith("/v1/auth/login", {
 				email: "test@example.com",
 				password: "password123",
 			});
@@ -89,14 +84,14 @@ describe("Auth Service", () => {
 			expect(setAccessToken).toHaveBeenCalledWith("mock-access-token");
 		});
 
-		it("should return auth response with user data on success", async () => {
+		it("should return auth response with tokens on success", async () => {
 			(apiClient.post as Mock).mockResolvedValueOnce(mockLoginResponse);
 
 			const result = await authService.login("test@example.com", "password123");
 
 			expect(result).toEqual(mockLoginResponse);
-			expect(result.user.email).toBe("test@example.com");
-			expect(result.user.role).toBe("BUYER");
+			expect(result.accessToken).toBe("mock-access-token");
+			expect(result.tokenType).toBe("Bearer");
 		});
 
 		it("should throw error with message on invalid credentials", async () => {
@@ -121,29 +116,28 @@ describe("Auth Service", () => {
 	describe("authService.register(userData) - POST /api/auth/register", () => {
 		const mockRegisterRequest: RegisterRequest = {
 			email: "newuser@example.com",
+			firstName: "New",
+			lastName: "User",
 			password: "securePassword123",
 			organizationType: "SUPPLIER",
-			organizationName: "New Supplier Co",
+			organizationNameEn: "New Supplier Co",
+			organizationNameAr: "شركة الموردين الجديدة",
+			organizationIndustry: "Technology",
 		};
 
 		const mockRegisterResponse: AuthResponse = {
 			accessToken: "new-access-token",
-			user: {
-				id: "new-user-123",
-				email: "newuser@example.com",
-				role: "SUPPLIER",
-				organizationId: "new-org-456",
-				organizationName: "New Supplier Co",
-			},
+			tokenType: "Bearer",
+			expiresIn: 3600,
 		};
 
-		it("should make POST request to /auth/register with user data", async () => {
+		it("should make POST request to /v1/auth/register with user data", async () => {
 			(apiClient.post as Mock).mockResolvedValueOnce(mockRegisterResponse);
 
 			await authService.register(mockRegisterRequest);
 
 			expect(apiClient.post).toHaveBeenCalledWith(
-				"/auth/register",
+				"/v1/auth/register",
 				mockRegisterRequest
 			);
 		});
@@ -156,14 +150,14 @@ describe("Auth Service", () => {
 			expect(setAccessToken).toHaveBeenCalledWith("new-access-token");
 		});
 
-		it("should return auth response with new user data on success", async () => {
+		it("should return auth response with tokens on success", async () => {
 			(apiClient.post as Mock).mockResolvedValueOnce(mockRegisterResponse);
 
 			const result = await authService.register(mockRegisterRequest);
 
 			expect(result).toEqual(mockRegisterResponse);
-			expect(result.user.email).toBe("newuser@example.com");
-			expect(result.user.role).toBe("SUPPLIER");
+			expect(result.accessToken).toBe("new-access-token");
+			expect(result.tokenType).toBe("Bearer");
 		});
 
 		it("should throw error when email is already registered", async () => {
@@ -197,12 +191,12 @@ describe("Auth Service", () => {
 	});
 
 	describe("authService.logout() - POST /api/auth/logout", () => {
-		it("should make POST request to /auth/logout", async () => {
+		it("should make POST request to /v1/auth/logout", async () => {
 			(apiClient.post as Mock).mockResolvedValueOnce({});
 
 			await authService.logout();
 
-			expect(apiClient.post).toHaveBeenCalledWith("/auth/logout");
+			expect(apiClient.post).toHaveBeenCalledWith("/v1/auth/logout");
 		});
 
 		it("should clear tokens on successful logout", async () => {
@@ -235,19 +229,16 @@ describe("Auth Service", () => {
 	describe("authService.refreshToken() - POST /api/auth/refresh", () => {
 		const mockRefreshResponse: AuthResponse = {
 			accessToken: "refreshed-access-token",
-			user: {
-				id: "user-123",
-				email: "test@example.com",
-				role: "BUYER",
-			},
+			tokenType: "Bearer",
+			expiresIn: 3600,
 		};
 
-		it("should make POST request to /auth/refresh", async () => {
+		it("should make POST request to /v1/auth/refresh", async () => {
 			(apiClient.post as Mock).mockResolvedValueOnce(mockRefreshResponse);
 
 			await authService.refreshToken();
 
-			expect(apiClient.post).toHaveBeenCalledWith("/auth/refresh");
+			expect(apiClient.post).toHaveBeenCalledWith("/v1/auth/refresh");
 		});
 
 		it("should store new access token on successful refresh", async () => {
@@ -294,31 +285,50 @@ describe("Auth Service", () => {
 	});
 
 	describe("authService.getCurrentUser() - GET /api/auth/me", () => {
-		const mockUser: User = {
+		const mockUserResponse = {
 			id: "user-123",
+			firstName: "Test",
+			lastName: "User",
+			username: "testuser",
 			email: "test@example.com",
-			role: "ADMIN",
+			authorities: ["dashboard:read", "orders:read", "orders:write"],
+			status: "ACTIVE",
 			organizationId: "org-789",
 			organizationName: "Admin Org",
 		};
 
-		it("should make GET request to /auth/me", async () => {
-			(apiClient.get as Mock).mockResolvedValueOnce(mockUser);
+		const expectedUser: User = {
+			id: "user-123",
+			firstName: "Test",
+			lastName: "User",
+			username: "testuser",
+			email: "test@example.com",
+			authorities: [
+				{ resource: "dashboard", read: true, write: false, update: false, delete: false },
+				{ resource: "orders", read: true, write: true, update: false, delete: false },
+			],
+			status: "ACTIVE",
+			organizationId: "org-789",
+			organizationName: "Admin Org",
+		};
+
+		it("should make GET request to /v1/auth/me", async () => {
+			(apiClient.get as Mock).mockResolvedValueOnce(mockUserResponse);
 
 			await authService.getCurrentUser();
 
-			expect(apiClient.get).toHaveBeenCalledWith("/auth/me");
+			expect(apiClient.get).toHaveBeenCalledWith("/v1/auth/me");
 		});
 
-		it("should return user data on success", async () => {
-			(apiClient.get as Mock).mockResolvedValueOnce(mockUser);
+		it("should return user data with authorities on success", async () => {
+			(apiClient.get as Mock).mockResolvedValueOnce(mockUserResponse);
 
 			const result = await authService.getCurrentUser();
 
-			expect(result).toEqual(mockUser);
 			expect(result.id).toBe("user-123");
 			expect(result.email).toBe("test@example.com");
-			expect(result.role).toBe("ADMIN");
+			expect(result.authorities).toBeDefined();
+			expect(Array.isArray(result.authorities)).toBe(true);
 		});
 
 		it("should throw error when not authenticated", async () => {
@@ -335,10 +345,14 @@ describe("Auth Service", () => {
 		});
 
 		it("should return user without optional organization fields", async () => {
-			const userWithoutOrg: User = {
+			const userWithoutOrg = {
 				id: "user-456",
+				firstName: "No",
+				lastName: "Org",
+				username: "noorg",
 				email: "noorg@example.com",
-				role: "BUYER",
+				authorities: [],
+				status: "ACTIVE",
 			};
 			(apiClient.get as Mock).mockResolvedValueOnce(userWithoutOrg);
 
@@ -350,14 +364,14 @@ describe("Auth Service", () => {
 	});
 
 	describe("authService.forgotPassword(email) - POST /api/auth/forgot-password", () => {
-		it("should make POST request to /auth/forgot-password with email", async () => {
+		it("should make POST request to /v1/auth/forgot-password with email", async () => {
 			(apiClient.post as Mock).mockResolvedValueOnce({
 				message: "Password reset email sent",
 			});
 
 			await authService.forgotPassword("test@example.com");
 
-			expect(apiClient.post).toHaveBeenCalledWith("/auth/forgot-password", {
+			expect(apiClient.post).toHaveBeenCalledWith("/v1/auth/forgot-password", {
 				email: "test@example.com",
 			});
 		});
@@ -399,14 +413,14 @@ describe("Auth Service", () => {
 	});
 
 	describe("authService.resetPassword(token, password) - POST /api/auth/reset-password", () => {
-		it("should make POST request to /auth/reset-password with token and new password", async () => {
+		it("should make POST request to /v1/auth/reset-password with token and new password", async () => {
 			(apiClient.post as Mock).mockResolvedValueOnce({
 				message: "Password reset successful",
 			});
 
 			await authService.resetPassword("reset-token-123", "newSecurePassword");
 
-			expect(apiClient.post).toHaveBeenCalledWith("/auth/reset-password", {
+			expect(apiClient.post).toHaveBeenCalledWith("/v1/auth/reset-password", {
 				token: "reset-token-123",
 				password: "newSecurePassword",
 			});
@@ -506,20 +520,32 @@ describe("Auth Service", () => {
 		it("should have User type with correct properties", () => {
 			const user: User = {
 				id: "user-123",
+				firstName: "Test",
+				lastName: "User",
+				username: "testuser",
 				email: "test@example.com",
-				role: "BUYER",
+				authorities: [
+					{ resource: "dashboard", read: true, write: false, update: false, delete: false },
+				],
+				status: "ACTIVE",
 			};
 
 			expect(user.id).toBeDefined();
 			expect(user.email).toBeDefined();
-			expect(user.role).toBeDefined();
+			expect(user.authorities).toBeDefined();
 		});
 
 		it("should have User type with optional organization fields", () => {
 			const userWithOrg: User = {
 				id: "user-123",
+				firstName: "Test",
+				lastName: "User",
+				username: "testuser",
 				email: "test@example.com",
-				role: "SUPPLIER",
+				authorities: [
+					{ resource: "products", read: true, write: true, update: true, delete: false },
+				],
+				status: "ACTIVE",
 				organizationId: "org-456",
 				organizationName: "Test Org",
 			};
@@ -528,32 +554,34 @@ describe("Auth Service", () => {
 			expect(userWithOrg.organizationName).toBe("Test Org");
 		});
 
-		it("should have AuthResponse type with access token and user", () => {
+		it("should have AuthResponse type with access token and token type", () => {
 			const response: AuthResponse = {
 				accessToken: "token",
-				user: {
-					id: "123",
-					email: "test@example.com",
-					role: "ADMIN",
-				},
+				tokenType: "Bearer",
+				expiresIn: 3600,
 			};
 
 			expect(response.accessToken).toBeDefined();
-			expect(response.user).toBeDefined();
+			expect(response.tokenType).toBeDefined();
+			expect(response.expiresIn).toBeDefined();
 		});
 
 		it("should have RegisterRequest type with required fields", () => {
 			const request: RegisterRequest = {
 				email: "test@example.com",
+				firstName: "Test",
+				lastName: "User",
 				password: "password123",
 				organizationType: "SUPPLIER",
-				organizationName: "Test Org",
+				organizationNameEn: "Test Org",
+				organizationNameAr: "منظمة اختبار",
+				organizationIndustry: "Technology",
 			};
 
 			expect(request.email).toBeDefined();
 			expect(request.password).toBeDefined();
 			expect(request.organizationType).toBeDefined();
-			expect(request.organizationName).toBeDefined();
+			expect(request.organizationNameEn).toBeDefined();
 		});
 
 		it("should have LoginRequest type with email and password", () => {
@@ -584,32 +612,47 @@ describe("Auth Service", () => {
 			expect(request.password).toBeDefined();
 		});
 
-		it("should enforce role enum values", () => {
-			const validRoles: Array<User["role"]> = ["SUPPLIER", "BUYER", "ADMIN"];
+		it("should have UserAuthority type with resource and permissions", () => {
+			const user: User = {
+				id: "123",
+				firstName: "Test",
+				lastName: "User",
+				username: "testuser",
+				email: "test@example.com",
+				authorities: [
+					{ resource: "dashboard", read: true, write: false, update: false, delete: false },
+					{ resource: "orders", read: true, write: true, update: true, delete: true },
+				],
+				status: "ACTIVE",
+			};
 
-			validRoles.forEach((role) => {
-				const user: User = {
-					id: "123",
-					email: "test@example.com",
-					role,
-				};
-				expect(validRoles).toContain(user.role);
-			});
+			expect(user.authorities).toHaveLength(2);
+			expect(user.authorities[0].resource).toBe("dashboard");
+			expect(user.authorities[0].read).toBe(true);
+			expect(user.authorities[1].delete).toBe(true);
 		});
 
 		it("should enforce organizationType enum values in RegisterRequest", () => {
 			const supplierRequest: RegisterRequest = {
 				email: "test@example.com",
+				firstName: "Test",
+				lastName: "User",
 				password: "password",
 				organizationType: "SUPPLIER",
-				organizationName: "Supplier Co",
+				organizationNameEn: "Supplier Co",
+				organizationNameAr: "شركة موردين",
+				organizationIndustry: "Technology",
 			};
 
 			const buyerRequest: RegisterRequest = {
 				email: "test@example.com",
+				firstName: "Test",
+				lastName: "User",
 				password: "password",
 				organizationType: "BUYER",
-				organizationName: "Buyer Co",
+				organizationNameEn: "Buyer Co",
+				organizationNameAr: "شركة مشتري",
+				organizationIndustry: "Retail",
 			};
 
 			expect(["SUPPLIER", "BUYER"]).toContain(supplierRequest.organizationType);

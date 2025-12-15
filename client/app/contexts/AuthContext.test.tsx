@@ -68,7 +68,10 @@ describe("AuthContext", () => {
 		lastName: "User",
 		username: "testuser",
 		email: "test@example.com",
-		role: "BUYER",
+		authorities: [
+			{ resource: "dashboard", read: true, write: false, update: false, delete: false },
+			{ resource: "orders", read: true, write: true, update: true, delete: false },
+		],
 		status: "ACTIVE",
 		organizationId: "org-456",
 		organizationName: "Test Organization",
@@ -153,7 +156,7 @@ describe("AuthContext", () => {
 			expect(screen.getByTestId("user").textContent).toBe("null");
 		});
 
-		it("should contain user object with id, email, role when authenticated", async () => {
+		it("should contain user object with id, email, authorities when authenticated", async () => {
 			(getAccessToken as Mock).mockReturnValue("valid-token");
 			(authService.getCurrentUser as Mock).mockResolvedValue(mockUser);
 
@@ -168,7 +171,8 @@ describe("AuthContext", () => {
 
 			expect(user.id).toBe("user-123");
 			expect(user.email).toBe("test@example.com");
-			expect(user.role).toBe("BUYER");
+			expect(user.authorities).toBeDefined();
+			expect(Array.isArray(user.authorities)).toBe(true);
 		});
 
 		it("should contain organization info when available", async () => {

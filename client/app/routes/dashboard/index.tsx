@@ -19,15 +19,14 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { StatCard } from "@/components/dashboard/shared";
 import {
+	StatCard,
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui";
-import type { UserRole } from "@/services/auth.service";
 
 // Mock data for demonstration - will be replaced with real API data
 const supplierStats = {
@@ -59,6 +58,8 @@ const recentActivity = [
 	{ id: 4, type: "campaign", description: "Campaign 'Summer Sale' started", time: "2 hours ago" },
 ];
 
+import type { UserAuthority } from "@/services/auth.service";
+
 interface StatConfig {
 	title: string;
 	value: string;
@@ -66,9 +67,40 @@ interface StatConfig {
 	icon: typeof DollarSign;
 }
 
-function getStatsForRole(role: UserRole, t: (key: string) => string): StatConfig[] {
-	switch (role) {
-		case "SUPPLIER":
+/**
+ * Helper function to check if user has a specific authority resource
+ */
+function hasAuthority(authorities: UserAuthority[] | undefined, resource: string): boolean {
+	if (!authorities) return false;
+	return authorities.some(auth => auth.resource === resource);
+}
+
+/**
+ * Determine the dashboard type based on user authorities
+ * Returns 'admin' if user has admin-level resources, 'supplier' if has products, otherwise 'buyer'
+ */
+function getDashboardType(authorities: UserAuthority[] | undefined): "admin" | "supplier" | "buyer" {
+	if (!authorities || authorities.length === 0) return "buyer";
+
+	// Check for admin-level resources
+	if (hasAuthority(authorities, "user-management") || hasAuthority(authorities, "organizations")) {
+		return "admin";
+	}
+
+	// Check for supplier-level resources
+	if (hasAuthority(authorities, "products") || hasAuthority(authorities, "buyers")) {
+		return "supplier";
+	}
+
+	// Default to buyer
+	return "buyer";
+}
+
+function getStatsForAuthorities(authorities: UserAuthority[] | undefined, t: (key: string) => string): StatConfig[] {
+	const dashboardType = getDashboardType(authorities);
+
+	switch (dashboardType) {
+		case "supplier":
 			return [
 				{
 					title: t("dashboard.supplier.stats.revenue"),
@@ -95,7 +127,7 @@ function getStatsForRole(role: UserRole, t: (key: string) => string): StatConfig
 					icon: Users,
 				},
 			];
-		case "BUYER":
+		case "buyer":
 			return [
 				{
 					title: t("dashboard.buyer.stats.savings"),
@@ -122,7 +154,7 @@ function getStatsForRole(role: UserRole, t: (key: string) => string): StatConfig
 					icon: Users,
 				},
 			];
-		case "ADMIN":
+		case "admin":
 			return [
 				{
 					title: t("dashboard.admin.stats.users"),
@@ -170,7 +202,7 @@ export default function DashboardOverview(): ReactNode {
 		return null;
 	}
 
-	const stats = getStatsForRole(user.role, t);
+	const stats = getStatsForAuthorities(user.authorities, t);
 
 	return (
 		<div data-testid="dashboard-overview" className="space-y-6">

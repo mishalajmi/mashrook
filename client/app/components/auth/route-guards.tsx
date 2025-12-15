@@ -8,7 +8,7 @@
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router";
 import { useAuth } from "@/contexts/AuthContext";
-import type { UserRole } from "@/services/auth.service";
+import type { UserAuthority } from "@/services/auth.service";
 
 /**
  * Loading indicator component displayed while checking authentication state
@@ -33,8 +33,16 @@ function LoadingIndicator(): ReactNode {
 interface ProtectedRouteProps {
 	/** Content to render when authenticated and authorized */
 	children: ReactNode;
-	/** Optional list of roles that can access this route. ADMIN always has access. */
-	allowedRoles?: UserRole[];
+	/** Optional resource name that the user must have read access to */
+	requiredResource?: string;
+}
+
+/**
+ * Helper function to check if user has access to a resource
+ */
+function hasResourceAccess(authorities: UserAuthority[] | undefined, resource: string): boolean {
+	if (!authorities) return false;
+	return authorities.some(auth => auth.resource === resource && auth.read);
 }
 
 /**
@@ -42,7 +50,7 @@ interface ProtectedRouteProps {
  *
  * Wraps content that requires authentication.
  * Redirects unauthenticated users to login with return URL.
- * Supports role-based access control.
+ * Supports authority-based access control.
  *
  * @example
  * // Basic authentication required
@@ -51,14 +59,14 @@ interface ProtectedRouteProps {
  * </ProtectedRoute>
  *
  * @example
- * // Role-based protection
- * <ProtectedRoute allowedRoles={['SUPPLIER']}>
- *   <SupplierDashboard />
+ * // Resource-based protection
+ * <ProtectedRoute requiredResource="orders">
+ *   <OrdersPage />
  * </ProtectedRoute>
  */
 export function ProtectedRoute({
 	children,
-	allowedRoles,
+	requiredResource,
 }: ProtectedRouteProps): ReactNode {
 	const { user, isAuthenticated, isLoading } = useAuth();
 	const location = useLocation();
@@ -76,14 +84,12 @@ export function ProtectedRoute({
 		return <Navigate to={`/login?returnUrl=${returnUrl}`} replace />;
 	}
 
-	// Check role-based access if roles are specified
-	if (allowedRoles && allowedRoles.length > 0 && user) {
-		// ADMIN has access to all routes
-		const hasAccess =
-			user.role === "ADMIN" || allowedRoles.includes(user.role);
+	// Check authority-based access if a resource is specified
+	if (requiredResource && user) {
+		const hasAccess = hasResourceAccess(user.authorities, requiredResource);
 
 		if (!hasAccess) {
-			// Redirect to dashboard if user doesn't have required role
+			// Redirect to dashboard if user doesn't have required authority
 			return <Navigate to="/dashboard" replace />;
 		}
 	}

@@ -56,8 +56,8 @@ public class MashrookUserDetails implements UserDetails {
         Set<GrantedAuthority> authorities = new HashSet<>();
 
         // Add direct resource-permission authorities from the user's authorities
-        for (String permission : user.getPermissions()) {
-            authorities.add(new SimpleGrantedAuthority(permission));
+        for (var permission : user.getActiveResourcePermissions()) {
+            authorities.add(new SimpleGrantedAuthority(permission.toAuthorityString()));
         }
 
         return authorities;

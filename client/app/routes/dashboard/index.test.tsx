@@ -73,27 +73,59 @@ function renderWithRouter(
 	);
 }
 
-// Mock user objects for different roles
+// Mock user objects for different authority sets
 const mockSupplierUser: User = {
 	id: "user-1",
+	firstName: "Supplier",
+	lastName: "User",
+	username: "supplier",
 	email: "supplier@example.com",
-	role: "SUPPLIER",
+	authorities: [
+		{ resource: "dashboard", read: true, write: false, update: false, delete: false },
+		{ resource: "products", read: true, write: true, update: true, delete: true },
+		{ resource: "orders", read: true, write: true, update: true, delete: false },
+		{ resource: "campaigns", read: true, write: true, update: true, delete: false },
+		{ resource: "buyers", read: true, write: false, update: false, delete: false },
+		{ resource: "analytics", read: true, write: false, update: false, delete: false },
+	],
+	status: "ACTIVE",
 	organizationId: "org-1",
 	organizationName: "Supplier Corp",
 };
 
 const mockBuyerUser: User = {
 	id: "user-2",
+	firstName: "Buyer",
+	lastName: "User",
+	username: "buyer",
 	email: "buyer@example.com",
-	role: "BUYER",
+	authorities: [
+		{ resource: "dashboard", read: true, write: false, update: false, delete: false },
+		{ resource: "orders", read: true, write: true, update: true, delete: false },
+		{ resource: "suppliers", read: true, write: false, update: false, delete: false },
+		{ resource: "procurement", read: true, write: true, update: true, delete: false },
+		{ resource: "team", read: true, write: true, update: true, delete: false },
+	],
+	status: "ACTIVE",
 	organizationId: "org-2",
 	organizationName: "Buyer Corp",
 };
 
 const mockAdminUser: User = {
 	id: "user-3",
+	firstName: "Admin",
+	lastName: "User",
+	username: "admin",
 	email: "admin@example.com",
-	role: "ADMIN",
+	authorities: [
+		{ resource: "dashboard", read: true, write: false, update: false, delete: false },
+		{ resource: "user-management", read: true, write: true, update: true, delete: true },
+		{ resource: "organizations", read: true, write: true, update: true, delete: true },
+		{ resource: "campaigns", read: true, write: true, update: true, delete: true },
+		{ resource: "system-settings", read: true, write: true, update: true, delete: false },
+		{ resource: "reports", read: true, write: false, update: false, delete: false },
+	],
+	status: "ACTIVE",
 	organizationId: "org-3",
 	organizationName: "Admin Corp",
 };

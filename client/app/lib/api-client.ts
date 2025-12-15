@@ -24,7 +24,7 @@ import {
 // In development, use relative URL so Vite mock plugin can intercept
 // In production, set VITE_API_BASE_URL to your backend URL
 export const API_BASE_URL =
-	import.meta.env.VITE_API_BASE_URL || "/api";
+	import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 // Refresh token endpoint
 const REFRESH_TOKEN_ENDPOINT = "/v1/auth/refresh";

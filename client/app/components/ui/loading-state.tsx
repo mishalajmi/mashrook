@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type LoadingVariant = "spinner" | "skeleton" | "dots";
 type LoadingSize = "sm" | "md" | "lg";

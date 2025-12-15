@@ -8,7 +8,8 @@ import type { ReactNode } from "react";
 import { TrendingUp, TrendingDown, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Card, CardContent, Skeleton } from "@/components/ui";
+import {Skeleton} from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface TrendData {
 	value: number;

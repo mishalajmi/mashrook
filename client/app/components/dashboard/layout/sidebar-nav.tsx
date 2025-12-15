@@ -1,8 +1,8 @@
 /**
  * Sidebar Navigation Component
  *
- * Role-based sidebar navigation with dynamic menu rendering.
- * Supports SUPPLIER, BUYER, and ADMIN roles with different navigation items.
+ * Authorities-based sidebar navigation with dynamic menu rendering.
+ * Each NavItem represents a resource, and users see items based on their authorities.
  */
 
 import type { ReactNode } from "react";
@@ -38,7 +38,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type {UserAuthority, UserRole} from "@/services/auth.service";
+import type { UserAuthority } from "@/services/auth.service";
 
 interface NavItem {
 	id: string;
@@ -46,6 +46,7 @@ interface NavItem {
 	icon: LucideIcon;
 	iconName: string;
 	href: string;
+    priority: number;
 }
 
 // Navigation configurations
@@ -56,13 +57,16 @@ const sidebarItems: NavItem[] = [
 		icon: LayoutDashboard,
 		iconName: "LayoutDashboard",
 		href: "/dashboard",
+        priority: 1,
 	},
 	{
+        // TODO: Delete this as they will not be a dedicated product catalog
 		id: "products",
 		labelKey: "dashboard.nav.products",
 		icon: Package,
 		iconName: "Package",
 		href: "/dashboard/products",
+        priority: 2,
 	},
 	{
 		id: "orders",
@@ -70,6 +74,7 @@ const sidebarItems: NavItem[] = [
 		icon: ShoppingCart,
 		iconName: "ShoppingCart",
 		href: "/dashboard/orders",
+        priority: 3,
 	},
 	{
 		id: "campaigns",
@@ -77,6 +82,7 @@ const sidebarItems: NavItem[] = [
 		icon: Megaphone,
 		iconName: "Megaphone",
 		href: "/dashboard/campaigns",
+        priority: 4,
 	},
 	{
 		id: "analytics",
@@ -84,6 +90,7 @@ const sidebarItems: NavItem[] = [
 		icon: BarChart3,
 		iconName: "BarChart3",
 		href: "/dashboard/analytics",
+        priority: 9,
 	},
 	{
 		id: "buyers",
@@ -91,6 +98,7 @@ const sidebarItems: NavItem[] = [
 		icon: Users,
 		iconName: "Users",
 		href: "/dashboard/buyers",
+        priority: 5,
 	},
 	{
 		id: "messages",
@@ -98,6 +106,7 @@ const sidebarItems: NavItem[] = [
 		icon: MessageSquare,
 		iconName: "MessageSquare",
 		href: "/dashboard/messages",
+        priority: 12,
 	},
 	{
 		id: "settings",
@@ -105,12 +114,14 @@ const sidebarItems: NavItem[] = [
 		icon: Settings,
 		iconName: "Settings",
 		href: "/dashboard/settings",
+        priority: 20,
 	},	{
         id: "procurement",
         labelKey: "dashboard.nav.procurement",
         icon: ShoppingBag,
         iconName: "ShoppingBag",
         href: "/dashboard/procurement",
+        priority: 11,
     },
     {
         id: "suppliers",
@@ -118,6 +129,7 @@ const sidebarItems: NavItem[] = [
         icon: Store,
         iconName: "Store",
         href: "/dashboard/suppliers",
+        priority: 6,
     },
     {
         id: "team",
@@ -125,6 +137,7 @@ const sidebarItems: NavItem[] = [
         icon: Users,
         iconName: "Users",
         href: "/dashboard/team",
+        priority: 7,
     },
     {
         id: "user-management",
@@ -132,6 +145,7 @@ const sidebarItems: NavItem[] = [
         icon: Users,
         iconName: "Users",
         href: "/dashboard/users",
+        priority: 9,
     },
     {
         id: "organizations",
@@ -139,6 +153,7 @@ const sidebarItems: NavItem[] = [
         icon: Building2,
         iconName: "Building2",
         href: "/dashboard/organizations",
+        priority: 0,
     },
     {
         id: "system-settings",
@@ -146,6 +161,7 @@ const sidebarItems: NavItem[] = [
         icon: Shield,
         iconName: "Shield",
         href: "/dashboard/system-settings",
+        priority: 19,
     },
     {
         id: "reports",
@@ -153,6 +169,7 @@ const sidebarItems: NavItem[] = [
         icon: FileText,
         iconName: "FileText",
         href: "/dashboard/reports",
+        priority: 12,
     },
     {
         id: "moderation",
@@ -160,6 +177,7 @@ const sidebarItems: NavItem[] = [
         icon: AlertTriangle,
         iconName: "AlertTriangle",
         href: "/dashboard/moderation",
+        priority: 13,
     },
     {
         id: "communications",
@@ -167,6 +185,7 @@ const sidebarItems: NavItem[] = [
         icon: Bell,
         iconName: "Bell",
         href: "/dashboard/communications",
+        priority: 4,
     },
     {
         id: "configuration",
@@ -174,17 +193,19 @@ const sidebarItems: NavItem[] = [
         icon: Settings,
         iconName: "Settings",
         href: "/dashboard/configuration",
+        priority: 14
     },
 ];
 
 
 
 /**
- * Get navigation items based on user role
+ * Get navigation items based on user authorities
+ * Matches authority resources to NavItem IDs and sorts by priority
  */
-function getNavItemsByAuthorities(authorities: Array<UserAuthority>): Array<NavItem> {
-    let items: NavItem[] = [];
-    console.log(authorities)
+function getNavItemsByAuthorities(authorities: Array<UserAuthority> | undefined): Array<NavItem> {
+    if (!authorities) return [];
+    const items: NavItem[] = [];
     for (const authority of authorities) {
         const navItem = sidebarItems.find(item => {
             return authority?.resource === item.id;
@@ -193,7 +214,7 @@ function getNavItemsByAuthorities(authorities: Array<UserAuthority>): Array<NavI
             items.push(navItem);
         }
     }
-    return items;
+    return items.sort((a, b) => a.priority - b.priority);
 }
 
 interface SidebarNavProps {

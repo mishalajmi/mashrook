@@ -25,6 +25,7 @@ import {
 	Avatar,
 	AvatarFallback,
 	AvatarImage,
+	Breadcrumbs,
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -40,7 +41,6 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle";
 
 import { SidebarNav } from "./sidebar-nav";
-import { Breadcrumbs } from "./breadcrumbs";
 import {type DecodedTokenPayload, decodeToken, getAccessToken} from "@/lib/jwt";
 
 interface DashboardLayoutProps {
