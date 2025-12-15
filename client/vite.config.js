@@ -3,11 +3,16 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 import { defineConfig } from "vite";
 import path from "path";
 
+// Check if running in Storybook
+const isStorybook = process.argv[1]?.includes("storybook");
+
 export default defineConfig(({ isSsrBuild, mode }) => ({
-	plugins: [
-		cloudflare({ viteEnvironment: { name: "ssr" } }),
-		reactRouter(),
-	].filter(Boolean),
+	plugins: isStorybook
+		? []
+		: [
+			cloudflare({ viteEnvironment: { name: "ssr" } }),
+			reactRouter(),
+		].filter(Boolean),
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "./app"),

@@ -78,10 +78,10 @@ function Pricing(): ReactNode {
 							<Card
 								key={config.planKey}
 								className={cn(
-									"relative flex flex-col transition-all duration-300 hover:shadow-xl",
+									"relative flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-xl)]",
 									config.highlighted
-										? "border-primary shadow-lg scale-[1.02] md:scale-105 bg-card"
-										: "bg-card/50 hover:-translate-y-1"
+										? "border-primary shadow-[var(--shadow-lg)] scale-[1.02] md:scale-105 bg-card"
+										: "bg-card/50 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] hover:-translate-y-1"
 								)}
 								role="listitem"
 								style={{ animationDelay: `${index * 0.1}s` }}

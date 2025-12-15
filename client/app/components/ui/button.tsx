@@ -9,13 +9,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-[#115E59] hover:shadow-md hover:-translate-y-0.5",
+        default: "bg-primary text-primary-foreground shadow-[var(--shadow-sm)] hover:bg-[#115E59] hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+          "bg-destructive text-destructive-foreground shadow-[var(--shadow-sm)] hover:bg-destructive/90 hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
         outline:
-          "border border-border bg-background shadow-sm hover:bg-muted hover:text-foreground hover:shadow-md hover:-translate-y-0.5",
+          "border border-border bg-background shadow-[var(--shadow-sm)] hover:bg-muted hover:text-foreground hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 hover:shadow-md hover:-translate-y-0.5",
+          "bg-secondary text-secondary-foreground shadow-[var(--shadow-sm)] hover:bg-secondary/80 hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5",
         ghost:
           "hover:bg-muted hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
@@ -23,8 +23,8 @@ const buttonVariants = cva(
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-[6px] px-3",
-        lg: "h-12 rounded-[8px] px-8 text-base",
-        xl: "h-14 rounded-[8px] px-10 text-lg",
+        lg: "h-12 rounded-[6px] px-8 text-base",
+        xl: "h-14 rounded-[6px] px-10 text-lg",
         icon: "size-10",
         "icon-sm": "size-9",
         "icon-lg": "size-12",

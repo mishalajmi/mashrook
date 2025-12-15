@@ -52,7 +52,7 @@ function Testimonials(): ReactNode {
 						return (
 							<Card
 								key={config.testimonialKey}
-								className="bg-card/50 backdrop-blur-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+								className="bg-card/50 backdrop-blur-sm shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-lg)] hover:-translate-y-1 transition-all duration-300"
 								role="listitem"
 								style={{ animationDelay: `${index * 0.1}s` }}
 							>

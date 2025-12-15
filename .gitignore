@@ -46,3 +46,6 @@ client/node_modules/
 ### macOS ###
 .DS_Store
 
+
+*storybook.log
+storybook-static
