@@ -6,6 +6,10 @@ export default [
 	route("login", "routes/login.tsx"),
 	route("register", "routes/register.tsx"),
 
+	// Public campaign routes - no authentication required
+	route("campaigns", "routes/_landing/campaigns/index.tsx"),
+	route("campaigns/:id", "routes/_landing/campaigns/$id.tsx"),
+
 	// Dashboard routes - protected, requires authentication
 	layout("routes/dashboard/layout.tsx", [
 		route("dashboard", "routes/dashboard/index.tsx", [
@@ -24,6 +28,7 @@ export default [
 			route("procurement", "routes/dashboard/procurement/index.tsx"),
 			route("suppliers", "routes/dashboard/suppliers/index.tsx"),
 			route("team", "routes/dashboard/team/index.tsx"),
+			route("pledges", "routes/dashboard/pledges/index.tsx"),
 
 			// Admin routes
 			route("users", "routes/dashboard/users/index.tsx"),

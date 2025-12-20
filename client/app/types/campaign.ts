@@ -97,3 +97,50 @@ export interface CampaignStats {
 	totalPledges: number;
 	totalRevenue: string;
 }
+
+/**
+ * Possible states of a pledge
+ */
+export type PledgeStatus = "PENDING" | "COMMITTED" | "WITHDRAWN";
+
+/**
+ * Possible payment states
+ */
+export type PaymentStatus = "UNPAID" | "PAID" | "REFUNDED";
+
+/**
+ * Possible delivery states
+ */
+export type DeliveryStatus = "PENDING" | "SHIPPED" | "DELIVERED";
+
+/**
+ * Pledge entity representing a buyer's commitment to a campaign
+ */
+export interface Pledge {
+	id: string;
+	campaignId: string;
+	buyerId: string;
+	buyerName: string;
+	quantity: number;
+	unitPrice: string;
+	totalAmount: string;
+	status: PledgeStatus;
+	paymentStatus: PaymentStatus;
+	deliveryStatus: DeliveryStatus;
+	createdAt: string;
+	updatedAt: string;
+}
+
+/**
+ * Pledge with associated campaign data
+ */
+export interface PledgeWithCampaign extends Pledge {
+	campaign: Campaign;
+}
+
+/**
+ * Form data for creating/updating a pledge
+ */
+export interface PledgeFormData {
+	quantity: number;
+}
