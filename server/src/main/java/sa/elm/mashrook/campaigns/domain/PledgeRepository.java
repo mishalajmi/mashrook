@@ -1,5 +1,7 @@
 package sa.elm.mashrook.campaigns.domain;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -17,4 +19,12 @@ public interface PledgeRepository extends JpaRepository<PledgeEntity, UUID> {
     List<PledgeEntity> findAllByCampaignIdAndStatus(UUID campaignId, PledgeStatus status);
 
     List<PledgeEntity> findAllByStatus(PledgeStatus status);
+
+    Page<PledgeEntity> findAllByBuyerOrgId(UUID buyerOrgId, Pageable pageable);
+
+    Page<PledgeEntity> findAllByBuyerOrgIdAndStatus(UUID buyerOrgId, PledgeStatus status, Pageable pageable);
+
+    Page<PledgeEntity> findAllByCampaignId(UUID campaignId, Pageable pageable);
+
+    boolean existsByCampaignIdAndBuyerOrgId(UUID campaignId, UUID buyerOrgId);
 }
