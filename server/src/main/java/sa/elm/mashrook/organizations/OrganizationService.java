@@ -20,10 +20,10 @@ import java.util.UUID;
 public class OrganizationService {
     private final OrganizationRepository organizationRepository;
 
-    public OrganizationEntity findById(Long id) {
+    public OrganizationEntity findById(UUID id) {
         return organizationRepository
                 .findById(id)
-                .orElseThrow(() -> new OrganizationNotFoundException(String.format("Organization with id %d not found", id)));
+                .orElseThrow(() -> new OrganizationNotFoundException(String.format("Organization with id %s not found", id)));
     }
 
     public List<OrganizationEntity> findAllByType(OrganizationType type) {
@@ -32,7 +32,7 @@ public class OrganizationService {
 
     public OrganizationEntity findByOrganizationId(UUID organizationId) {
         return organizationRepository
-                .findByOrganizationId(organizationId)
+                .findOrganizationEntityById(organizationId)
                 .orElseThrow(() -> new OrganizationNotFoundException(String.format("Organization with id %s not found", organizationId)));
     }
 
@@ -45,14 +45,12 @@ public class OrganizationService {
      * Activates an organization by setting its status to ACTIVE.
      *
      * @param organizationId the organization ID to activate
-     * @return the activated organization
      */
     @Transactional
-    public OrganizationEntity activateOrganization(UUID organizationId) {
+    public void activateOrganization(UUID organizationId) {
         OrganizationEntity organization = findByOrganizationId(organizationId);
         organization.setStatus(OrganizationStatus.ACTIVE);
         organizationRepository.save(organization);
         log.info("Activated organization: {}", organizationId);
-        return organization;
     }
 }

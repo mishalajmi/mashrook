@@ -26,7 +26,6 @@ import sa.elm.mashrook.security.domain.UserRole;
 import sa.elm.mashrook.users.dto.UserCreateRequest;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -38,11 +37,8 @@ import java.util.stream.Collectors;
 @Table(name = "users")
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "user_id", nullable = false, unique = true)
-    private UUID userId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id", nullable = false)
@@ -80,7 +76,6 @@ public class UserEntity {
 
     public static UserEntity from(UserCreateRequest request) {
         UserEntity user = new UserEntity();
-        user.setUserId(UUID.randomUUID());
         user.setEmail(request.email());
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
@@ -93,9 +88,6 @@ public class UserEntity {
 
     @PrePersist
     public void onCreate() {
-        if (this.userId == null) {
-            this.userId = UUID.randomUUID();
-        }
         if (this.username == null) {
             this.username = this.firstName.substring(0, 2) + this.lastName;
         }
@@ -113,7 +105,7 @@ public class UserEntity {
      * @param role the role whose permissions should be added
      * @param assignedBy the ID of the user assigning this role (can be null for system assignments)
      */
-    public void addRole(UserRole role, Long assignedBy) {
+    public void addRole(UserRole role, UUID assignedBy) {
         // For SUPER_ADMIN, we don't need to add individual permissions - they have all access
         // We'll handle this at the permission check level
         if (role.hasAllAccess()) {
@@ -134,7 +126,7 @@ public class UserEntity {
      * @param resourcePermission the resource-permission to add
      * @param assignedBy the ID of the user assigning this permission
      */
-    public void addResourcePermission(ResourcePermission resourcePermission, Long assignedBy) {
+    public void addResourcePermission(ResourcePermission resourcePermission, UUID assignedBy) {
         // Check if permission already exists and is active
         boolean exists = this.authorities.stream()
                 .anyMatch(a -> a.isActive() &&
@@ -157,7 +149,7 @@ public class UserEntity {
      * @param role the role whose permissions should be removed
      * @param removedBy the ID of the user removing this role
      */
-    public void removeRole(UserRole role, Long removedBy) {
+    public void removeRole(UserRole role, UUID removedBy) {
         // For SUPER_ADMIN, remove the marker permission
         if (role.hasAllAccess()) {
             removeResourcePermission(ResourcePermission.of(Resource.SYSTEM_SETTINGS, Permission.DELETE), removedBy);
@@ -175,7 +167,7 @@ public class UserEntity {
      * @param resourcePermission the resource-permission to remove
      * @param removedBy the ID of the user removing this permission
      */
-    public void removeResourcePermission(ResourcePermission resourcePermission, Long removedBy) {
+    public void removeResourcePermission(ResourcePermission resourcePermission, UUID removedBy) {
         this.authorities.stream()
                 .filter(a -> a.isActive() &&
                         a.getResource() == resourcePermission.resource() &&

@@ -21,7 +21,7 @@ public record Organization(UUID organizationId,
 
     public static Organization from(OrganizationEntity entity) {
         return Organization.builder()
-                .organizationId(entity.getOrganizationId())
+                .organizationId(entity.getId())
                 .nameAr(entity.getNameAr())
                 .nameEn(entity.getNameEn())
                 .slug(entity.getSlug())

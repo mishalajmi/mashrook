@@ -25,11 +25,8 @@ import java.util.UUID;
 @Table(name = "organizations")
 public class OrganizationEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true, name = "organization_id")
-    private UUID organizationId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, unique = true, name = "name_en")
     private String nameEn;
@@ -64,7 +61,6 @@ public class OrganizationEntity {
 
     public static OrganizationEntity from(OrganizationCreateRequest request) {
         OrganizationEntity organization = new OrganizationEntity();
-        organization.setOrganizationId(UUID.randomUUID());
         organization.setNameAr(request.nameAr());
         organization.setNameEn(request.nameEn());
         organization.setType(request.type());

@@ -3,11 +3,13 @@ package sa.elm.mashrook.users.domain;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import sa.elm.mashrook.common.uuid.UuidGenerator;
 import sa.elm.mashrook.security.domain.Permission;
 import sa.elm.mashrook.security.domain.Resource;
 import sa.elm.mashrook.security.domain.ResourcePermission;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -84,14 +86,15 @@ class AuthorityEntityTest {
             ResourcePermission resourcePermission = ResourcePermission.of(Resource.ORGANIZATIONS, Permission.UPDATE);
             UserEntity user = new UserEntity();
 
+            var id = UuidGenerator.generateUuidV7();
             // Act
-            AuthorityEntity authority = AuthorityEntity.from(resourcePermission, user, 1L);
+            AuthorityEntity authority = AuthorityEntity.from(resourcePermission, user, id);
 
             // Assert
             assertThat(authority.getResource()).isEqualTo(Resource.ORGANIZATIONS);
             assertThat(authority.getPermission()).isEqualTo(Permission.UPDATE);
             assertThat(authority.getUser()).isEqualTo(user);
-            assertThat(authority.getAssignedBy()).isEqualTo(1L);
+            assertThat(authority.getAssignedBy()).isEqualTo(id);
             assertThat(authority.isActive()).isTrue();
         }
     }
@@ -117,7 +120,7 @@ class AuthorityEntityTest {
             AuthorityEntity authority = new AuthorityEntity();
             authority.setResource(Resource.CAMPAIGNS);
             authority.setPermission(Permission.READ);
-            Long deactivatedByUserId = 42L;
+            UUID deactivatedByUserId = UuidGenerator.generateUuidV7();
 
             // Act
             authority.deactivate(deactivatedByUserId);
@@ -159,7 +162,7 @@ class AuthorityEntityTest {
         void shouldTrackWhoAssignedTheAuthority() {
             // Arrange
             AuthorityEntity authority = new AuthorityEntity();
-            Long assignedByUserId = 100L;
+            UUID assignedByUserId = UuidGenerator.generateUuidV7();
 
             // Act
             authority.setAssignedBy(assignedByUserId);

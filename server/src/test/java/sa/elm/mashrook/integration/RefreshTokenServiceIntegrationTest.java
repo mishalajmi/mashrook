@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import sa.elm.mashrook.auth.RefreshTokenService;
 import sa.elm.mashrook.auth.domain.RefreshToken;
 import sa.elm.mashrook.configurations.RedisConfig;
+import sa.elm.mashrook.common.uuid.UuidGenerator;
 
 import java.util.Optional;
 import java.util.Set;
@@ -47,7 +48,7 @@ class RefreshTokenServiceIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        testUserId = UUID.randomUUID();
+        testUserId = UuidGenerator.generateUuidV7();
         testDeviceInfo = "Test Device / Chrome 120";
     }
 
@@ -137,8 +138,8 @@ class RefreshTokenServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should generate unique tokens for each call")
         void shouldGenerateUniqueTokens() {
             // Act
-            String refreshToken1 = jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
-            String refreshToken2 = jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
+            String refreshToken1 = jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
+            String refreshToken2 = jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
 
             RefreshToken token1 = refreshTokenService.generateRefreshToken(testUserId, refreshToken1, testDeviceInfo);
             RefreshToken token2 = refreshTokenService.generateRefreshToken(testUserId, refreshToken2, testDeviceInfo);
@@ -269,16 +270,16 @@ class RefreshTokenServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should revoke all tokens for a user")
         void shouldRevokeAllTokensForUser() {
             // Arrange - Create multiple tokens for same user
-            String refreshToken1 = jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
-            String refreshToken2 = jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
-            String refreshToken3 = jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
+            String refreshToken1 = jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
+            String refreshToken2 = jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
+            String refreshToken3 = jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
 
             RefreshToken token1 = refreshTokenService.generateRefreshToken(testUserId, refreshToken1,"Device 1");
             RefreshToken token2 = refreshTokenService.generateRefreshToken(testUserId, refreshToken2, "Device 2");
             RefreshToken token3 = refreshTokenService.generateRefreshToken(testUserId, refreshToken3,"Device 3");
 
             // Create token for different user (should not be affected)
-            UUID otherUserId = UUID.randomUUID();
+            UUID otherUserId = UuidGenerator.generateUuidV7();
             String refreshToken = jwtService.generateRefreshToken(createTestUserDetails(otherUserId));
             RefreshToken otherUserToken = refreshTokenService.generateRefreshToken(otherUserId, refreshToken,"Other Device");
 
@@ -301,7 +302,7 @@ class RefreshTokenServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should return zero when revoking tokens for user with no tokens")
         void shouldReturnZeroForUserWithNoTokens() {
             // Act
-            int revokedCount = refreshTokenService.revokeAllUserTokens(UUID.randomUUID());
+            int revokedCount = refreshTokenService.revokeAllUserTokens(UuidGenerator.generateUuidV7());
 
             // Assert
             assertThat(revokedCount).isZero();
@@ -358,12 +359,12 @@ class RefreshTokenServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should update user token index during rotation")
         void shouldUpdateUserIndexDuringRotation() {
             // Arrange
-            String originalRefreshToken = jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
+            String originalRefreshToken = jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
             RefreshToken originalToken = refreshTokenService.generateRefreshToken(testUserId, originalRefreshToken, testDeviceInfo);
             String userKey = RedisConfig.USER_TOKENS_KEY_PREFIX + testUserId;
 
             // Act
-            String rotatedRefreshToken = jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
+            String rotatedRefreshToken = jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
             Optional<RefreshToken> rotatedToken = refreshTokenService.rotateRefreshToken(originalToken.tokenValue(), rotatedRefreshToken);
 
             // Assert
@@ -414,9 +415,9 @@ class RefreshTokenServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should support multiple tokens for same user on different devices")
         void shouldSupportMultipleDevices() {
             // Arrange & Act
-            String mobileRefreshToken =  jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
-            String webRefreshToken = jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
-            String tabletRefreshToken = jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
+            String mobileRefreshToken =  jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
+            String webRefreshToken = jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
+            String tabletRefreshToken = jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
             RefreshToken mobileToken = refreshTokenService.generateRefreshToken(testUserId, mobileRefreshToken, "Mobile App / iOS 17");
             RefreshToken webToken = refreshTokenService.generateRefreshToken(testUserId, webRefreshToken, "Web Browser / Chrome 120");
             RefreshToken tabletToken = refreshTokenService.generateRefreshToken(testUserId, tabletRefreshToken, "Tablet / iPad");
@@ -436,8 +437,8 @@ class RefreshTokenServiceIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should revoke single device token while keeping others")
         void shouldRevokeSingleDeviceToken() {
             // Arrange
-            String mobileRefreshToken =  jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
-            String webRefreshToken = jwtService.generateRefreshToken(createTestUserDetails(UUID.randomUUID()));
+            String mobileRefreshToken =  jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
+            String webRefreshToken = jwtService.generateRefreshToken(createTestUserDetails(UuidGenerator.generateUuidV7()));
             RefreshToken mobileToken = refreshTokenService.generateRefreshToken(testUserId, mobileRefreshToken, "Mobile");
             RefreshToken webToken = refreshTokenService.generateRefreshToken(testUserId, webRefreshToken, "Web");
 

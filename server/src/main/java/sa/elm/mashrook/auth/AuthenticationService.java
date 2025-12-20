@@ -78,7 +78,7 @@ public class AuthenticationService {
 
         // Generate activation token
         VerificationTokenEntity activationToken = verificationTokenService.generateToken(
-                owner.getUserId(),
+                owner.getId(),
                 VerificationTokenType.ACCOUNT_ACTIVATION
         );
 
@@ -89,9 +89,9 @@ public class AuthenticationService {
                 activationToken.getToken()
         );
 
-        log.info("Registered new user {} with organization {}", owner.getEmail(), organization.getOrganizationId());
+        log.info("Registered new user {} with organization {}", owner.getEmail(), organization.getId());
 
-        return organization.getOrganizationId();
+        return organization.getId();
     }
 
     /**
@@ -117,7 +117,7 @@ public class AuthenticationService {
         userService.activateUser(user);
 
         // Activate organization
-        organizationService.activateOrganization(user.getOrganization().getOrganizationId());
+        organizationService.activateOrganization(user.getOrganization().getId());
 
         // Send welcome email
         notificationService.sendWelcomeEmail(
@@ -127,7 +127,7 @@ public class AuthenticationService {
         );
 
         log.info("Activated account for user {} and organization {}",
-                user.getEmail(), user.getOrganization().getOrganizationId());
+                user.getEmail(), user.getOrganization().getId());
 
         return true;
     }
@@ -252,12 +252,12 @@ public class AuthenticationService {
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshTokenValue = jwtService.generateRefreshToken(userDetails);
         RefreshToken refreshToken = refreshTokenService.generateRefreshToken(
-                userDetails.getUserUuid(),
+                userDetails.getUserId(),
                 refreshTokenValue,
                 deviceInfo
         );
 
-        log.debug("Generated tokens for user: {}", userDetails.getUserUuid());
+        log.debug("Generated tokens for user: {}", userDetails.getUserId());
 
         return new AuthResult(
                 accessToken,

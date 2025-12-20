@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+import sa.elm.mashrook.common.uuid.UuidGenerator;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -141,7 +141,7 @@ class ContainerConnectivityIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should connect to Redis successfully")
         void shouldConnectToRedis() {
             // Act - Use a simple set/get operation to verify connectivity
-            String testKey = "connectivity:test:" + UUID.randomUUID();
+            String testKey = "connectivity:test:" + UuidGenerator.generateUuidV7();
             String testValue = "ping-test";
 
             try {
@@ -159,7 +159,7 @@ class ContainerConnectivityIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should set and get string value")
         void shouldSetAndGetStringValue() {
             // Arrange
-            String key = "test:key:" + UUID.randomUUID();
+            String key = "test:key:" + UuidGenerator.generateUuidV7();
             String value = "test-value-" + System.currentTimeMillis();
 
             try {
@@ -179,7 +179,7 @@ class ContainerConnectivityIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should set key with expiration")
         void shouldSetKeyWithExpiration() {
             // Arrange
-            String key = "test:expiring:" + UUID.randomUUID();
+            String key = "test:expiring:" + UuidGenerator.generateUuidV7();
             String value = "expiring-value";
 
             try {
@@ -201,7 +201,7 @@ class ContainerConnectivityIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should delete key successfully")
         void shouldDeleteKeySuccessfully() {
             // Arrange
-            String key = "test:delete:" + UUID.randomUUID();
+            String key = "test:delete:" + UuidGenerator.generateUuidV7();
             String value = "to-be-deleted";
             redisTemplate.opsForValue().set(key, value);
 
@@ -220,7 +220,7 @@ class ContainerConnectivityIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should perform hash operations")
         void shouldPerformHashOperations() {
             // Arrange
-            String hashKey = "test:hash:" + UUID.randomUUID();
+            String hashKey = "test:hash:" + UuidGenerator.generateUuidV7();
             String field1 = "field1";
             String field2 = "field2";
             String value1 = "value1";

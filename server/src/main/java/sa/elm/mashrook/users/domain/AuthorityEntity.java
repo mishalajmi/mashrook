@@ -20,6 +20,7 @@ import sa.elm.mashrook.security.domain.Resource;
 import sa.elm.mashrook.security.domain.ResourcePermission;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Entity representing a resource-permission assignment to a user.
@@ -44,8 +45,8 @@ import java.time.LocalDateTime;
 public class AuthorityEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -63,10 +64,10 @@ public class AuthorityEntity {
     private boolean active = true;
 
     @Column(name = "assigned_by")
-    private Long assignedBy;
+    private UUID assignedBy;
 
     @Column(name = "deactivated_by")
-    private Long deactivatedBy;
+    private UUID deactivatedBy;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -87,7 +88,7 @@ public class AuthorityEntity {
      * @param assignedBy the ID of the user who assigned this permission
      * @return a new AuthorityEntity instance
      */
-    public static AuthorityEntity from(ResourcePermission resourcePermission, UserEntity user, Long assignedBy) {
+    public static AuthorityEntity from(ResourcePermission resourcePermission, UserEntity user, UUID assignedBy) {
         AuthorityEntity entity = new AuthorityEntity();
         entity.setResource(resourcePermission.resource());
         entity.setPermission(resourcePermission.permission());
@@ -121,7 +122,7 @@ public class AuthorityEntity {
      *
      * @param userId the ID of the user performing the deactivation
      */
-    public void deactivate(Long userId) {
+    public void deactivate(UUID userId) {
         this.active = false;
         this.deactivatedBy = userId;
         this.deactivatedAt = LocalDateTime.now();

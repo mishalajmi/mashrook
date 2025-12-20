@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface OrganizationRepository extends JpaRepository<OrganizationEntity, Long> {
+public interface OrganizationRepository extends JpaRepository<OrganizationEntity, UUID> {
     List<OrganizationEntity> findAllByType(OrganizationType type);
 
-    Optional<OrganizationEntity> findByOrganizationId(UUID organizationId);
+    Optional<OrganizationEntity> findOrganizationEntityById(UUID organizationId);
 }

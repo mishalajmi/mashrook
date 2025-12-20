@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
+import sa.elm.mashrook.common.uuid.UuidGenerator;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationType;
 import sa.elm.mashrook.security.domain.Permission;
@@ -16,16 +17,14 @@ import sa.elm.mashrook.users.domain.UserStatus;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for MashrookUserDetails.
- *
+ * <p>
  * Tests verify that:
  * - Authorities are loaded correctly from user's resource-permission pairs
  * - Role prefixes are applied correctly
@@ -36,18 +35,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MashrookUserDetailsTest {
 
     private UserEntity user;
-    private OrganizationEntity organization;
 
     @BeforeEach
     void setUp() {
-        organization = new OrganizationEntity();
-        organization.setOrganizationId(UUID.randomUUID());
+        OrganizationEntity organization = new OrganizationEntity();
+        organization.setId(UuidGenerator.generateUuidV7());
         organization.setNameEn("Test Org");
         organization.setType(OrganizationType.BUYER);
 
         user = new UserEntity();
-        user.setId(1L);
-        user.setUserId(UUID.randomUUID());
+        user.setId(UuidGenerator.generateUuidV7());
         user.setEmail("test@example.com");
         user.setPassword("hashedPassword");
         user.setFirstName("Test");

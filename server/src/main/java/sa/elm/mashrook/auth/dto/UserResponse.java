@@ -3,14 +3,10 @@ package sa.elm.mashrook.auth.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
-import sa.elm.mashrook.organizations.domain.OrganizationType;
 import sa.elm.mashrook.security.domain.ResourcePermission;
-import sa.elm.mashrook.security.domain.UserRole;
-import sa.elm.mashrook.users.domain.AuthorityEntity;
 import sa.elm.mashrook.users.domain.UserEntity;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -114,14 +110,14 @@ public record UserResponse(
                 .collect(Collectors.toSet());
 
         return UserResponse.builder()
-                .id(user.getUserId().toString())
+                .id(user.getId().toString())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .authorities(activeAuthorities)
                 .status(user.getStatus().name())
-                .organizationId(organization != null ? organization.getOrganizationId().toString() : null)
+                .organizationId(organization != null ? organization.getId().toString() : null)
                 .organizationName(organization != null ? organization.getNameEn() : null)
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

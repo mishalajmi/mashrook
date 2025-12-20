@@ -1,6 +1,5 @@
 CREATE TABLE IF NOT EXISTS organizations (
-    id              BIGSERIAL                      PRIMARY KEY,
-    organization_id UUID                           UNIQUE   NOT NULL,
+    id              UUID                           PRIMARY KEY DEFAULT uuidv7(),
     name_en         VARCHAR(255)                   UNIQUE   NOT NULL,
     name_ar         VARCHAR(255)                   UNIQUE   NOT NULL,
     slug            VARCHAR(255)                   UNIQUE   NOT NULL,
@@ -12,7 +11,6 @@ CREATE TABLE IF NOT EXISTS organizations (
     updated_at      TIMESTAMP
 );
 
-CREATE INDEX idx_organization_id                  ON organizations(organization_id);
 CREATE INDEX idx_organization_status              ON organizations(status);
 CREATE INDEX idx_organization_type                ON organizations(type);
 CREATE INDEX idx_organization_created_at          ON organizations(created_at);

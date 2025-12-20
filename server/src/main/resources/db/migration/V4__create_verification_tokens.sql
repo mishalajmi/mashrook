@@ -2,17 +2,17 @@
 -- This table stores tokens for various user verification purposes
 
 CREATE TABLE IF NOT EXISTS verification_tokens (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID NOT NULL,
-    token           VARCHAR(255) NOT NULL UNIQUE,
-    token_type      VARCHAR(50) NOT NULL,
-    expires_at      TIMESTAMP NOT NULL,
-    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id              UUID                PRIMARY KEY DEFAULT uuidv7(),
+    user_id         UUID            NOT NULL,
+    token           VARCHAR(255)    NOT NULL    UNIQUE,
+    token_type      VARCHAR(50)     NOT NULL,
+    expires_at      TIMESTAMP       NOT NULL,
+    created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     used_at         TIMESTAMP,
 
     CONSTRAINT fk_verification_tokens_user_id
     FOREIGN KEY (user_id)
-    REFERENCES users(user_id)
+    REFERENCES users(id)
     ON DELETE CASCADE
 );
 

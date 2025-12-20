@@ -12,11 +12,10 @@ import java.util.UUID;
 @UtilityClass
 public class TestUtil {
 
-    public static OrganizationEntity organization(long id, UUID orgUuid, String nameEn, String nameAr,
+    public static OrganizationEntity organization(UUID orgUuid, String nameEn, String nameAr,
                                                   String slug, String industry, OrganizationType type) {
         OrganizationEntity e = new OrganizationEntity();
-        e.setId(id);
-        e.setOrganizationId(orgUuid);
+        e.setId(orgUuid);
         e.setNameEn(nameEn);
         e.setNameAr(nameAr);
         e.setSlug(slug);
@@ -29,11 +28,11 @@ public class TestUtil {
 
     public static List<OrganizationEntity> createMockOrganizations() {
         List<OrganizationEntity> list = new ArrayList<>();
-        list.add(organization(1L, UUID.fromString("11111111-1111-1111-1111-111111111111"),
+        list.add(organization(UUID.fromString("11111111-1111-1111-1111-111111111111"),
                 "Acme Inc", "اكمي", "acme-inc", "Manufacturing", OrganizationType.BUYER));
-        list.add(organization(2L, UUID.fromString("22222222-2222-2222-2222-222222222222"),
+        list.add(organization(UUID.fromString("22222222-2222-2222-2222-222222222222"),
                 "Public Co", "شركة عامة", "public-co", "Services", OrganizationType.SUPPLIER));
-        list.add(organization(3L, UUID.fromString("33333333-3333-3333-3333-333333333333"),
+        list.add(organization(UUID.fromString("33333333-3333-3333-3333-333333333333"),
                 "Another", "آخر", "another", "Retail", OrganizationType.BUYER));
         return list;
     }

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import sa.elm.mashrook.common.uuid.UuidGenerator;
 import sa.elm.mashrook.configurations.AuthenticationConfigurationProperties;
 import sa.elm.mashrook.security.details.MashrookUserDetails;
 
@@ -33,7 +34,7 @@ public class JwtService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "access");
         claims.put("organization_id", user.getOrganizationId().toString());
-        claims.put("user_id", user.getUserUuid().toString());
+        claims.put("user_id", user.getUserId().toString());
         claims.put("status", user.getUserStatus());
 
         List<String> authorities = user.getAuthorities().stream()
@@ -46,14 +47,14 @@ public class JwtService {
     public String generateRefreshToken(MashrookUserDetails user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "refresh");
-        claims.put("user_id", user.getUserUuid().toString());
+        claims.put("user_id", user.getUserId().toString());
         return buildToken(user.getMashrookUsername(), claims,  properties.jwt().refreshTokenExpirationMs());
     }
 
     private String buildToken(String subject, Map<String, Object> claims, Long expiration) {
         Key signingKey = getSigningKey();
         return Jwts.builder()
-                .id(UUID.randomUUID().toString())
+                .id(UuidGenerator.generateUuidV7String())
                 .subject(subject)
                 .claims(claims)
                 .issuer(properties.jwt().issuer())

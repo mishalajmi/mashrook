@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import sa.elm.mashrook.security.domain.Permission;
 import sa.elm.mashrook.security.domain.Resource;
 import sa.elm.mashrook.security.domain.ResourcePermission;
-import sa.elm.mashrook.security.domain.UserRole;
 import sa.elm.mashrook.users.domain.UserEntity;
 import sa.elm.mashrook.users.domain.UserStatus;
 
@@ -97,16 +96,13 @@ public class MashrookUserDetails implements UserDetails {
         return user;
     }
 
-    public UUID getUserUuid() {
-        return user.getUserId();
-    }
 
-    public Long getUserId() {
+    public UUID getUserId() {
         return user.getId();
     }
 
     public UUID getOrganizationId() {
-        return user.getOrganization().getOrganizationId();
+        return user.getOrganization().getId();
     }
 
     public String getMashrookUsername() {
@@ -132,6 +128,7 @@ public class MashrookUserDetails implements UserDetails {
     public boolean hasPermission(String permission) {
         return this.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
+                .filter(Objects::nonNull)
                 .anyMatch(authority -> {
                     // Exact match
                     if (authority.equals(permission)) {

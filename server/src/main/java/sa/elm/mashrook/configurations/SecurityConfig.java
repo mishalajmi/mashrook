@@ -82,7 +82,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/forgot-password").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/v1/auth/activate").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/auth/activate/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -103,7 +103,10 @@ public class SecurityConfig {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write("""
-                {"error": "Unauthorized", "message": "Authentication required"}
+                {
+                    "error": "Unauthorized",
+                    "message": "Authentication required"
+                }
                 """);
 
     }
@@ -114,7 +117,10 @@ public class SecurityConfig {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write("""
-                {"error": "Forbidden", "message": "Access denied"}
+                {
+                    "error": "Forbidden",
+                    "message": "Access denied"
+                }
                 """);
 
     }

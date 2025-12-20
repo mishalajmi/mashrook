@@ -26,7 +26,7 @@ public class UserService {
     }
 
     public Optional<UserEntity> findByUserId(UUID userId) {
-        return userRepository.findByUserId(userId);
+        return userRepository.findUserEntityById(userId);
     }
 
     public boolean checkIfEmailExists(String email) {
@@ -48,13 +48,11 @@ public class UserService {
      * Activates a user account by setting their status to ACTIVE.
      *
      * @param user the user to activate
-     * @return the activated user
      */
     @Transactional
-    public UserEntity activateUser(UserEntity user) {
+    public void activateUser(UserEntity user) {
         user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
         log.info("Activated user: {}", user.getEmail());
-        return user;
     }
 }
