@@ -13,6 +13,8 @@ export default [
 			route("products", "routes/dashboard/products/index.tsx"),
 			route("orders", "routes/dashboard/orders/index.tsx"),
 			route("campaigns", "routes/dashboard/campaigns/index.tsx"),
+			route("campaigns/new", "routes/dashboard/campaigns/new.tsx"),
+			route("campaigns/:id", "routes/dashboard/campaigns/$id.tsx"),
 			route("analytics", "routes/dashboard/analytics/index.tsx"),
 			route("buyers", "routes/dashboard/buyers/index.tsx"),
 			route("messages", "routes/dashboard/messages/index.tsx"),

@@ -1,0 +1,99 @@
+/**
+ * Campaign Types
+ *
+ * Type definitions for campaign-related entities.
+ * These types are used across both supplier and buyer interfaces.
+ */
+
+/**
+ * Possible states of a campaign
+ */
+export type CampaignStatus = "DRAFT" | "ACTIVE" | "LOCKED" | "CANCELLED" | "DONE";
+
+/**
+ * Campaign entity representing a group buying campaign
+ */
+export interface Campaign {
+	id: string;
+	title: string;
+	description: string;
+	productDetails: string;
+	targetQuantity: number;
+	startDate: string;
+	endDate: string;
+	status: CampaignStatus;
+	supplierId: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+/**
+ * Discount bracket representing tiered pricing based on quantity
+ */
+export interface DiscountBracket {
+	id: string;
+	campaignId: string;
+	minQuantity: number;
+	maxQuantity: number | null;
+	unitPrice: string;
+	bracketOrder: number;
+}
+
+/**
+ * Campaign with its associated discount brackets
+ */
+export interface CampaignWithBrackets extends Campaign {
+	brackets: DiscountBracket[];
+}
+
+/**
+ * Pledge summary for a campaign
+ */
+export interface CampaignPledgeSummary {
+	campaignId: string;
+	totalPledges: number;
+	totalQuantity: number;
+	currentBracket: DiscountBracket | null;
+	nextBracket: DiscountBracket | null;
+	unitsToNextBracket: number | null;
+}
+
+/**
+ * Form data for creating/editing a campaign
+ */
+export interface CampaignFormData {
+	title: string;
+	description: string;
+	productDetails: string;
+	targetQuantity: number;
+	startDate: string;
+	endDate: string;
+}
+
+/**
+ * Form data for a discount bracket (without id/campaignId for creation)
+ */
+export interface DiscountBracketFormData {
+	minQuantity: number;
+	maxQuantity: number | null;
+	unitPrice: string;
+	bracketOrder: number;
+}
+
+/**
+ * Campaign filter options
+ */
+export interface CampaignFilters {
+	status?: CampaignStatus | "ALL";
+	search?: string;
+}
+
+/**
+ * Campaign statistics for dashboard display
+ */
+export interface CampaignStats {
+	totalCampaigns: number;
+	activeCampaigns: number;
+	totalPledges: number;
+	totalRevenue: string;
+}
