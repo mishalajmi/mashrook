@@ -38,6 +38,8 @@ build/
 ### React ###
 client/build/
 client/node_modules/
+client/.react-router/
+client/.storybook/
 
 ### claude ###
 .claude/
