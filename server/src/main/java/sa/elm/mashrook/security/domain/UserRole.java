@@ -75,6 +75,16 @@ public enum UserRole {
             ResourcePermission.of(Resource.CAMPAIGNS, Permission.WRITE),
             ResourcePermission.of(Resource.CAMPAIGNS, Permission.UPDATE),
             ResourcePermission.of(Resource.CAMPAIGNS, Permission.DELETE),
+            // Bracket full CRUD
+            ResourcePermission.of(Resource.BRACKETS, Permission.READ),
+            ResourcePermission.of(Resource.BRACKETS, Permission.WRITE),
+            ResourcePermission.of(Resource.BRACKETS, Permission.UPDATE),
+            ResourcePermission.of(Resource.BRACKETS, Permission.DELETE),
+            // Pledge full CRUD
+            ResourcePermission.of(Resource.PLEDGES, Permission.READ),
+            ResourcePermission.of(Resource.PLEDGES, Permission.WRITE),
+            ResourcePermission.of(Resource.PLEDGES, Permission.UPDATE),
+            ResourcePermission.of(Resource.PLEDGES, Permission.DELETE),
             // Dashboard
             ResourcePermission.of(Resource.DASHBOARD, Permission.READ),
             // Team management

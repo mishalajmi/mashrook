@@ -47,7 +47,9 @@ class ResourceTest {
                     Resource.REPORTS,
                     Resource.MODERATION,
                     Resource.COMMUNICATIONS,
-                    Resource.CONFIGURATION
+                    Resource.CONFIGURATION,
+                    Resource.BRACKETS,
+                    Resource.PLEDGES
             );
         }
 
@@ -109,6 +111,15 @@ class ResourceTest {
             assertThat(Resource.USER_MANAGEMENT.getResource()).isEqualTo("user-management");
             assertThat(Resource.SYSTEM_SETTINGS.getResource()).isEqualTo("system-settings");
             assertThat(Resource.DASHBOARD.getResource()).isEqualTo("dashboard");
+        }
+
+        @Test
+        @DisplayName("should return singular lowercase value for bracket and pledge resources")
+        void shouldReturnSingularLowercaseValueForBracketAndPledge() {
+            // Act & Assert
+            assertThat(Resource.BRACKETS.getResource()).isEqualTo("bracket");
+            assertThat(Resource.PLEDGES.getResource()).isEqualTo("pledge");
+            assertThat(Resource.CAMPAIGNS.getResource()).isEqualTo("campaign");
         }
     }
 }

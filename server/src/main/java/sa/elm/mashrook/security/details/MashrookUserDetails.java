@@ -157,7 +157,7 @@ public class MashrookUserDetails implements UserDetails {
      * @return true if the user has the specified permission on the resource
      */
     public boolean hasPermissionForResource(Resource resource, Permission permission) {
-        String permissionString = resource.name() + ":" + permission.name();
+        String permissionString = resource.getResource() + ":" + permission.getPermission();
         return hasPermission(permissionString);
     }
 

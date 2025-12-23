@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +36,7 @@ public class PledgeController {
 
     @PostMapping("/campaigns/{id}/pledges")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('pledge:create')")
     public PledgeResponse createPledge(
             @PathVariable UUID id,
             @Valid @RequestBody PledgeCreateRequest request,
@@ -43,6 +45,7 @@ public class PledgeController {
     }
 
     @PutMapping("/campaigns/{id}/pledges/{pledgeId}")
+    @PreAuthorize("hasAuthority('pledge:update')")
     public PledgeResponse updatePledge(
             @PathVariable UUID id,
             @PathVariable UUID pledgeId,
@@ -53,6 +56,7 @@ public class PledgeController {
 
     @DeleteMapping("/campaigns/{id}/pledges/{pledgeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('pledge:delete')")
     public void cancelPledge(
             @PathVariable UUID id,
             @PathVariable UUID pledgeId,
@@ -61,6 +65,7 @@ public class PledgeController {
     }
 
     @GetMapping("/pledges")
+    @PreAuthorize("hasAuthority('pledge:read')")
     public PledgeListResponse getBuyerPledges(
             @RequestParam(required = false) PledgeStatus status,
             @RequestParam(defaultValue = "0") int page,
@@ -71,6 +76,7 @@ public class PledgeController {
     }
 
     @GetMapping("/campaigns/{id}/pledges")
+    @PreAuthorize("hasAuthority('pledge:read')")
     public PledgeListResponse getCampaignPledges(
             @PathVariable UUID id,
             @RequestParam(defaultValue = "0") int page,

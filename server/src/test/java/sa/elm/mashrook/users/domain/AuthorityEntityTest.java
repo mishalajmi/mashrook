@@ -71,7 +71,7 @@ class AuthorityEntityTest {
             String authorityString = authority.toAuthorityString();
 
             // Assert
-            assertThat(authorityString).isEqualTo("USER_MANAGEMENT:DELETE");
+            assertThat(authorityString).isEqualTo("user_management:delete");
         }
     }
 

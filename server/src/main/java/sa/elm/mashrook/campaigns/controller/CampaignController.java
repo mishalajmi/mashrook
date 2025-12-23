@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -38,6 +40,7 @@ public class CampaignController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('campaign:create')")
     public CampaignResponse createCampaign(
             @Valid @RequestBody CampaignCreateRequest request,
             @AuthenticationPrincipal JwtPrincipal principal) {
@@ -46,6 +49,7 @@ public class CampaignController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('campaign:update')")
     public CampaignResponse updateCampaign(
             @PathVariable UUID id,
             @Valid @RequestBody CampaignUpdateRequest request,
@@ -55,6 +59,7 @@ public class CampaignController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('campaign:read')")
     public CampaignResponse getCampaignById(@PathVariable UUID id) {
         return campaignService.getCampaignById(id);
     }
@@ -66,7 +71,8 @@ public class CampaignController {
         return campaignService.listCampaigns(supplierId, status);
     }
 
-    @PostMapping("/{id}/publish")
+    @PatchMapping("/{id}/publish")
+    @PreAuthorize("hasAuthority('campaign:update')")
     public CampaignResponse publishCampaign(
             @PathVariable UUID id,
             @AuthenticationPrincipal JwtPrincipal principal) {
@@ -75,6 +81,7 @@ public class CampaignController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('campaign:delete')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCampaign(
             @PathVariable UUID id,
@@ -85,6 +92,7 @@ public class CampaignController {
 
     @PostMapping("/{id}/brackets")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('bracket:create')")
     public DiscountBracketResponse addBracket(
             @PathVariable UUID id,
             @Valid @RequestBody DiscountBracketRequest request,
@@ -94,6 +102,7 @@ public class CampaignController {
     }
 
     @PutMapping("/{id}/brackets/{bracketId}")
+    @PreAuthorize("hasAuthority('bracket:update')")
     public DiscountBracketResponse updateBracket(
             @PathVariable UUID id,
             @PathVariable UUID bracketId,
@@ -105,6 +114,7 @@ public class CampaignController {
 
     @DeleteMapping("/{id}/brackets/{bracketId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('bracket:delete')")
     public void deleteBracket(
             @PathVariable UUID id,
             @PathVariable UUID bracketId,

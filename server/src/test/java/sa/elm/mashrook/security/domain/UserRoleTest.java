@@ -126,6 +126,42 @@ class UserRoleTest {
                     ResourcePermission.of(Resource.USER_MANAGEMENT, Permission.UPDATE)
             );
         }
+
+        @Test
+        @DisplayName("ORGANIZATION_OWNER should have full CRUD on brackets")
+        void organizationOwnerShouldHaveFullCrudOnBrackets() {
+            // Arrange
+            UserRole role = UserRole.ORGANIZATION_OWNER;
+
+            // Act
+            Set<ResourcePermission> permissions = role.getResourcePermissions();
+
+            // Assert
+            assertThat(permissions).contains(
+                    ResourcePermission.of(Resource.BRACKETS, Permission.READ),
+                    ResourcePermission.of(Resource.BRACKETS, Permission.WRITE),
+                    ResourcePermission.of(Resource.BRACKETS, Permission.UPDATE),
+                    ResourcePermission.of(Resource.BRACKETS, Permission.DELETE)
+            );
+        }
+
+        @Test
+        @DisplayName("ORGANIZATION_OWNER should have full CRUD on pledges")
+        void organizationOwnerShouldHaveFullCrudOnPledges() {
+            // Arrange
+            UserRole role = UserRole.ORGANIZATION_OWNER;
+
+            // Act
+            Set<ResourcePermission> permissions = role.getResourcePermissions();
+
+            // Assert
+            assertThat(permissions).contains(
+                    ResourcePermission.of(Resource.PLEDGES, Permission.READ),
+                    ResourcePermission.of(Resource.PLEDGES, Permission.WRITE),
+                    ResourcePermission.of(Resource.PLEDGES, Permission.UPDATE),
+                    ResourcePermission.of(Resource.PLEDGES, Permission.DELETE)
+            );
+        }
     }
 
     @Nested
@@ -223,8 +259,8 @@ class UserRoleTest {
 
             // Assert
             assertThat(permissionStrings).contains(
-                    "DASHBOARD:READ",
-                    "CAMPAIGNS:READ"
+                    "dashboard:read",
+                    "campaign:read"
             );
         }
 
