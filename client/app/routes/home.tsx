@@ -1,17 +1,20 @@
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import type { MetaDescriptor } from "react-router";
+import { useLoaderData } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
 	Header,
 	Hero,
 	Features,
+	FeaturedCampaigns,
 	HowItWorks,
 	Pricing,
 	Testimonials,
 	CTA,
 	Footer,
 } from "@/components/landing";
+import type { Campaign, CampaignPledgeSummary, DiscountBracket } from "@/types/campaign";
 
 // SEO and Open Graph metadata
 export function meta(): MetaDescriptor[] {
@@ -64,6 +67,137 @@ export function meta(): MetaDescriptor[] {
 	];
 }
 
+// Mock data for development - will be replaced with API calls
+const mockBrackets: DiscountBracket[] = [
+	{
+		id: "bracket-1",
+		campaignId: "campaign-1",
+		minQuantity: 10,
+		maxQuantity: 49,
+		unitPrice: "25.00",
+		bracketOrder: 1,
+	},
+	{
+		id: "bracket-2",
+		campaignId: "campaign-1",
+		minQuantity: 50,
+		maxQuantity: 99,
+		unitPrice: "22.00",
+		bracketOrder: 2,
+	},
+];
+
+const mockActiveCampaigns: Campaign[] = [
+	{
+		id: "campaign-1",
+		title: "Organic Coffee Beans",
+		description:
+			"Premium organic coffee beans sourced from sustainable farms. Join our group buying campaign for amazing discounts on freshly roasted beans.",
+		productDetails: "1kg bag of premium arabica beans",
+		targetQuantity: 100,
+		startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+		endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+		status: "ACTIVE",
+		supplierId: "supplier-1",
+		createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+		updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+	},
+	{
+		id: "campaign-2",
+		title: "Artisan Olive Oil",
+		description:
+			"Extra virgin olive oil from family-owned groves in the Mediterranean. Cold-pressed for maximum flavor and health benefits.",
+		productDetails: "500ml bottle of EVOO",
+		targetQuantity: 200,
+		startDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+		endDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
+		status: "ACTIVE",
+		supplierId: "supplier-1",
+		createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+		updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+	},
+	{
+		id: "campaign-3",
+		title: "Specialty Tea Bundle",
+		description:
+			"Curated selection of premium loose-leaf teas from renowned tea estates around the world.",
+		productDetails: "Sampler box with 5 varieties",
+		targetQuantity: 75,
+		startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+		endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+		status: "ACTIVE",
+		supplierId: "supplier-2",
+		createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+		updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+	},
+	{
+		id: "campaign-4",
+		title: "Premium Honey",
+		description:
+			"Raw organic honey from local beekeepers. Unpasteurized and unfiltered for maximum health benefits.",
+		productDetails: "500g jar of raw honey",
+		targetQuantity: 150,
+		startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+		endDate: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
+		status: "ACTIVE",
+		supplierId: "supplier-3",
+		createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+		updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+	},
+];
+
+const mockPledgeSummaries: Record<string, CampaignPledgeSummary> = {
+	"campaign-1": {
+		campaignId: "campaign-1",
+		totalPledges: 15,
+		totalQuantity: 35,
+		currentBracket: mockBrackets[0],
+		nextBracket: mockBrackets[1],
+		unitsToNextBracket: 15,
+	},
+	"campaign-2": {
+		campaignId: "campaign-2",
+		totalPledges: 28,
+		totalQuantity: 72,
+		currentBracket: mockBrackets[1],
+		nextBracket: null,
+		unitsToNextBracket: null,
+	},
+	"campaign-3": {
+		campaignId: "campaign-3",
+		totalPledges: 12,
+		totalQuantity: 25,
+		currentBracket: mockBrackets[0],
+		nextBracket: mockBrackets[1],
+		unitsToNextBracket: 25,
+	},
+	"campaign-4": {
+		campaignId: "campaign-4",
+		totalPledges: 8,
+		totalQuantity: 18,
+		currentBracket: mockBrackets[0],
+		nextBracket: mockBrackets[1],
+		unitsToNextBracket: 32,
+	},
+};
+
+// Loader data type
+interface HomeLoaderData {
+	campaigns: Campaign[];
+	pledgeSummaries: Record<string, CampaignPledgeSummary>;
+}
+
+/**
+ * SSR Loader for home page
+ * Fetches featured campaigns data for server-side rendering
+ */
+export async function loader(): Promise<HomeLoaderData> {
+	// For now, use mock data but structure for future API
+	const campaigns = mockActiveCampaigns.slice(0, 4);
+	const pledgeSummaries = mockPledgeSummaries;
+	return { campaigns, pledgeSummaries };
+}
+
 // Helper to detect system preference for dark mode
 function getInitialTheme(): boolean {
 	if (typeof window === "undefined") return false;
@@ -72,6 +206,7 @@ function getInitialTheme(): boolean {
 
 function HomeContent(): ReactNode {
 	const { t } = useTranslation();
+	const { campaigns, pledgeSummaries } = useLoaderData<HomeLoaderData>();
 	const [isDark, setIsDark] = useState(false);
 	const [mounted, setMounted] = useState(false);
 
@@ -128,6 +263,10 @@ function HomeContent(): ReactNode {
 			<main id="main-content" role="main">
 				<Hero />
 				<Features />
+				<FeaturedCampaigns
+					campaigns={campaigns}
+					pledgeSummaries={pledgeSummaries}
+				/>
 				<HowItWorks />
 				<Pricing />
 				<Testimonials />

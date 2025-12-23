@@ -1,6 +1,7 @@
 export { Header } from "./header";
 export { Hero } from "./hero";
 export { Features } from "./features";
+export { FeaturedCampaigns } from "./featured-campaigns";
 export { HowItWorks } from "./how-it-works";
 export { Pricing } from "./pricing";
 export { Testimonials } from "./testimonials";
