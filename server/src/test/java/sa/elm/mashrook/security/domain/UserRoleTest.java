@@ -31,7 +31,7 @@ class UserRoleTest {
                     UserRole.USER,
                     UserRole.ADMIN,
                     UserRole.SUPER_ADMIN,
-                    UserRole.ORGANIZATION_OWNER
+                    UserRole.SUPPLIER_OWNER
             );
         }
     }
@@ -79,7 +79,7 @@ class UserRoleTest {
         @DisplayName("ORGANIZATION_OWNER should have full CRUD on organizations")
         void organizationOwnerShouldHaveFullCrudOnOrganizations() {
             // Arrange
-            UserRole role = UserRole.ORGANIZATION_OWNER;
+            UserRole role = UserRole.SUPPLIER_OWNER;
 
             // Act
             Set<ResourcePermission> permissions = role.getResourcePermissions();
@@ -96,7 +96,7 @@ class UserRoleTest {
         @DisplayName("ORGANIZATION_OWNER should have full CRUD on campaigns")
         void organizationOwnerShouldHaveFullCrudOnCampaigns() {
             // Arrange
-            UserRole role = UserRole.ORGANIZATION_OWNER;
+            UserRole role = UserRole.SUPPLIER_OWNER;
 
             // Act
             Set<ResourcePermission> permissions = role.getResourcePermissions();
@@ -114,7 +114,7 @@ class UserRoleTest {
         @DisplayName("ORGANIZATION_OWNER should have user management permissions")
         void organizationOwnerShouldHaveUserManagementPermissions() {
             // Arrange
-            UserRole role = UserRole.ORGANIZATION_OWNER;
+            UserRole role = UserRole.SUPPLIER_OWNER;
 
             // Act
             Set<ResourcePermission> permissions = role.getResourcePermissions();
@@ -131,7 +131,7 @@ class UserRoleTest {
         @DisplayName("ORGANIZATION_OWNER should have full CRUD on brackets")
         void organizationOwnerShouldHaveFullCrudOnBrackets() {
             // Arrange
-            UserRole role = UserRole.ORGANIZATION_OWNER;
+            UserRole role = UserRole.SUPPLIER_OWNER;
 
             // Act
             Set<ResourcePermission> permissions = role.getResourcePermissions();
@@ -149,7 +149,7 @@ class UserRoleTest {
         @DisplayName("ORGANIZATION_OWNER should have full CRUD on pledges")
         void organizationOwnerShouldHaveFullCrudOnPledges() {
             // Arrange
-            UserRole role = UserRole.ORGANIZATION_OWNER;
+            UserRole role = UserRole.BUYER_OWNER;
 
             // Act
             Set<ResourcePermission> permissions = role.getResourcePermissions();
@@ -240,7 +240,7 @@ class UserRoleTest {
             // Assert
             assertThat(UserRole.USER.hasAllAccess()).isFalse();
             assertThat(UserRole.ADMIN.hasAllAccess()).isFalse();
-            assertThat(UserRole.ORGANIZATION_OWNER.hasAllAccess()).isFalse();
+            assertThat(UserRole.BUYER_OWNER.hasAllAccess()).isFalse();
         }
     }
 
@@ -286,7 +286,7 @@ class UserRoleTest {
         @DisplayName("should check if role has specific resource permission")
         void shouldCheckIfRoleHasSpecificResourcePermission() {
             // Arrange
-            UserRole role = UserRole.ORGANIZATION_OWNER;
+            UserRole role = UserRole.BUYER_OWNER;
 
             // Act & Assert
             assertThat(role.hasPermission(Resource.ORGANIZATIONS, Permission.READ)).isTrue();

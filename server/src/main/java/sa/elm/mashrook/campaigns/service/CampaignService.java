@@ -18,6 +18,7 @@ import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignValidationException;
 import sa.elm.mashrook.exceptions.DiscountBracketNotFoundException;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,21 +35,49 @@ public class CampaignService {
     public CampaignResponse createCampaign(CampaignCreateRequest request, UUID supplierId) {
         log.debug("Creating campaign for supplier: {}", supplierId);
 
+        int durationDays = (int) ChronoUnit.DAYS.between(request.startDate(), request.endDate());
+
+        CampaignEntity campaign = createCampaignEntity(request, supplierId, durationDays);
+
+        CampaignEntity saved = campaignRepository.save(campaign);
+        log.info("Created campaign: {}", saved.getId());
+
+        List<DiscountBracketResponse> brackets = saveBracketsIfProvided(request.brackets(), saved.getId());
+
+        return CampaignResponse.from(saved, brackets);
+    }
+
+    private List<DiscountBracketResponse> saveBracketsIfProvided(List<DiscountBracketRequest> brackets, UUID campaignId) {
+        if (brackets == null || brackets.isEmpty()) {
+            return List.of();
+        }
+
+        return brackets.stream()
+                .map(bracketRequest -> {
+                    DiscountBracketEntity bracket = new DiscountBracketEntity();
+                    bracket.setCampaignId(campaignId);
+                    bracket.setMinQuantity(bracketRequest.minQuantity());
+                    bracket.setMaxQuantity(bracketRequest.maxQuantity());
+                    bracket.setUnitPrice(bracketRequest.unitPrice());
+                    bracket.setBracketOrder(bracketRequest.bracketOrder());
+                    return discountBracketRepository.save(bracket);
+                })
+                .map(DiscountBracketResponse::from)
+                .toList();
+    }
+
+    private static CampaignEntity createCampaignEntity(CampaignCreateRequest request, UUID supplierId, int durationDays) {
         CampaignEntity campaign = new CampaignEntity();
         campaign.setSupplierId(supplierId);
         campaign.setTitle(request.title());
         campaign.setDescription(request.description());
         campaign.setProductDetails(request.productDetails());
-        campaign.setDurationDays(request.durationDays());
+        campaign.setDurationDays(durationDays);
         campaign.setStartDate(request.startDate());
         campaign.setEndDate(request.endDate());
-        campaign.setTargetQty(request.targetQty());
+        campaign.setTargetQty(request.targetQuantity());
         campaign.setStatus(CampaignStatus.DRAFT);
-
-        CampaignEntity saved = campaignRepository.save(campaign);
-        log.info("Created campaign: {}", saved.getId());
-
-        return CampaignResponse.from(saved);
+        return campaign;
     }
 
     @Transactional
@@ -61,13 +90,26 @@ public class CampaignService {
         Optional.ofNullable(request.title()).ifPresent(campaign::setTitle);
         Optional.ofNullable(request.description()).ifPresent(campaign::setDescription);
         Optional.ofNullable(request.productDetails()).ifPresent(campaign::setProductDetails);
-        Optional.ofNullable(request.durationDays()).ifPresent(campaign::setDurationDays);
         Optional.ofNullable(request.startDate()).ifPresent(campaign::setStartDate);
         Optional.ofNullable(request.endDate()).ifPresent(campaign::setEndDate);
-        Optional.ofNullable(request.targetQty()).ifPresent(campaign::setTargetQty);
+        Optional.ofNullable(request.targetQuantity()).ifPresent(campaign::setTargetQty);
+
+        // Recalculate durationDays if either date was updated
+        if (request.startDate() != null || request.endDate() != null) {
+            int durationDays = (int) ChronoUnit.DAYS.between(campaign.getStartDate(), campaign.getEndDate());
+            campaign.setDurationDays(durationDays);
+        }
 
         CampaignEntity saved = campaignRepository.save(campaign);
-        List<DiscountBracketResponse> brackets = getBracketsForCampaign(campaignId);
+
+        // Update brackets if provided (delete existing, add new ones)
+        List<DiscountBracketResponse> brackets;
+        if (request.brackets() != null) {
+            discountBracketRepository.deleteAllByCampaignId(campaignId);
+            brackets = saveBracketsIfProvided(request.brackets(), campaignId);
+        } else {
+            brackets = getBracketsForCampaign(campaignId);
+        }
 
         log.info("Updated campaign: {}", campaignId);
         return CampaignResponse.from(saved, brackets);

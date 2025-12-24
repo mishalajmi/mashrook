@@ -17,6 +17,7 @@ import sa.elm.mashrook.exceptions.AuthenticationException;
 import sa.elm.mashrook.notifications.NotificationService;
 import sa.elm.mashrook.organizations.OrganizationService;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
+import sa.elm.mashrook.organizations.domain.OrganizationType;
 import sa.elm.mashrook.organizations.dto.OrganizationCreateRequest;
 import sa.elm.mashrook.security.domain.UserRole;
 import sa.elm.mashrook.security.services.JwtService;
@@ -29,6 +30,9 @@ import sa.elm.mashrook.verification.domain.VerificationTokenEntity;
 import sa.elm.mashrook.verification.domain.VerificationTokenType;
 
 import java.util.UUID;
+
+import static sa.elm.mashrook.security.domain.UserRole.BUYER_OWNER;
+import static sa.elm.mashrook.security.domain.UserRole.SUPPLIER_OWNER;
 
 /**
  * Service handling authentication operations including login, token refresh, and logout.
@@ -71,8 +75,11 @@ public class AuthenticationService {
         );
 
         // Create user (in pending state)
+        UserRole role = OrganizationType.SUPPLIER.getValue().equalsIgnoreCase(request.organizationType()) ?
+                SUPPLIER_OWNER :
+                BUYER_OWNER;
         UserEntity owner = userService.createUser(
-                UserCreateRequest.from(request, UserRole.ORGANIZATION_OWNER),
+                UserCreateRequest.from(request, role),
                 organization
         );
 

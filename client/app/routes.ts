@@ -1,5 +1,5 @@
 import type { RouteConfig } from "@react-router/dev/routes";
-import { index, route, layout } from "@react-router/dev/routes";
+import { index, route, layout, prefix } from "@react-router/dev/routes";
 
 export default [
 	index("routes/home.tsx"),
@@ -12,7 +12,10 @@ export default [
 
 	// Dashboard routes - protected, requires authentication
 	layout("routes/dashboard/layout.tsx", [
-		route("dashboard", "routes/dashboard/index.tsx", [
+		...prefix("dashboard", [
+			// Dashboard overview (index route)
+			index("routes/dashboard/index.tsx"),
+
 			// Supplier routes
 			route("products", "routes/dashboard/products/index.tsx"),
 			route("orders", "routes/dashboard/orders/index.tsx"),

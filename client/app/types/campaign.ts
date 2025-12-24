@@ -59,12 +59,42 @@ export interface CampaignPledgeSummary {
 }
 
 /**
+ * A single product detail key-value pair
+ */
+export interface ProductDetail {
+	key: string;
+	value: string;
+}
+
+/**
+ * Media type enumeration
+ */
+export type MediaType = "IMAGE" | "VIDEO";
+
+/**
+ * Campaign media response from API
+ */
+export interface CampaignMedia {
+	id: string;
+	campaignId: string;
+	storageKey: string;
+	originalFilename: string;
+	contentType: string;
+	sizeBytes: number;
+	mediaType: MediaType;
+	mediaOrder: number;
+	presignedUrl: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+/**
  * Form data for creating/editing a campaign
  */
 export interface CampaignFormData {
 	title: string;
 	description: string;
-	productDetails: string;
+	productDetails: ProductDetail[];
 	targetQuantity: number;
 	startDate: string;
 	endDate: string;

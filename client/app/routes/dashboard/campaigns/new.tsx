@@ -6,7 +6,8 @@
 
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import {
@@ -19,8 +20,9 @@ import {
 	Input,
 	Label,
 } from "@/components/ui";
-import { DiscountBracketEditor } from "@/components/campaigns";
-import type { CampaignFormData, DiscountBracketFormData } from "@/types/campaign";
+import { DiscountBracketEditor, ProductDetailsEditor } from "@/components/campaigns";
+import { campaignService, type DiscountBracketRequest } from "@/services/campaign.service";
+import type { CampaignFormData, DiscountBracketFormData, ProductDetail } from "@/types/campaign";
 
 interface FormErrors {
 	title?: string;
@@ -40,7 +42,7 @@ const steps = [
 const initialFormData: CampaignFormData = {
 	title: "",
 	description: "",
-	productDetails: "",
+	productDetails: [],
 	targetQuantity: 10,
 	startDate: "",
 	endDate: "",
@@ -127,6 +129,8 @@ export default function NewCampaignPage(): ReactNode {
 	const [formData, setFormData] = useState<CampaignFormData>(initialFormData);
 	const [brackets, setBrackets] = useState<DiscountBracketFormData[]>(initialBrackets);
 	const [errors, setErrors] = useState<FormErrors>({});
+	const [isSaving, setIsSaving] = useState(false);
+	const [isPublishing, setIsPublishing] = useState(false);
 
 	const validateStep = (step: number): boolean => {
 		const newErrors: FormErrors = {};
@@ -138,8 +142,10 @@ export default function NewCampaignPage(): ReactNode {
 			if (!formData.description.trim()) {
 				newErrors.description = "Description is required";
 			}
-			if (!formData.productDetails.trim()) {
-				newErrors.productDetails = "Product details are required";
+			if (formData.productDetails.length === 0) {
+				newErrors.productDetails = "At least one product detail is required";
+			} else if (formData.productDetails.some((d) => !d.key.trim() || !d.value.trim())) {
+				newErrors.productDetails = "All product details must have both key and value";
 			}
 			if (formData.targetQuantity < 1) {
 				newErrors.targetQuantity = "Target quantity must be at least 1";
@@ -172,21 +178,86 @@ export default function NewCampaignPage(): ReactNode {
 		setCurrentStep((prev) => Math.max(prev - 1, 1));
 	};
 
-	const handleSaveDraft = () => {
-		// TODO: API call to save draft
-		console.log("Saving draft:", { formData, brackets });
-		navigate("/dashboard/campaigns");
-	};
+	const handleSaveDraft = async () => {
+		try {
+			setIsSaving(true);
 
-	const handlePublish = () => {
-		if (validateStep(currentStep)) {
-			// TODO: API call to publish campaign
-			console.log("Publishing campaign:", { formData, brackets });
+			// Convert brackets to API format
+			const bracketRequests: DiscountBracketRequest[] = brackets.map((bracket) => ({
+				minQuantity: bracket.minQuantity,
+				maxQuantity: bracket.maxQuantity,
+				unitPrice: bracket.unitPrice,
+				bracketOrder: bracket.bracketOrder,
+			}));
+
+			// Serialize product details to JSON
+			const productDetailsJson = JSON.stringify(formData.productDetails);
+
+			// Create the campaign as a draft with brackets included
+			await campaignService.createCampaign({
+				title: formData.title || "Untitled Campaign",
+				description: formData.description || "",
+				productDetails: productDetailsJson,
+				targetQuantity: formData.targetQuantity || 10,
+				startDate: formData.startDate || new Date().toISOString().split("T")[0],
+				endDate: formData.endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+				brackets: bracketRequests,
+			});
+
+			toast.success("Campaign saved as draft");
 			navigate("/dashboard/campaigns");
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Failed to save campaign";
+			toast.error(message);
+		} finally {
+			setIsSaving(false);
 		}
 	};
 
-	const updateFormData = (field: keyof CampaignFormData, value: string | number) => {
+	const handlePublish = async () => {
+		if (!validateStep(currentStep)) {
+			return;
+		}
+
+		try {
+			setIsPublishing(true);
+
+			// Convert brackets to API format
+			const bracketRequests: DiscountBracketRequest[] = brackets.map((bracket) => ({
+				minQuantity: bracket.minQuantity,
+				maxQuantity: bracket.maxQuantity,
+				unitPrice: bracket.unitPrice,
+				bracketOrder: bracket.bracketOrder,
+			}));
+
+			// Serialize product details to JSON
+			const productDetailsJson = JSON.stringify(formData.productDetails);
+
+			// Create the campaign with brackets included
+			const campaign = await campaignService.createCampaign({
+				title: formData.title,
+				description: formData.description,
+				productDetails: productDetailsJson,
+				targetQuantity: formData.targetQuantity,
+				startDate: formData.startDate,
+				endDate: formData.endDate,
+				brackets: bracketRequests,
+			});
+
+			// Publish the campaign
+			await campaignService.publishCampaign(campaign.id);
+
+			toast.success("Campaign published successfully");
+			navigate("/dashboard/campaigns");
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Failed to publish campaign";
+			toast.error(message);
+		} finally {
+			setIsPublishing(false);
+		}
+	};
+
+	const updateFormData = (field: keyof CampaignFormData, value: string | number | ProductDetail[]) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
 		// Clear error when field is updated
 		if (errors[field as keyof FormErrors]) {
@@ -207,8 +278,15 @@ export default function NewCampaignPage(): ReactNode {
 				</Link>
 				<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 					<h1 className="text-2xl font-bold tracking-tight">Create Campaign</h1>
-					<Button variant="outline" onClick={handleSaveDraft}>
-						Save Draft
+					<Button variant="outline" onClick={handleSaveDraft} disabled={isSaving || isPublishing}>
+						{isSaving ? (
+							<>
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								Saving...
+							</>
+						) : (
+							"Save Draft"
+						)}
 					</Button>
 				</div>
 			</div>
@@ -265,15 +343,10 @@ export default function NewCampaignPage(): ReactNode {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="productDetails">Product Details</Label>
-								<textarea
-									id="productDetails"
-									value={formData.productDetails}
-									onChange={(e) => updateFormData("productDetails", e.target.value)}
-									placeholder="Describe the product being offered"
-									rows={3}
-									aria-invalid={!!errors.productDetails}
-									className="flex min-h-[60px] w-full rounded-[6px] border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								<Label>Product Details</Label>
+								<ProductDetailsEditor
+									details={formData.productDetails}
+									onChange={(details) => updateFormData("productDetails", details)}
 								/>
 								{errors.productDetails && (
 									<p className="text-sm text-destructive">{errors.productDetails}</p>
@@ -348,16 +421,25 @@ export default function NewCampaignPage(): ReactNode {
 					<div className="flex justify-between pt-4 border-t">
 						<div>
 							{currentStep > 1 && (
-								<Button variant="outline" onClick={handleBack}>
+								<Button variant="outline" onClick={handleBack} disabled={isSaving || isPublishing}>
 									Back
 								</Button>
 							)}
 						</div>
 						<div className="flex gap-2">
 							{currentStep < steps.length ? (
-								<Button onClick={handleNext}>Next</Button>
+								<Button onClick={handleNext} disabled={isSaving || isPublishing}>Next</Button>
 							) : (
-								<Button onClick={handlePublish}>Publish Campaign</Button>
+								<Button onClick={handlePublish} disabled={isSaving || isPublishing}>
+									{isPublishing ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											Publishing...
+										</>
+									) : (
+										"Publish Campaign"
+									)}
+								</Button>
 							)}
 						</div>
 					</div>

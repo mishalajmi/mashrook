@@ -61,11 +61,34 @@ public enum UserRole {
     /**
      * Organization owner with full control over their organization's resources.
      */
-    ORGANIZATION_OWNER(Set.of(
-            // User management (within organization)
-            ResourcePermission.of(Resource.USER_MANAGEMENT, Permission.READ),
-            ResourcePermission.of(Resource.USER_MANAGEMENT, Permission.WRITE),
-            ResourcePermission.of(Resource.USER_MANAGEMENT, Permission.UPDATE),
+    BUYER_OWNER(Set.of(
+            // Organization management
+            ResourcePermission.of(Resource.ORGANIZATIONS, Permission.READ),
+            ResourcePermission.of(Resource.ORGANIZATIONS, Permission.WRITE),
+            ResourcePermission.of(Resource.ORGANIZATIONS, Permission.UPDATE),
+            // Pledge full CRUD
+            ResourcePermission.of(Resource.PLEDGES, Permission.READ),
+            ResourcePermission.of(Resource.PLEDGES, Permission.WRITE),
+            ResourcePermission.of(Resource.PLEDGES, Permission.UPDATE),
+            ResourcePermission.of(Resource.PLEDGES, Permission.DELETE),
+            // Dashboard
+            ResourcePermission.of(Resource.DASHBOARD, Permission.READ),
+            // Team management
+            ResourcePermission.of(Resource.TEAM, Permission.READ),
+            ResourcePermission.of(Resource.TEAM, Permission.WRITE),
+            ResourcePermission.of(Resource.TEAM, Permission.UPDATE),
+            // Orders
+            ResourcePermission.of(Resource.ORDERS, Permission.READ),
+            ResourcePermission.of(Resource.ORDERS, Permission.WRITE),
+            ResourcePermission.of(Resource.ORDERS, Permission.UPDATE),
+            // Analytics
+            ResourcePermission.of(Resource.ANALYTICS, Permission.READ),
+            // Settings
+            ResourcePermission.of(Resource.SETTINGS, Permission.READ),
+            ResourcePermission.of(Resource.SETTINGS, Permission.UPDATE)
+    ), false),
+
+    SUPPLIER_OWNER(Set.of(
             // Organization management
             ResourcePermission.of(Resource.ORGANIZATIONS, Permission.READ),
             ResourcePermission.of(Resource.ORGANIZATIONS, Permission.WRITE),
@@ -80,11 +103,6 @@ public enum UserRole {
             ResourcePermission.of(Resource.BRACKETS, Permission.WRITE),
             ResourcePermission.of(Resource.BRACKETS, Permission.UPDATE),
             ResourcePermission.of(Resource.BRACKETS, Permission.DELETE),
-            // Pledge full CRUD
-            ResourcePermission.of(Resource.PLEDGES, Permission.READ),
-            ResourcePermission.of(Resource.PLEDGES, Permission.WRITE),
-            ResourcePermission.of(Resource.PLEDGES, Permission.UPDATE),
-            ResourcePermission.of(Resource.PLEDGES, Permission.DELETE),
             // Dashboard
             ResourcePermission.of(Resource.DASHBOARD, Permission.READ),
             // Team management

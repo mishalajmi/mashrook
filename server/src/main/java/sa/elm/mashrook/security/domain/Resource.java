@@ -20,7 +20,7 @@ public enum Resource {
     DASHBOARD("dashboard"),
     PRODUCTS("products"),
     ORDERS("orders"),
-    CAMPAIGNS("campaign"),
+    CAMPAIGNS("campaigns"),
     ANALYTICS("analytics"),
     BUYERS("buyers"),
     SUPPLIERS("suppliers"),
@@ -35,8 +35,8 @@ public enum Resource {
     MODERATION("moderation"),
     COMMUNICATIONS("communications"),
     CONFIGURATION("configuration"),
-    BRACKETS("bracket"),
-    PLEDGES("pledge");
+    BRACKETS("brackets"),
+    PLEDGES("pledges");
 
     private final String resource;
 

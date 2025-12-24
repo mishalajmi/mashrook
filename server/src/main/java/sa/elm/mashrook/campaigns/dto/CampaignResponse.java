@@ -22,14 +22,20 @@ public record CampaignResponse(
         Integer targetQty,
         CampaignStatus status,
         List<DiscountBracketResponse> brackets,
+        List<CampaignMediaResponse> media,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
     public static CampaignResponse from(CampaignEntity entity) {
-        return from(entity, List.of());
+        return from(entity, List.of(), List.of());
     }
 
     public static CampaignResponse from(CampaignEntity entity, List<DiscountBracketResponse> brackets) {
+        return from(entity, brackets, List.of());
+    }
+
+    public static CampaignResponse from(CampaignEntity entity, List<DiscountBracketResponse> brackets,
+                                        List<CampaignMediaResponse> media) {
         return CampaignResponse.builder()
                 .id(entity.getId())
                 .supplierId(entity.getSupplierId())
@@ -42,6 +48,7 @@ public record CampaignResponse(
                 .targetQty(entity.getTargetQty())
                 .status(entity.getStatus())
                 .brackets(brackets)
+                .media(media)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

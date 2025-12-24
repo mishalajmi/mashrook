@@ -12,6 +12,8 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -39,6 +41,7 @@ public class CampaignEntity {
     private String description;
 
     @Column(name = "product_details", columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String productDetails;
 
     @Column(nullable = false, name = "duration_days")

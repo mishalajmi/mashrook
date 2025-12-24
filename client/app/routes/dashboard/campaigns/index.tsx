@@ -4,11 +4,11 @@
  * Displays a grid of supplier's campaigns with filtering and search.
  */
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { Plus, Megaphone } from "lucide-react";
 
-import { Button, EmptyState } from "@/components/ui";
+import { Button, EmptyState, LoadingState } from "@/components/ui";
 import {
 	CampaignCard,
 	CampaignFilters,
@@ -17,114 +17,49 @@ import type {
 	Campaign,
 	CampaignPledgeSummary,
 	CampaignFilters as CampaignFiltersType,
-	DiscountBracket,
 } from "@/types/campaign";
+import { campaignService, type CampaignResponse } from "@/services/campaign.service";
 
-// Mock data for development - will be replaced with API calls
-const mockBrackets: DiscountBracket[] = [
-	{
-		id: "bracket-1",
-		campaignId: "campaign-1",
-		minQuantity: 10,
-		maxQuantity: 49,
-		unitPrice: "25.00",
-		bracketOrder: 1,
-	},
-	{
-		id: "bracket-2",
-		campaignId: "campaign-1",
-		minQuantity: 50,
-		maxQuantity: 99,
-		unitPrice: "22.00",
-		bracketOrder: 2,
-	},
-];
+/**
+ * Transform API response to component-compatible format
+ */
+function transformCampaigns(campaigns: CampaignResponse[]): Campaign[] {
+	return campaigns.map((c) => ({
+		id: c.id,
+		title: c.title,
+		description: c.description,
+		productDetails: c.productDetails,
+		targetQuantity: c.targetQuantity,
+		startDate: c.startDate,
+		endDate: c.endDate,
+		status: c.status,
+		supplierId: c.supplierId,
+		createdAt: c.createdAt,
+		updatedAt: c.updatedAt,
+	}));
+}
 
-const mockCampaigns: Campaign[] = [
-	{
-		id: "campaign-1",
-		title: "Organic Coffee Beans",
-		description:
-			"Premium organic coffee beans sourced from sustainable farms. Join our group buying campaign for amazing discounts on freshly roasted beans.",
-		productDetails: "1kg bag of premium arabica beans",
-		targetQuantity: 100,
-		startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-		endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-		status: "ACTIVE",
-		supplierId: "supplier-1",
-		createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-		updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-	},
-	{
-		id: "campaign-2",
-		title: "Artisan Olive Oil",
-		description:
-			"Extra virgin olive oil from family-owned groves in the Mediterranean. Cold-pressed for maximum flavor and health benefits.",
-		productDetails: "500ml bottle of EVOO",
-		targetQuantity: 200,
-		startDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-		endDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-		status: "ACTIVE",
-		supplierId: "supplier-1",
-		createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-		updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-	},
-	{
-		id: "campaign-3",
-		title: "Seasonal Honey Collection",
-		description:
-			"Raw, unfiltered honey from local beekeepers. Available in wildflower, clover, and buckwheat varieties.",
-		productDetails: "Set of 3 x 250g jars",
-		targetQuantity: 50,
-		startDate: "",
-		endDate: "",
-		status: "DRAFT",
-		supplierId: "supplier-1",
-		createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-		updatedAt: new Date().toISOString(),
-	},
-	{
-		id: "campaign-4",
-		title: "Specialty Tea Bundle",
-		description:
-			"Curated selection of premium loose-leaf teas from renowned tea estates around the world.",
-		productDetails: "Sampler box with 5 varieties",
-		targetQuantity: 75,
-		startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-		endDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-		status: "DONE",
-		supplierId: "supplier-1",
-		createdAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
-		updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-	},
-];
-
-const mockPledgeSummaries: Record<string, CampaignPledgeSummary> = {
-	"campaign-1": {
-		campaignId: "campaign-1",
-		totalPledges: 15,
-		totalQuantity: 35,
-		currentBracket: mockBrackets[0],
-		nextBracket: mockBrackets[1],
-		unitsToNextBracket: 15,
-	},
-	"campaign-2": {
-		campaignId: "campaign-2",
-		totalPledges: 28,
-		totalQuantity: 72,
-		currentBracket: mockBrackets[1],
-		nextBracket: null,
-		unitsToNextBracket: null,
-	},
-	"campaign-4": {
-		campaignId: "campaign-4",
-		totalPledges: 45,
-		totalQuantity: 89,
-		currentBracket: mockBrackets[1],
-		nextBracket: null,
-		unitsToNextBracket: null,
-	},
-};
+/**
+ * Build pledge summaries from campaign brackets
+ * TODO: Fetch actual pledge data from API when available
+ */
+function buildPledgeSummaries(campaigns: CampaignResponse[]): Record<string, CampaignPledgeSummary> {
+	const summaries: Record<string, CampaignPledgeSummary> = {};
+	for (const campaign of campaigns) {
+		if (campaign.brackets && campaign.brackets.length > 0) {
+			const sortedBrackets = [...campaign.brackets].sort((a, b) => a.bracketOrder - b.bracketOrder);
+			summaries[campaign.id] = {
+				campaignId: campaign.id,
+				totalPledges: 0,
+				totalQuantity: 0,
+				currentBracket: sortedBrackets[0] || null,
+				nextBracket: sortedBrackets[1] || null,
+				unitsToNextBracket: sortedBrackets[1]?.minQuantity || null,
+			};
+		}
+	}
+	return summaries;
+}
 
 /**
  * Filter campaigns based on filters
@@ -164,13 +99,35 @@ function filterCampaigns(
  */
 export default function CampaignsPage(): ReactNode {
 	const navigate = useNavigate();
+	const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+	const [pledgeSummaries, setPledgeSummaries] = useState<Record<string, CampaignPledgeSummary>>({});
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [filters, setFilters] = useState<CampaignFiltersType>({
 		status: "ALL",
 		search: "",
 	});
 
+	// Fetch campaigns on mount
+	useEffect(() => {
+		async function fetchCampaigns() {
+			try {
+				setLoading(true);
+				const response = await campaignService.listCampaigns();
+				setCampaigns(transformCampaigns(response));
+				setPledgeSummaries(buildPledgeSummaries(response));
+				setError(null);
+			} catch {
+				setError("Failed to load campaigns");
+			} finally {
+				setLoading(false);
+			}
+		}
+		fetchCampaigns();
+	}, []);
+
 	// Filter campaigns based on current filters
-	const filteredCampaigns = filterCampaigns(mockCampaigns, filters);
+	const filteredCampaigns = filterCampaigns(campaigns, filters);
 
 	const handleViewDetails = (campaign: Campaign) => {
 		navigate(`/dashboard/campaigns/${campaign.id}`);
@@ -201,8 +158,22 @@ export default function CampaignsPage(): ReactNode {
 			{/* Filters */}
 			<CampaignFilters filters={filters} onFiltersChange={setFilters} />
 
+			{/* Loading State */}
+			{loading && (
+				<div className="flex justify-center py-12">
+					<LoadingState size="lg" />
+				</div>
+			)}
+
+			{/* Error State */}
+			{error && !loading && (
+				<div className="text-center py-12 text-destructive">
+					{error}
+				</div>
+			)}
+
 			{/* Campaigns Grid */}
-			{filteredCampaigns.length > 0 ? (
+			{!loading && !error && filteredCampaigns.length > 0 ? (
 				<div
 					data-testid="campaigns-grid"
 					className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
@@ -211,14 +182,14 @@ export default function CampaignsPage(): ReactNode {
 						<CampaignCard
 							key={campaign.id}
 							campaign={campaign}
-							pledgeSummary={mockPledgeSummaries[campaign.id]}
+							pledgeSummary={pledgeSummaries[campaign.id]}
 							showActions
 							onViewDetails={handleViewDetails}
 							onEdit={handleEdit}
 						/>
 					))}
 				</div>
-			) : (
+			) : !loading && !error ? (
 				<EmptyState
 					icon={Megaphone}
 					title="No campaigns found"
@@ -234,7 +205,7 @@ export default function CampaignsPage(): ReactNode {
 							: undefined
 					}
 				/>
-			)}
+			) : null}
 		</div>
 	);
 }

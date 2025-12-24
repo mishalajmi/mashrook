@@ -18,12 +18,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
 import sa.elm.mashrook.campaigns.dto.CampaignCreateRequest;
+import sa.elm.mashrook.campaigns.dto.CampaignMediaResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignUpdateRequest;
 import sa.elm.mashrook.campaigns.dto.DiscountBracketRequest;
 import sa.elm.mashrook.campaigns.dto.DiscountBracketResponse;
+import sa.elm.mashrook.campaigns.service.CampaignMediaService;
 import sa.elm.mashrook.campaigns.service.CampaignService;
 import sa.elm.mashrook.security.domain.JwtPrincipal;
 
@@ -37,10 +40,11 @@ import java.util.UUID;
 public class CampaignController {
 
     private final CampaignService campaignService;
+    private final CampaignMediaService campaignMediaService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('campaign:create')")
+    @PreAuthorize("hasAuthority('campaigns:create')")
     public CampaignResponse createCampaign(
             @Valid @RequestBody CampaignCreateRequest request,
             @AuthenticationPrincipal JwtPrincipal principal) {
@@ -49,7 +53,7 @@ public class CampaignController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('campaign:update')")
+    @PreAuthorize("hasAuthority('campaigns:update')")
     public CampaignResponse updateCampaign(
             @PathVariable UUID id,
             @Valid @RequestBody CampaignUpdateRequest request,
@@ -59,7 +63,7 @@ public class CampaignController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('campaign:read')")
+    @PreAuthorize("hasAuthority('campaigns:read')")
     public CampaignResponse getCampaignById(@PathVariable UUID id) {
         return campaignService.getCampaignById(id);
     }
@@ -72,7 +76,7 @@ public class CampaignController {
     }
 
     @PatchMapping("/{id}/publish")
-    @PreAuthorize("hasAuthority('campaign:update')")
+    @PreAuthorize("hasAuthority('campaigns:update')")
     public CampaignResponse publishCampaign(
             @PathVariable UUID id,
             @AuthenticationPrincipal JwtPrincipal principal) {
@@ -81,7 +85,7 @@ public class CampaignController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('campaign:delete')")
+    @PreAuthorize("hasAuthority('campaigns:delete')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCampaign(
             @PathVariable UUID id,
@@ -92,7 +96,7 @@ public class CampaignController {
 
     @PostMapping("/{id}/brackets")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('bracket:create')")
+    @PreAuthorize("hasAuthority('brackets:create')")
     public DiscountBracketResponse addBracket(
             @PathVariable UUID id,
             @Valid @RequestBody DiscountBracketRequest request,
@@ -102,7 +106,7 @@ public class CampaignController {
     }
 
     @PutMapping("/{id}/brackets/{bracketId}")
-    @PreAuthorize("hasAuthority('bracket:update')")
+    @PreAuthorize("hasAuthority('brackets:update')")
     public DiscountBracketResponse updateBracket(
             @PathVariable UUID id,
             @PathVariable UUID bracketId,
@@ -114,12 +118,40 @@ public class CampaignController {
 
     @DeleteMapping("/{id}/brackets/{bracketId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('bracket:delete')")
+    @PreAuthorize("hasAuthority('brackets:delete')")
     public void deleteBracket(
             @PathVariable UUID id,
             @PathVariable UUID bracketId,
             @AuthenticationPrincipal JwtPrincipal principal) {
         UUID supplierId = principal != null ? principal.getOrganizationId() : UUID.randomUUID();
         campaignService.deleteBracket(id, bracketId, supplierId);
+    }
+
+    @PostMapping("/{id}/media")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('campaigns:update')")
+    public CampaignMediaResponse uploadMedia(
+            @PathVariable UUID id,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "order", defaultValue = "0") int order,
+            @AuthenticationPrincipal JwtPrincipal principal) {
+        UUID supplierId = principal != null ? principal.getOrganizationId() : UUID.randomUUID();
+        return campaignMediaService.addMedia(id, supplierId, file, order);
+    }
+
+    @DeleteMapping("/{id}/media/{mediaId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('campaigns:update')")
+    public void deleteMedia(
+            @PathVariable UUID id,
+            @PathVariable UUID mediaId,
+            @AuthenticationPrincipal JwtPrincipal principal) {
+        UUID supplierId = principal != null ? principal.getOrganizationId() : UUID.randomUUID();
+        campaignMediaService.deleteMedia(id, mediaId, supplierId);
+    }
+
+    @GetMapping("/{id}/media")
+    public List<CampaignMediaResponse> listMedia(@PathVariable UUID id) {
+        return campaignMediaService.getMediaForCampaign(id);
     }
 }

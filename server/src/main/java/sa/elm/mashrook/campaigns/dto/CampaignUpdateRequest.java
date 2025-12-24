@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 public record CampaignUpdateRequest(
@@ -11,12 +12,11 @@ public record CampaignUpdateRequest(
         String description,
         String productDetails,
 
-        @Positive(message = "duration days must be positive")
-        Integer durationDays,
-
         LocalDate startDate,
         LocalDate endDate,
 
         @Positive(message = "target quantity must be positive")
-        Integer targetQty
+        Integer targetQuantity,
+
+        List<DiscountBracketRequest> brackets
 ) {}

@@ -23,6 +23,7 @@ import sa.elm.mashrook.campaigns.dto.CampaignResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignUpdateRequest;
 import sa.elm.mashrook.campaigns.dto.DiscountBracketRequest;
 import sa.elm.mashrook.campaigns.dto.DiscountBracketResponse;
+import sa.elm.mashrook.campaigns.service.CampaignMediaService;
 import sa.elm.mashrook.campaigns.service.CampaignService;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignValidationException;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -57,6 +59,9 @@ class CampaignControllerTest {
 
     @Mock
     private CampaignService campaignService;
+
+    @Mock
+    private CampaignMediaService campaignMediaService;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
@@ -75,7 +80,7 @@ class CampaignControllerTest {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(objectMapper);
 
-        CampaignController controller = new CampaignController(campaignService);
+        CampaignController controller = new CampaignController(campaignService, campaignMediaService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setMessageConverters(converter)
@@ -123,10 +128,9 @@ class CampaignControllerTest {
             CampaignCreateRequest request = CampaignCreateRequest.builder()
                     .title("New Campaign")
                     .description("Description")
-                    .durationDays(30)
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(30))
-                    .targetQty(100)
+                    .targetQuantity(100)
                     .build();
 
             CampaignResponse response = createCampaignResponse(CampaignStatus.DRAFT);
@@ -147,10 +151,9 @@ class CampaignControllerTest {
         @DisplayName("should return 400 when title is missing")
         void shouldReturn400WhenTitleIsMissing() throws Exception {
             CampaignCreateRequest request = CampaignCreateRequest.builder()
-                    .durationDays(30)
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(30))
-                    .targetQty(100)
+                    .targetQuantity(100)
                     .build();
 
             mockMvc.perform(post("/api/campaigns")
@@ -314,7 +317,7 @@ class CampaignControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /api/campaigns/{id}/publish - Publish Campaign")
+    @DisplayName("PATCH /api/campaigns/{id}/publish - Publish Campaign")
     class PublishCampaignTests {
 
         @Test
@@ -324,7 +327,7 @@ class CampaignControllerTest {
 
             when(campaignService.publishCampaign(eq(CAMPAIGN_ID), nullable(UUID.class))).thenReturn(response);
 
-            mockMvc.perform(post("/api/campaigns/{id}/publish", CAMPAIGN_ID)
+            mockMvc.perform(patch("/api/campaigns/{id}/publish", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("ACTIVE"));
@@ -336,7 +339,7 @@ class CampaignControllerTest {
             when(campaignService.publishCampaign(eq(CAMPAIGN_ID), nullable(UUID.class)))
                     .thenThrow(new CampaignValidationException("Only DRAFT campaigns can be published"));
 
-            mockMvc.perform(post("/api/campaigns/{id}/publish", CAMPAIGN_ID)
+            mockMvc.perform(patch("/api/campaigns/{id}/publish", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }

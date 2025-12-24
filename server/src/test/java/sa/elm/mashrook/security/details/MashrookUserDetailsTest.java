@@ -223,7 +223,7 @@ class MashrookUserDetailsTest {
         @DisplayName("ORGANIZATION_OWNER role should expand to full org permissions")
         void organizationOwnerRoleShouldExpandToFullOrgPermissions() {
             // Arrange
-            user.addRole(UserRole.ORGANIZATION_OWNER, null);
+            user.addRole(UserRole.SUPPLIER_OWNER, null);
             MashrookUserDetails userDetails = new MashrookUserDetails(user);
 
             // Act

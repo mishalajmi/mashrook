@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 public record CampaignCreateRequest(
@@ -16,10 +17,6 @@ public record CampaignCreateRequest(
 
         String productDetails,
 
-        @NotNull(message = "duration days is required")
-        @Positive(message = "duration days must be positive")
-        Integer durationDays,
-
         @NotNull(message = "start date is required")
         LocalDate startDate,
 
@@ -28,5 +25,7 @@ public record CampaignCreateRequest(
 
         @NotNull(message = "target quantity is required")
         @Positive(message = "target quantity must be positive")
-        Integer targetQty
+        Integer targetQuantity,
+
+        List<DiscountBracketRequest> brackets
 ) {}

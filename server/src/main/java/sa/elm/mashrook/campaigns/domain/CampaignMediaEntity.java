@@ -42,6 +42,21 @@ public class CampaignMediaEntity {
     @Column(nullable = false, name = "status")
     private MediaStatus status = MediaStatus.ENABLED;
 
+    @Column(name = "storage_key", length = 1024)
+    private String storageKey;
+
+    @Column(name = "original_filename", length = 255)
+    private String originalFilename;
+
+    @Column(name = "content_type", length = 100)
+    private String contentType;
+
+    @Column(name = "size_bytes")
+    private Long sizeBytes;
+
+    @Column(name = "media_order")
+    private Integer mediaOrder = 0;
+
     @Column(name = "created_by")
     private UUID createdBy;
 
