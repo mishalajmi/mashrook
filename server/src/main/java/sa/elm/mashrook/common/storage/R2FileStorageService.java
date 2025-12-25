@@ -3,6 +3,7 @@ package sa.elm.mashrook.common.storage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.configurations.R2StorageProperties;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -15,7 +16,6 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.YearMonth;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -82,7 +82,7 @@ public class R2FileStorageService implements FileStorageService {
     @Override
     public String generateKey(String organizationId, String campaignId, String filename) {
         String yearMonth = YearMonth.now().toString();
-        String uuid = UUID.randomUUID().toString();
+        String uuid = UuidGeneratorUtil.generateUuidV7String();
 
         return String.format("%s/%s/%s/%s_%s",
                 organizationId,
