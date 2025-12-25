@@ -31,14 +31,15 @@ class DiscountBracketEntityTest {
         }
 
         @Test
-        @DisplayName("should store campaignId as UUID reference to campaigns")
-        void shouldStoreCampaignIdAsUuid() {
+        @DisplayName("should store campaign as CampaignEntity reference")
+        void shouldStoreCampaignAsEntity() {
             DiscountBracketEntity bracket = new DiscountBracketEntity();
-            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+            CampaignEntity campaign = new CampaignEntity();
+            campaign.setId(UuidGeneratorUtil.generateUuidV7());
 
-            bracket.setCampaignId(campaignId);
+            bracket.setCampaign(campaign);
 
-            assertThat(bracket.getCampaignId()).isEqualTo(campaignId);
+            assertThat(bracket.getCampaign()).isEqualTo(campaign);
         }
 
         @Test
@@ -332,7 +333,8 @@ class DiscountBracketEntityTest {
         @DisplayName("should create discount bracket with all fields populated")
         void shouldCreateDiscountBracketWithAllFieldsPopulated() {
             UUID id = UuidGeneratorUtil.generateUuidV7();
-            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+            CampaignEntity campaign = new CampaignEntity();
+            campaign.setId(UuidGeneratorUtil.generateUuidV7());
             Integer minQuantity = 10;
             Integer maxQuantity = 50;
             BigDecimal unitPrice = new BigDecimal("25.99");
@@ -342,7 +344,7 @@ class DiscountBracketEntityTest {
 
             DiscountBracketEntity bracket = new DiscountBracketEntity();
             bracket.setId(id);
-            bracket.setCampaignId(campaignId);
+            bracket.setCampaign(campaign);
             bracket.setMinQuantity(minQuantity);
             bracket.setMaxQuantity(maxQuantity);
             bracket.setUnitPrice(unitPrice);
@@ -351,7 +353,7 @@ class DiscountBracketEntityTest {
             bracket.setUpdatedAt(updatedAt);
 
             assertThat(bracket.getId()).isEqualTo(id);
-            assertThat(bracket.getCampaignId()).isEqualTo(campaignId);
+            assertThat(bracket.getCampaign()).isEqualTo(campaign);
             assertThat(bracket.getMinQuantity()).isEqualTo(minQuantity);
             assertThat(bracket.getMaxQuantity()).isEqualTo(maxQuantity);
             assertThat(bracket.getUnitPrice()).isEqualByComparingTo(unitPrice);
@@ -363,8 +365,11 @@ class DiscountBracketEntityTest {
         @Test
         @DisplayName("should create unlimited bracket with null maxQuantity")
         void shouldCreateUnlimitedBracketWithNullMaxQuantity() {
+            CampaignEntity campaign = new CampaignEntity();
+            campaign.setId(UuidGeneratorUtil.generateUuidV7());
+
             DiscountBracketEntity bracket = new DiscountBracketEntity();
-            bracket.setCampaignId(UuidGeneratorUtil.generateUuidV7());
+            bracket.setCampaign(campaign);
             bracket.setMinQuantity(100);
             bracket.setMaxQuantity(null);
             bracket.setUnitPrice(new BigDecimal("19.99"));

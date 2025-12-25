@@ -10,8 +10,8 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
-import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
+import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.brackets.domain.DiscountBracketEntity;
 import sa.elm.mashrook.payments.intents.PaymentIntentService;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
@@ -50,7 +50,7 @@ class PaymentIntentServiceTest {
     private PledgeService pledgeService;
 
     @Mock
-    private CampaignRepository campaignRepository;
+    private CampaignService campaignService;
 
     @Captor
     private ArgumentCaptor<PaymentIntentEntity> paymentIntentCaptor;
@@ -62,7 +62,7 @@ class PaymentIntentServiceTest {
         paymentIntentService = new PaymentIntentService(
                 paymentIntentRepository,
                 pledgeService,
-                campaignRepository
+                campaignService
         );
     }
 
@@ -79,7 +79,7 @@ class PaymentIntentServiceTest {
             PledgeEntity pledge1 = createCommittedPledge(campaignId, 10);
             PledgeEntity pledge2 = createCommittedPledge(campaignId, 5);
 
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+            when(campaignService.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge1, pledge2));
             when(paymentIntentRepository.save(any(PaymentIntentEntity.class)))
@@ -92,7 +92,7 @@ class PaymentIntentServiceTest {
 
             List<PaymentIntentEntity> savedIntents = paymentIntentCaptor.getAllValues();
             assertThat(savedIntents).allMatch(intent ->
-                    intent.getCampaignId().equals(campaignId) &&
+                    intent.getCampaign().getId().equals(campaignId) &&
                     intent.getStatus() == PaymentIntentStatus.PENDING
             );
         }
@@ -103,7 +103,7 @@ class PaymentIntentServiceTest {
             UUID campaignId = UuidGeneratorUtil.generateUuidV7();
             DiscountBracketEntity bracket = createBracket(campaignId, new BigDecimal("50.00"));
 
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.empty());
+            when(campaignService.findById(campaignId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> paymentIntentService.generatePaymentIntents(campaignId, bracket))
                     .isInstanceOf(CampaignNotFoundException.class)
@@ -117,7 +117,7 @@ class PaymentIntentServiceTest {
             CampaignEntity campaign = createCampaign(campaignId, CampaignStatus.ACTIVE);
             DiscountBracketEntity bracket = createBracket(campaignId, new BigDecimal("50.00"));
 
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+            when(campaignService.findById(campaignId)).thenReturn(Optional.of(campaign));
 
             assertThatThrownBy(() -> paymentIntentService.generatePaymentIntents(campaignId, bracket))
                     .isInstanceOf(IllegalStateException.class)
@@ -131,7 +131,7 @@ class PaymentIntentServiceTest {
             CampaignEntity campaign = createCampaign(campaignId, CampaignStatus.LOCKED);
             DiscountBracketEntity bracket = createBracket(campaignId, new BigDecimal("50.00"));
 
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+            when(campaignService.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(Collections.emptyList());
 
@@ -149,7 +149,7 @@ class PaymentIntentServiceTest {
             DiscountBracketEntity bracket = createBracket(campaignId, new BigDecimal("25.50"));
             PledgeEntity pledge = createCommittedPledge(campaignId, 4);
 
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+            when(campaignService.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge));
             when(paymentIntentRepository.save(any(PaymentIntentEntity.class)))
@@ -631,29 +631,44 @@ class PaymentIntentServiceTest {
     }
 
     private PledgeEntity createCommittedPledge(UUID campaignId, int quantity) {
+        CampaignEntity campaign = new CampaignEntity();
+        campaign.setId(campaignId);
+
+        OrganizationEntity org = new OrganizationEntity();
+        org.setId(UuidGeneratorUtil.generateUuidV7());
+
         PledgeEntity pledge = new PledgeEntity();
         pledge.setId(UuidGeneratorUtil.generateUuidV7());
-        pledge.setCampaignId(campaignId);
-        pledge.setBuyerOrgId(UuidGeneratorUtil.generateUuidV7());
+        pledge.setCampaign(campaign);
+        pledge.setOrganization(org);
         pledge.setQuantity(quantity);
         pledge.setStatus(PledgeStatus.COMMITTED);
         return pledge;
     }
 
     private DiscountBracketEntity createBracket(UUID campaignId, BigDecimal unitPrice) {
+        CampaignEntity campaign = new CampaignEntity();
+        campaign.setId(campaignId);
+
         DiscountBracketEntity bracket = new DiscountBracketEntity();
         bracket.setId(UuidGeneratorUtil.generateUuidV7());
-        bracket.setCampaignId(campaignId);
+        bracket.setCampaign(campaign);
         bracket.setUnitPrice(unitPrice);
         return bracket;
     }
 
     private PaymentIntentEntity createPaymentIntent(UUID id, PaymentIntentStatus status) {
+        CampaignEntity campaign = new CampaignEntity();
+        campaign.setId(UuidGeneratorUtil.generateUuidV7());
+
+        OrganizationEntity org = new OrganizationEntity();
+        org.setId(UuidGeneratorUtil.generateUuidV7());
+
         PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
         paymentIntent.setId(id);
-        paymentIntent.setCampaignId(UuidGeneratorUtil.generateUuidV7());
+        paymentIntent.setCampaign(campaign);
         paymentIntent.setPledgeId(UuidGeneratorUtil.generateUuidV7());
-        paymentIntent.setBuyerOrgId(UuidGeneratorUtil.generateUuidV7());
+        paymentIntent.setBuyerOrg(org);
         paymentIntent.setAmount(new BigDecimal("100.00"));
         paymentIntent.setStatus(status);
         paymentIntent.setRetryCount(0);

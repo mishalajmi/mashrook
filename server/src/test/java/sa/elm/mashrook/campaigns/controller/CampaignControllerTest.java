@@ -134,7 +134,7 @@ class CampaignControllerTest {
             when(campaignService.createCampaign(any(CampaignCreateRequest.class), nullable(UUID.class)))
                     .thenReturn(response);
 
-            mockMvc.perform(post("/api/campaigns")
+            mockMvc.perform(post("/api/v1/campaigns")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -152,7 +152,7 @@ class CampaignControllerTest {
                     .targetQuantity(100)
                     .build();
 
-            mockMvc.perform(post("/api/campaigns")
+            mockMvc.perform(post("/api/v1/campaigns")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
@@ -190,7 +190,7 @@ class CampaignControllerTest {
             when(campaignService.updateCampaign(eq(CAMPAIGN_ID), any(CampaignUpdateRequest.class), nullable(UUID.class)))
                     .thenReturn(response);
 
-            mockMvc.perform(put("/api/campaigns/{id}", CAMPAIGN_ID)
+            mockMvc.perform(put("/api/v1/campaigns/{id}", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -208,7 +208,7 @@ class CampaignControllerTest {
             when(campaignService.updateCampaign(eq(CAMPAIGN_ID), any(CampaignUpdateRequest.class), nullable(UUID.class)))
                     .thenThrow(new CampaignValidationException("Only DRAFT campaigns can be updated"));
 
-            mockMvc.perform(put("/api/campaigns/{id}", CAMPAIGN_ID)
+            mockMvc.perform(put("/api/v1/campaigns/{id}", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
@@ -224,7 +224,7 @@ class CampaignControllerTest {
             when(campaignService.updateCampaign(eq(CAMPAIGN_ID), any(CampaignUpdateRequest.class), nullable(UUID.class)))
                     .thenThrow(new CampaignNotFoundException("Campaign not found"));
 
-            mockMvc.perform(put("/api/campaigns/{id}", CAMPAIGN_ID)
+            mockMvc.perform(put("/api/v1/campaigns/{id}", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound());
@@ -232,7 +232,7 @@ class CampaignControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/campaigns/{id} - Get Campaign by ID")
+    @DisplayName("GET /api/v1/campaigns/{id} - Get Campaign by ID")
     class GetCampaignByIdTests {
 
         @Test
@@ -242,7 +242,7 @@ class CampaignControllerTest {
 
             when(campaignService.getCampaignById(CAMPAIGN_ID)).thenReturn(response);
 
-            mockMvc.perform(get("/api/campaigns/{id}", CAMPAIGN_ID)
+            mockMvc.perform(get("/api/v1/campaigns/{id}", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(CAMPAIGN_ID.toString()))
@@ -255,14 +255,14 @@ class CampaignControllerTest {
             when(campaignService.getCampaignById(CAMPAIGN_ID))
                     .thenThrow(new CampaignNotFoundException("Campaign not found"));
 
-            mockMvc.perform(get("/api/campaigns/{id}", CAMPAIGN_ID)
+            mockMvc.perform(get("/api/v1/campaigns/{id}", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("GET /api/campaigns - List Campaigns")
+    @DisplayName("GET /api/v1/campaigns - List Campaigns")
     class ListCampaignsTests {
 
         @Test
@@ -275,7 +275,7 @@ class CampaignControllerTest {
 
             when(campaignService.listCampaigns(eq(SUPPLIER_ID), any())).thenReturn(campaigns);
 
-            mockMvc.perform(get("/api/campaigns")
+            mockMvc.perform(get("/api/v1/campaigns")
                             .param("supplier_id", SUPPLIER_ID.toString())
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -289,7 +289,7 @@ class CampaignControllerTest {
 
             when(campaignService.listCampaigns(any(), eq(CampaignStatus.ACTIVE))).thenReturn(campaigns);
 
-            mockMvc.perform(get("/api/campaigns")
+            mockMvc.perform(get("/api/v1/campaigns")
                             .param("status", "ACTIVE")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -303,7 +303,7 @@ class CampaignControllerTest {
 
             when(campaignService.listCampaigns(eq(SUPPLIER_ID), eq(CampaignStatus.DRAFT))).thenReturn(campaigns);
 
-            mockMvc.perform(get("/api/campaigns")
+            mockMvc.perform(get("/api/v1/campaigns")
                             .param("supplier_id", SUPPLIER_ID.toString())
                             .param("status", "DRAFT")
                             .contentType(MediaType.APPLICATION_JSON))
@@ -313,7 +313,7 @@ class CampaignControllerTest {
     }
 
     @Nested
-    @DisplayName("PATCH /api/campaigns/{id}/publish - Publish Campaign")
+    @DisplayName("PATCH /api/v1/campaigns/{id}/publish - Publish Campaign")
     class PublishCampaignTests {
 
         @Test
@@ -323,7 +323,7 @@ class CampaignControllerTest {
 
             when(campaignService.publishCampaign(eq(CAMPAIGN_ID), nullable(UUID.class))).thenReturn(response);
 
-            mockMvc.perform(patch("/api/campaigns/{id}/publish", CAMPAIGN_ID)
+            mockMvc.perform(patch("/api/v1/campaigns/{id}/publish", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("ACTIVE"));
@@ -335,14 +335,14 @@ class CampaignControllerTest {
             when(campaignService.publishCampaign(eq(CAMPAIGN_ID), nullable(UUID.class)))
                     .thenThrow(new CampaignValidationException("Only DRAFT campaigns can be published"));
 
-            mockMvc.perform(patch("/api/campaigns/{id}/publish", CAMPAIGN_ID)
+            mockMvc.perform(patch("/api/v1/campaigns/{id}/publish", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
     }
 
     @Nested
-    @DisplayName("DELETE /api/campaigns/{id} - Delete Draft Campaign")
+    @DisplayName("DELETE /api/v1/campaigns/{id} - Delete Draft Campaign")
     class DeleteCampaignTests {
 
         @Test
@@ -350,7 +350,7 @@ class CampaignControllerTest {
         void shouldDeleteDraftCampaignSuccessfully() throws Exception {
             doNothing().when(campaignService).deleteCampaign(eq(CAMPAIGN_ID), nullable(UUID.class));
 
-            mockMvc.perform(delete("/api/campaigns/{id}", CAMPAIGN_ID)
+            mockMvc.perform(delete("/api/v1/campaigns/{id}", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNoContent());
 
@@ -363,7 +363,7 @@ class CampaignControllerTest {
             doThrow(new CampaignValidationException("Only DRAFT campaigns can be deleted"))
                     .when(campaignService).deleteCampaign(eq(CAMPAIGN_ID), nullable(UUID.class));
 
-            mockMvc.perform(delete("/api/campaigns/{id}", CAMPAIGN_ID)
+            mockMvc.perform(delete("/api/v1/campaigns/{id}", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isBadRequest());
         }
@@ -374,7 +374,7 @@ class CampaignControllerTest {
             doThrow(new CampaignNotFoundException("Campaign not found"))
                     .when(campaignService).deleteCampaign(eq(CAMPAIGN_ID), nullable(UUID.class));
 
-            mockMvc.perform(delete("/api/campaigns/{id}", CAMPAIGN_ID)
+            mockMvc.perform(delete("/api/v1/campaigns/{id}", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
@@ -415,7 +415,7 @@ class CampaignControllerTest {
             when(campaignService.findActiveCampaigns(eq(null), eq(null), any(Pageable.class)))
                     .thenReturn(response);
 
-            mockMvc.perform(get("/api/v1/public/campaigns")
+            mockMvc.perform(get("/api/v1/campaigns/public")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.campaigns", hasSize(1)))
@@ -441,7 +441,7 @@ class CampaignControllerTest {
             when(campaignService.findActiveCampaigns(eq(searchTerm), eq(null), any(Pageable.class)))
                     .thenReturn(response);
 
-            mockMvc.perform(get("/api/v1/public/campaigns")
+            mockMvc.perform(get("/api/v1/campaigns/public")
                             .param("search", searchTerm)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -458,7 +458,7 @@ class CampaignControllerTest {
             when(campaignService.findActiveCampaigns(eq(null), eq(null), any(Pageable.class)))
                     .thenReturn(response);
 
-            mockMvc.perform(get("/api/v1/public/campaigns")
+            mockMvc.perform(get("/api/v1/campaigns/public")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.campaigns", hasSize(0)))
@@ -498,7 +498,7 @@ class CampaignControllerTest {
 
             when(campaignService.getPublicCampaignDetails(campaignId)).thenReturn(response);
 
-            mockMvc.perform(get("/api/v1/public/campaigns/{id}", campaignId)
+            mockMvc.perform(get("/api/v1/campaigns/public/{id}", campaignId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id", is(campaignId.toString())))
@@ -524,7 +524,7 @@ class CampaignControllerTest {
             when(campaignService.getPublicCampaignDetails(campaignId))
                     .thenThrow(new CampaignNotFoundException("Campaign not found: " + campaignId));
 
-            mockMvc.perform(get("/api/v1/public/campaigns/{id}", campaignId)
+            mockMvc.perform(get("/api/v1/campaigns/public/{id}", campaignId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
@@ -537,14 +537,14 @@ class CampaignControllerTest {
             when(campaignService.getPublicCampaignDetails(campaignId))
                     .thenThrow(new CampaignNotFoundException("Campaign is not available for public viewing"));
 
-            mockMvc.perform(get("/api/v1/public/campaigns/{id}", campaignId)
+            mockMvc.perform(get("/api/v1/campaigns/public/{id}", campaignId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("GET /api/v1/public/campaigns/{id}/bracket-progress")
+    @DisplayName("GET /api/v1/campaigns/public/{id}/bracket-progress")
     class GetBracketProgress {
 
         @Test
@@ -565,7 +565,7 @@ class CampaignControllerTest {
 
             when(campaignService.getBracketProgress(campaignId)).thenReturn(response);
 
-            mockMvc.perform(get("/api/v1/public/campaigns/{id}/bracket-progress", campaignId)
+            mockMvc.perform(get("/api/v1/campaigns/public/{id}/bracket-progress", campaignId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.campaign_id", is(campaignId.toString())))
@@ -596,7 +596,7 @@ class CampaignControllerTest {
 
             when(campaignService.getBracketProgress(campaignId)).thenReturn(response);
 
-            mockMvc.perform(get("/api/v1/public/campaigns/{id}/bracket-progress", campaignId)
+            mockMvc.perform(get("/api/v1/campaigns/public/{id}/bracket-progress", campaignId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.campaign_id", is(campaignId.toString())))
@@ -615,7 +615,7 @@ class CampaignControllerTest {
             when(campaignService.getBracketProgress(campaignId))
                     .thenThrow(new CampaignNotFoundException("Campaign not found: " + campaignId));
 
-            mockMvc.perform(get("/api/v1/public/campaigns/{id}/bracket-progress", campaignId)
+            mockMvc.perform(get("/api/v1/campaigns/public/{id}/bracket-progress", campaignId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
@@ -638,7 +638,7 @@ class CampaignControllerTest {
 
             when(campaignService.getBracketProgress(campaignId)).thenReturn(response);
 
-            mockMvc.perform(get("/api/v1/public/campaigns/{id}/bracket-progress", campaignId)
+            mockMvc.perform(get("/api/v1/campaigns/public/{id}/bracket-progress", campaignId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.total_pledged", is(0)))

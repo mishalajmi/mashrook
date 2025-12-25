@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import sa.elm.mashrook.brackets.dtos.BracketProgressResponse;
@@ -35,6 +36,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
+@RequestMapping("/v1/campaigns")
 @RequiredArgsConstructor
 public class CampaignController {
 
@@ -43,7 +45,7 @@ public class CampaignController {
 
     // ==================== Authenticated Campaign Endpoints ====================
 
-    @PostMapping("/api/campaigns")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('campaigns:create')")
     public CampaignResponse createCampaign(
@@ -53,7 +55,7 @@ public class CampaignController {
         return campaignService.createCampaign(request, supplierId);
     }
 
-    @PutMapping("/api/campaigns/{id}")
+    @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('campaigns:update')")
     public CampaignResponse updateCampaign(
             @PathVariable UUID id,
@@ -63,20 +65,20 @@ public class CampaignController {
         return campaignService.updateCampaign(id, request, supplierId);
     }
 
-    @GetMapping("/api/campaigns/{id}")
+    @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('campaigns:read')")
     public CampaignResponse getCampaignById(@PathVariable UUID id) {
         return campaignService.getCampaignById(id);
     }
 
-    @GetMapping("/api/campaigns")
+    @GetMapping
     public List<CampaignResponse> listCampaigns(
             @RequestParam(name = "supplier_id", required = false) UUID supplierId,
             @RequestParam(required = false) CampaignStatus status) {
         return campaignService.listCampaigns(supplierId, status);
     }
 
-    @PatchMapping("/api/campaigns/{id}/publish")
+    @PatchMapping("/{id}/publish")
     @PreAuthorize("hasAuthority('campaigns:update')")
     public CampaignResponse publishCampaign(
             @PathVariable UUID id,
@@ -85,7 +87,7 @@ public class CampaignController {
         return campaignService.publishCampaign(id, supplierId);
     }
 
-    @DeleteMapping("/api/campaigns/{id}")
+    @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('campaigns:delete')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCampaign(
@@ -95,7 +97,7 @@ public class CampaignController {
         campaignService.deleteCampaign(id, supplierId);
     }
 
-    @PostMapping("/api/campaigns/{id}/media")
+    @PostMapping("/{id}/media")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('campaigns:update')")
     public CampaignMediaResponse uploadMedia(
@@ -107,7 +109,7 @@ public class CampaignController {
         return campaignMediaService.addMedia(id, supplierId, file, order);
     }
 
-    @DeleteMapping("/api/campaigns/{id}/media/{mediaId}")
+    @DeleteMapping("/{id}/media/{mediaId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('campaigns:update')")
     public void deleteMedia(
@@ -118,12 +120,12 @@ public class CampaignController {
         campaignMediaService.deleteMedia(id, mediaId, supplierId);
     }
 
-    @GetMapping("/api/campaigns/{id}/media")
+    @GetMapping("/{id}/media")
     public List<CampaignMediaResponse> listMedia(@PathVariable UUID id) {
         return campaignMediaService.getMediaForCampaign(id);
     }
 
-    @GetMapping("/api/v1/public/campaigns")
+    @GetMapping("/public")
     public CampaignListResponse listActiveCampaigns(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID supplierId,
@@ -131,12 +133,12 @@ public class CampaignController {
         return campaignService.findActiveCampaigns(search, supplierId, pageable);
     }
 
-    @GetMapping("/api/v1/public/campaigns/{id}")
+    @GetMapping("/public/{id}")
     public CampaignPublicResponse getPublicCampaignDetails(@PathVariable UUID id) {
         return campaignService.getPublicCampaignDetails(id);
     }
 
-    @GetMapping("/api/v1/public/campaigns/{id}/bracket-progress")
+    @GetMapping("/public/{id}/bracket-progress")
     public BracketProgressResponse getBracketProgress(@PathVariable UUID id) {
         return campaignService.getBracketProgress(id);
     }

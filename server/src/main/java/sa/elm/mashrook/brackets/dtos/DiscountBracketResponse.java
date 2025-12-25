@@ -21,7 +21,7 @@ public record DiscountBracketResponse(
     public static DiscountBracketResponse from(DiscountBracketEntity entity) {
         return DiscountBracketResponse.builder()
                 .id(entity.getId())
-                .campaignId(entity.getCampaignId())
+                .campaignId(entity.getCampaign().getId())
                 .minQuantity(entity.getMinQuantity())
                 .maxQuantity(entity.getMaxQuantity())
                 .unitPrice(entity.getUnitPrice())

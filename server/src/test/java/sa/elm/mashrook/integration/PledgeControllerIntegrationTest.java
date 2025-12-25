@@ -226,8 +226,8 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should return 409 when buyer already has a pledge for this campaign")
         void shouldRejectDuplicatePledge() throws Exception {
             PledgeEntity existingPledge = new PledgeEntity();
-            existingPledge.setCampaignId(activeCampaign.getId());
-            existingPledge.setBuyerOrgId(buyerOrganization.getId());
+            existingPledge.setCampaign(activeCampaign);
+            existingPledge.setOrganization(buyerOrganization);
             existingPledge.setQuantity(5);
             existingPledge.setStatus(PledgeStatus.PENDING);
             pledgeRepository.save(existingPledge);
@@ -269,8 +269,8 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should update own pledge quantity")
         void shouldUpdateOwnPledge() throws Exception {
             PledgeEntity pledge = new PledgeEntity();
-            pledge.setCampaignId(activeCampaign.getId());
-            pledge.setBuyerOrgId(buyerOrganization.getId());
+            pledge.setCampaign(activeCampaign);
+            pledge.setOrganization(buyerOrganization);
             pledge.setQuantity(5);
             pledge.setStatus(PledgeStatus.PENDING);
             pledge = pledgeRepository.save(pledge);
@@ -302,8 +302,8 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
             otherBuyerOrg = organizationRepository.save(otherBuyerOrg);
 
             PledgeEntity otherPledge = new PledgeEntity();
-            otherPledge.setCampaignId(activeCampaign.getId());
-            otherPledge.setBuyerOrgId(otherBuyerOrg.getId());
+            otherPledge.setCampaign(activeCampaign);
+            otherPledge.setOrganization(otherBuyerOrg);
             otherPledge.setQuantity(5);
             otherPledge.setStatus(PledgeStatus.PENDING);
             otherPledge = pledgeRepository.save(otherPledge);
@@ -329,8 +329,8 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
             lockedCampaign = campaignRepository.save(lockedCampaign);
 
             PledgeEntity pledge = new PledgeEntity();
-            pledge.setCampaignId(lockedCampaign.getId());
-            pledge.setBuyerOrgId(buyerOrganization.getId());
+            pledge.setCampaign(lockedCampaign);
+            pledge.setOrganization(buyerOrganization);
             pledge.setQuantity(5);
             pledge.setStatus(PledgeStatus.PENDING);
             pledge = pledgeRepository.save(pledge);
@@ -373,8 +373,8 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should cancel own pledge")
         void shouldCancelOwnPledge() throws Exception {
             PledgeEntity pledge = new PledgeEntity();
-            pledge.setCampaignId(activeCampaign.getId());
-            pledge.setBuyerOrgId(buyerOrganization.getId());
+            pledge.setCampaign(activeCampaign);
+            pledge.setOrganization(buyerOrganization);
             pledge.setQuantity(5);
             pledge.setStatus(PledgeStatus.PENDING);
             pledge = pledgeRepository.save(pledge);
@@ -399,8 +399,8 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
             otherBuyerOrg = organizationRepository.save(otherBuyerOrg);
 
             PledgeEntity otherPledge = new PledgeEntity();
-            otherPledge.setCampaignId(activeCampaign.getId());
-            otherPledge.setBuyerOrgId(otherBuyerOrg.getId());
+            otherPledge.setCampaign(activeCampaign);
+            otherPledge.setOrganization(otherBuyerOrg);
             otherPledge.setQuantity(5);
             otherPledge.setStatus(PledgeStatus.PENDING);
             otherPledge = pledgeRepository.save(otherPledge);
@@ -418,8 +418,8 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
             lockedCampaign = campaignRepository.save(lockedCampaign);
 
             PledgeEntity pledge = new PledgeEntity();
-            pledge.setCampaignId(lockedCampaign.getId());
-            pledge.setBuyerOrgId(buyerOrganization.getId());
+            pledge.setCampaign(lockedCampaign);
+            pledge.setOrganization(buyerOrganization);
             pledge.setQuantity(5);
             pledge.setStatus(PledgeStatus.PENDING);
             pledge = pledgeRepository.save(pledge);
@@ -440,8 +440,8 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
             for (int i = 0; i < 3; i++) {
                 CampaignEntity campaign = campaignRepository.save(createActiveCampaign(supplierOrganization.getId()));
                 PledgeEntity pledge = new PledgeEntity();
-                pledge.setCampaignId(campaign.getId());
-                pledge.setBuyerOrgId(buyerOrganization.getId());
+                pledge.setCampaign(campaign);
+                pledge.setOrganization(buyerOrganization);
                 pledge.setQuantity(i + 1);
                 pledge.setStatus(PledgeStatus.PENDING);
                 pledgeRepository.save(pledge);
@@ -467,15 +467,15 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
             CampaignEntity campaign2 = campaignRepository.save(createActiveCampaign(supplierOrganization.getId()));
 
             PledgeEntity pendingPledge = new PledgeEntity();
-            pendingPledge.setCampaignId(campaign1.getId());
-            pendingPledge.setBuyerOrgId(buyerOrganization.getId());
+            pendingPledge.setCampaign(campaign1);
+            pendingPledge.setOrganization(buyerOrganization);
             pendingPledge.setQuantity(5);
             pendingPledge.setStatus(PledgeStatus.PENDING);
             pledgeRepository.save(pendingPledge);
 
             PledgeEntity committedPledge = new PledgeEntity();
-            committedPledge.setCampaignId(campaign2.getId());
-            committedPledge.setBuyerOrgId(buyerOrganization.getId());
+            committedPledge.setCampaign(campaign2);
+            committedPledge.setOrganization(buyerOrganization);
             committedPledge.setQuantity(10);
             committedPledge.setStatus(PledgeStatus.COMMITTED);
             pledgeRepository.save(committedPledge);
@@ -502,8 +502,8 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
             otherBuyerOrg = organizationRepository.save(otherBuyerOrg);
 
             PledgeEntity otherPledge = new PledgeEntity();
-            otherPledge.setCampaignId(activeCampaign.getId());
-            otherPledge.setBuyerOrgId(otherBuyerOrg.getId());
+            otherPledge.setCampaign(activeCampaign);
+            otherPledge.setOrganization(otherBuyerOrg);
             otherPledge.setQuantity(5);
             otherPledge.setStatus(PledgeStatus.PENDING);
             pledgeRepository.save(otherPledge);
@@ -535,8 +535,8 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
                 buyerOrg = organizationRepository.save(buyerOrg);
 
                 PledgeEntity pledge = new PledgeEntity();
-                pledge.setCampaignId(activeCampaign.getId());
-                pledge.setBuyerOrgId(buyerOrg.getId());
+                pledge.setCampaign(activeCampaign);
+                pledge.setOrganization(buyerOrg);
                 pledge.setQuantity(i + 1);
                 pledge.setStatus(PledgeStatus.PENDING);
                 pledgeRepository.save(pledge);

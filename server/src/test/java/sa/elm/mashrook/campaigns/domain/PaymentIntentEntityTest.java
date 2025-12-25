@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import sa.elm.mashrook.common.util.UuidGeneratorUtil;
+import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
 
@@ -46,14 +47,15 @@ class PaymentIntentEntityTest {
         }
 
         @Test
-        @DisplayName("should store campaignId as UUID reference to campaigns")
-        void shouldStoreCampaignIdAsUuid() {
+        @DisplayName("should store campaign as CampaignEntity reference")
+        void shouldStoreCampaignAsEntity() {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+            CampaignEntity campaign = new CampaignEntity();
+            campaign.setId(UuidGeneratorUtil.generateUuidV7());
 
-            paymentIntent.setCampaignId(campaignId);
+            paymentIntent.setCampaign(campaign);
 
-            assertThat(paymentIntent.getCampaignId()).isEqualTo(campaignId);
+            assertThat(paymentIntent.getCampaign()).isEqualTo(campaign);
         }
 
         @Test
@@ -68,14 +70,15 @@ class PaymentIntentEntityTest {
         }
 
         @Test
-        @DisplayName("should store buyerOrgId as UUID reference to organizations")
-        void shouldStoreBuyerOrgIdAsUuid() {
+        @DisplayName("should store buyerOrg as OrganizationEntity reference")
+        void shouldStoreBuyerOrgAsEntity() {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            UUID buyerOrgId = UuidGeneratorUtil.generateUuidV7();
+            OrganizationEntity org = new OrganizationEntity();
+            org.setId(UuidGeneratorUtil.generateUuidV7());
 
-            paymentIntent.setBuyerOrgId(buyerOrgId);
+            paymentIntent.setBuyerOrg(org);
 
-            assertThat(paymentIntent.getBuyerOrgId()).isEqualTo(buyerOrgId);
+            assertThat(paymentIntent.getBuyerOrg()).isEqualTo(org);
         }
 
         @Test
@@ -297,9 +300,11 @@ class PaymentIntentEntityTest {
         @DisplayName("should create payment intent with all fields populated")
         void shouldCreatePaymentIntentWithAllFieldsPopulated() {
             UUID id = UuidGeneratorUtil.generateUuidV7();
-            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+            CampaignEntity campaign = new CampaignEntity();
+            campaign.setId(UuidGeneratorUtil.generateUuidV7());
             UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
-            UUID buyerOrgId = UuidGeneratorUtil.generateUuidV7();
+            OrganizationEntity org = new OrganizationEntity();
+            org.setId(UuidGeneratorUtil.generateUuidV7());
             BigDecimal amount = new BigDecimal("9999.9999");
             PaymentIntentStatus status = PaymentIntentStatus.SUCCEEDED;
             Integer retryCount = 1;
@@ -307,18 +312,18 @@ class PaymentIntentEntityTest {
 
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
             paymentIntent.setId(id);
-            paymentIntent.setCampaignId(campaignId);
+            paymentIntent.setCampaign(campaign);
             paymentIntent.setPledgeId(pledgeId);
-            paymentIntent.setBuyerOrgId(buyerOrgId);
+            paymentIntent.setBuyerOrg(org);
             paymentIntent.setAmount(amount);
             paymentIntent.setStatus(status);
             paymentIntent.setRetryCount(retryCount);
             paymentIntent.setCreatedAt(createdAt);
 
             assertThat(paymentIntent.getId()).isEqualTo(id);
-            assertThat(paymentIntent.getCampaignId()).isEqualTo(campaignId);
+            assertThat(paymentIntent.getCampaign()).isEqualTo(campaign);
             assertThat(paymentIntent.getPledgeId()).isEqualTo(pledgeId);
-            assertThat(paymentIntent.getBuyerOrgId()).isEqualTo(buyerOrgId);
+            assertThat(paymentIntent.getBuyerOrg()).isEqualTo(org);
             assertThat(paymentIntent.getAmount()).isEqualTo(amount);
             assertThat(paymentIntent.getStatus()).isEqualTo(status);
             assertThat(paymentIntent.getRetryCount()).isEqualTo(retryCount);
@@ -413,10 +418,16 @@ class PaymentIntentEntityTest {
     }
 
     private PaymentIntentEntity createValidPaymentIntent() {
+        CampaignEntity campaign = new CampaignEntity();
+        campaign.setId(UuidGeneratorUtil.generateUuidV7());
+
+        OrganizationEntity org = new OrganizationEntity();
+        org.setId(UuidGeneratorUtil.generateUuidV7());
+
         PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-        paymentIntent.setCampaignId(UuidGeneratorUtil.generateUuidV7());
+        paymentIntent.setCampaign(campaign);
         paymentIntent.setPledgeId(UuidGeneratorUtil.generateUuidV7());
-        paymentIntent.setBuyerOrgId(UuidGeneratorUtil.generateUuidV7());
+        paymentIntent.setBuyerOrg(org);
         paymentIntent.setAmount(new BigDecimal("100.00"));
         paymentIntent.setRetryCount(0);
         return paymentIntent;

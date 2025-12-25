@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import sa.elm.mashrook.brackets.dtos.DiscountBracketRequest;
 import sa.elm.mashrook.brackets.dtos.DiscountBracketResponse;
+import sa.elm.mashrook.campaigns.domain.CampaignEntity;
+import sa.elm.mashrook.campaigns.service.CampaignService;
 import sa.elm.mashrook.security.domain.JwtPrincipal;
 
 import java.util.List;
@@ -24,29 +26,34 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/brackets")
 @RequiredArgsConstructor
 public class DiscountBracketController {
 
     private final DiscountBracketService discountBracketService;
+    private final CampaignService campaignService;
 
-    @PostMapping("/brackets")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('brackets:create')")
     public DiscountBracketResponse createBracket(
             @Valid @RequestBody DiscountBracketRequest request,
             @AuthenticationPrincipal JwtPrincipal principal) {
+        if (request.campaignId() == null) {
+            throw new IllegalArgumentException("campaign ID is required for creating a bracket");
+        }
         UUID supplierId = principal.getOrganizationId();
-        return discountBracketService.createBracket(request, supplierId);
+        CampaignEntity campaign = campaignService.findCampaignByIdAndSupplier(request.campaignId(), supplierId);
+        return discountBracketService.createBracket(request, supplierId, campaign);
     }
 
-    @GetMapping("/brackets/{id}")
+    @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('brackets:read')")
     public DiscountBracketResponse getBracketById(@PathVariable UUID id) {
         return discountBracketService.getBracketById(id);
     }
 
-    @PutMapping("/brackets/{id}")
+    @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('brackets:update')")
     public DiscountBracketResponse updateBracket(
             @PathVariable UUID id,
@@ -56,7 +63,7 @@ public class DiscountBracketController {
         return discountBracketService.updateBracket(id, request, supplierId);
     }
 
-    @DeleteMapping("/brackets/{id}")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('brackets:delete')")
     public void deleteBracket(
@@ -66,7 +73,7 @@ public class DiscountBracketController {
         discountBracketService.deleteBracket(id, supplierId);
     }
 
-    @GetMapping("/campaigns/{campaignId}/brackets")
+    @GetMapping("/campaigns/{campaignId}")
     @PreAuthorize("hasAuthority('brackets:read')")
     public List<DiscountBracketResponse> getBracketsForCampaign(@PathVariable UUID campaignId) {
         return discountBracketService.getBracketsForCampaign(campaignId);

@@ -162,7 +162,43 @@ export interface BracketProgressResponse {
 }
 
 /**
+ * Campaign summary from public listing endpoint
+ */
+export interface CampaignSummary {
+	id: string;
+	title: string;
+	description: string;
+	supplierId: string;
+	supplierName: string;
+	startDate: string;
+	endDate: string;
+	targetQty: number;
+	totalPledged: number;
+	originalPrice: string | null;
+	currentPrice: string | null;
+}
+
+/**
+ * Page info for paginated responses
+ */
+export interface PageInfo {
+	number: number;
+	size: number;
+	totalElements: number;
+	totalPages: number;
+}
+
+/**
+ * Public campaigns list response (paginated)
+ */
+export interface CampaignListResponse {
+	campaigns: CampaignSummary[];
+	page: PageInfo;
+}
+
+/**
  * Active campaigns list response with pledge summaries
+ * @deprecated Use CampaignListResponse instead
  */
 export interface ActiveCampaignsResponse {
 	campaigns: PublicCampaignResponse[];
@@ -193,10 +229,10 @@ export const campaignService = {
 	/**
 	 * Get all active campaigns (public, no authentication required)
 	 *
-	 * @returns List of active campaigns with pledge summaries
+	 * @returns Paginated list of active campaign summaries
 	 */
-	async getActiveCampaigns(): Promise<ActiveCampaignsResponse> {
-		return apiClient.get<ActiveCampaignsResponse>("/api/v1/public/campaigns");
+	async getActiveCampaigns(): Promise<CampaignListResponse> {
+		return apiClient.get<CampaignListResponse>("/v1/campaigns/public");
 	},
 
 	/**
@@ -207,7 +243,7 @@ export const campaignService = {
 	 * @throws Error if campaign not found
 	 */
 	async getPublicCampaign(id: string): Promise<PublicCampaignResponse> {
-		return apiClient.get<PublicCampaignResponse>(`/api/v1/public/campaigns/${id}`);
+		return apiClient.get<PublicCampaignResponse>(`/v1/campaigns/public/${id}`);
 	},
 
 	/**
@@ -218,7 +254,7 @@ export const campaignService = {
 	 * @throws Error if campaign not found
 	 */
 	async getBracketProgress(id: string): Promise<BracketProgressResponse> {
-		return apiClient.get<BracketProgressResponse>(`/api/v1/public/campaigns/${id}/bracket-progress`);
+		return apiClient.get<BracketProgressResponse>(`/v1/campaigns/public/${id}/bracket-progress`);
 	},
 
 	/**

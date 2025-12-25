@@ -15,7 +15,7 @@ import {
 	Footer,
 } from "@/components/landing";
 import type { Campaign, CampaignPledgeSummary } from "@/types/campaign";
-import { campaignService, type PublicCampaignResponse, type BracketProgressResponse } from "@/services/campaign.service";
+import { campaignService, type CampaignSummary } from "@/services/campaign.service";
 
 // SEO and Open Graph metadata
 export function meta(): MetaDescriptor[] {
@@ -78,32 +78,43 @@ interface HomeLoaderData {
  * Transform API response to component-compatible format
  */
 function transformToCompatibleFormat(
-	campaigns: PublicCampaignResponse[],
-	pledgeSummaries: Record<string, BracketProgressResponse>
+	campaignSummaries: CampaignSummary[]
 ): HomeLoaderData {
-	// Transform campaigns to Campaign type (add supplierId as empty since public data doesn't expose it)
-	const transformedCampaigns: Campaign[] = campaigns.map((c) => ({
-		...c,
-		supplierId: "", // Not exposed in public API
-		createdAt: "", // Not exposed in public API
-		updatedAt: "", // Not exposed in public API
+	// Transform campaign summaries to Campaign type
+	const transformedCampaigns: Campaign[] = campaignSummaries.map((c) => ({
+		id: c.id,
+		title: c.title,
+		description: c.description,
+		productDetails: "", // Not included in summary
+		targetQuantity: c.targetQty,
+		startDate: c.startDate,
+		endDate: c.endDate,
+		status: "ACTIVE" as const, // Public endpoint only returns active campaigns
+		supplierId: c.supplierId,
+		createdAt: "",
+		updatedAt: "",
 	}));
 
-	// Transform pledge summaries to CampaignPledgeSummary format
+	// Create pledge summaries from campaign summary data
 	const transformedSummaries: Record<string, CampaignPledgeSummary> = {};
-	for (const [campaignId, summary] of Object.entries(pledgeSummaries)) {
-		const campaign = campaigns.find((c) => c.id === campaignId);
-		const brackets = campaign?.brackets || [];
-		const currentBracket = brackets.find((b) => b.bracketOrder === summary.currentBracketOrder) || null;
-		const nextBracket = brackets.find((b) => b.bracketOrder === (summary.currentBracketOrder || 0) + 1) || null;
+	for (const campaign of campaignSummaries) {
+		// Create a synthetic current bracket from the campaign's current price
+		const currentBracket = campaign.currentPrice ? {
+			id: "",
+			campaignId: campaign.id,
+			minQuantity: 0,
+			maxQuantity: null,
+			unitPrice: campaign.currentPrice,
+			bracketOrder: 0,
+		} : null;
 
-		transformedSummaries[campaignId] = {
-			campaignId,
-			totalPledges: summary.totalPledges,
-			totalQuantity: summary.totalQuantity,
+		transformedSummaries[campaign.id] = {
+			campaignId: campaign.id,
+			totalPledges: campaign.totalPledged,
+			totalQuantity: campaign.totalPledged,
 			currentBracket,
-			nextBracket,
-			unitsToNextBracket: summary.unitsToNextBracket,
+			nextBracket: null, // Not available in summary
+			unitsToNextBracket: null, // Not available in summary
 		};
 	}
 
@@ -119,7 +130,7 @@ export async function loader(): Promise<HomeLoaderData> {
 		const response = await campaignService.getActiveCampaigns();
 		// Take first 4 campaigns for featured section
 		const campaigns = response.campaigns.slice(0, 4);
-		return transformToCompatibleFormat(campaigns, response.pledgeSummaries);
+		return transformToCompatibleFormat(campaigns);
 	} catch {
 		// Return empty data on error to allow page to render
 		return { campaigns: [], pledgeSummaries: {} };

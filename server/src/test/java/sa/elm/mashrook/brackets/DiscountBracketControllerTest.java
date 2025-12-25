@@ -19,8 +19,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import sa.elm.mashrook.brackets.dtos.DiscountBracketRequest;
 import sa.elm.mashrook.brackets.dtos.DiscountBracketResponse;
+import sa.elm.mashrook.campaigns.service.CampaignService;
 import sa.elm.mashrook.common.util.UuidGeneratorUtil;
-import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignValidationException;
 import sa.elm.mashrook.exceptions.DiscountBracketNotFoundException;
 import sa.elm.mashrook.exceptions.GlobalExceptionHandler;
@@ -54,6 +54,9 @@ class DiscountBracketControllerTest {
     @Mock
     private DiscountBracketService discountBracketService;
 
+    @Mock
+    private CampaignService campaignService;
+
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
@@ -70,7 +73,7 @@ class DiscountBracketControllerTest {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(objectMapper);
 
-        DiscountBracketController controller = new DiscountBracketController(discountBracketService);
+        DiscountBracketController controller = new DiscountBracketController(discountBracketService, campaignService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setMessageConverters(converter)
@@ -107,7 +110,7 @@ class DiscountBracketControllerTest {
 
             DiscountBracketResponse response = createBracketResponse();
 
-            when(discountBracketService.createBracket(any(DiscountBracketRequest.class), nullable(UUID.class)))
+            when(discountBracketService.createBracket(any(DiscountBracketRequest.class), nullable(UUID.class), any()))
                     .thenReturn(response);
 
             mockMvc.perform(post("/api/v1/brackets")
@@ -145,7 +148,7 @@ class DiscountBracketControllerTest {
                     .bracketOrder(1)
                     .build();
 
-            when(discountBracketService.createBracket(any(DiscountBracketRequest.class), nullable(UUID.class)))
+            when(discountBracketService.createBracket(any(DiscountBracketRequest.class), nullable(UUID.class), any()))
                     .thenThrow(new CampaignValidationException("Cannot add brackets to non-DRAFT campaigns"));
 
             mockMvc.perform(post("/api/v1/brackets")
@@ -322,7 +325,7 @@ class DiscountBracketControllerTest {
 
             when(discountBracketService.getBracketsForCampaign(CAMPAIGN_ID)).thenReturn(brackets);
 
-            mockMvc.perform(get("/api/v1/campaigns/{campaignId}/brackets", CAMPAIGN_ID)
+            mockMvc.perform(get("/api/v1/brackets/campaigns/{campaignId}", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(2)))
@@ -335,7 +338,7 @@ class DiscountBracketControllerTest {
         void shouldReturnEmptyListWhenNoBracketsExist() throws Exception {
             when(discountBracketService.getBracketsForCampaign(CAMPAIGN_ID)).thenReturn(List.of());
 
-            mockMvc.perform(get("/api/v1/campaigns/{campaignId}/brackets", CAMPAIGN_ID)
+            mockMvc.perform(get("/api/v1/brackets/campaigns/{campaignId}", CAMPAIGN_ID)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));

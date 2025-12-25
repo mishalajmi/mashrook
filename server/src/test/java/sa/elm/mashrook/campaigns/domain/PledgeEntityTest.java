@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import sa.elm.mashrook.common.util.UuidGeneratorUtil;
+import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
 
@@ -31,25 +32,27 @@ class PledgeEntityTest {
         }
 
         @Test
-        @DisplayName("should store campaignId as UUID reference to campaigns")
-        void shouldStoreCampaignIdAsUuid() {
+        @DisplayName("should store campaign as CampaignEntity reference")
+        void shouldStoreCampaignAsEntity() {
             PledgeEntity pledge = new PledgeEntity();
-            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+            CampaignEntity campaign = new CampaignEntity();
+            campaign.setId(UuidGeneratorUtil.generateUuidV7());
 
-            pledge.setCampaignId(campaignId);
+            pledge.setCampaign(campaign);
 
-            assertThat(pledge.getCampaignId()).isEqualTo(campaignId);
+            assertThat(pledge.getCampaign()).isEqualTo(campaign);
         }
 
         @Test
-        @DisplayName("should store buyerOrgId as UUID reference to organizations")
-        void shouldStoreBuyerOrgIdAsUuid() {
+        @DisplayName("should store organization as OrganizationEntity reference")
+        void shouldStoreOrganizationAsEntity() {
             PledgeEntity pledge = new PledgeEntity();
-            UUID buyerOrgId = UuidGeneratorUtil.generateUuidV7();
+            OrganizationEntity org = new OrganizationEntity();
+            org.setId(UuidGeneratorUtil.generateUuidV7());
 
-            pledge.setBuyerOrgId(buyerOrgId);
+            pledge.setOrganization(org);
 
-            assertThat(pledge.getBuyerOrgId()).isEqualTo(buyerOrgId);
+            assertThat(pledge.getOrganization()).isEqualTo(org);
         }
 
         @Test
@@ -172,8 +175,10 @@ class PledgeEntityTest {
         @DisplayName("should create pledge with all fields populated")
         void shouldCreatePledgeWithAllFieldsPopulated() {
             UUID id = UuidGeneratorUtil.generateUuidV7();
-            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
-            UUID buyerOrgId = UuidGeneratorUtil.generateUuidV7();
+            CampaignEntity campaign = new CampaignEntity();
+            campaign.setId(UuidGeneratorUtil.generateUuidV7());
+            OrganizationEntity org = new OrganizationEntity();
+            org.setId(UuidGeneratorUtil.generateUuidV7());
             Integer quantity = 50;
             PledgeStatus status = PledgeStatus.COMMITTED;
             LocalDateTime committedAt = LocalDateTime.of(2025, 3, 15, 10, 0, 0);
@@ -181,16 +186,16 @@ class PledgeEntityTest {
 
             PledgeEntity pledge = new PledgeEntity();
             pledge.setId(id);
-            pledge.setCampaignId(campaignId);
-            pledge.setBuyerOrgId(buyerOrgId);
+            pledge.setCampaign(campaign);
+            pledge.setOrganization(org);
             pledge.setQuantity(quantity);
             pledge.setStatus(status);
             pledge.setCommittedAt(committedAt);
             pledge.setCreatedAt(createdAt);
 
             assertThat(pledge.getId()).isEqualTo(id);
-            assertThat(pledge.getCampaignId()).isEqualTo(campaignId);
-            assertThat(pledge.getBuyerOrgId()).isEqualTo(buyerOrgId);
+            assertThat(pledge.getCampaign()).isEqualTo(campaign);
+            assertThat(pledge.getOrganization()).isEqualTo(org);
             assertThat(pledge.getQuantity()).isEqualTo(quantity);
             assertThat(pledge.getStatus()).isEqualTo(status);
             assertThat(pledge.getCommittedAt()).isEqualTo(committedAt);

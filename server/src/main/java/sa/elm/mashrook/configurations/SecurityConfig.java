@@ -36,7 +36,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final MashrookUserDetailsService userDetailsService;
@@ -86,10 +86,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/activate/**").permitAll()
                         // Public campaign discovery endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/campaigns/active").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/campaigns/*/public").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/campaigns/*/bracket-progress").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/campaigns/*/media").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/campaigns/public/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -152,20 +149,6 @@ public class SecurityConfig {
         return handler;
     }
 
-    /**
-     * Configures CORS settings for cross-origin requests from the frontend.
-     * <p>
-     * This configuration:
-     * <ul>
-     *   <li>Allows requests from configured origins (e.g., <a href="http://localhost:5173">...</a> for Vite dev server)</li>
-     *   <li>Supports credentials for HTTP-only cookie handling (refresh tokens)</li>
-     *   <li>Allows standard HTTP methods: GET, POST, PUT, DELETE, PATCH, OPTIONS</li>
-     *   <li>Exposes Set-Cookie header for the frontend to receive cookies</li>
-     * </ul>
-     * </p>
-     *
-     * @return the CORS configuration source
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

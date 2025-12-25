@@ -21,8 +21,8 @@ public record PledgeResponse(
     public static PledgeResponse from(PledgeEntity entity) {
         return PledgeResponse.builder()
                 .id(entity.getId())
-                .campaignId(entity.getCampaignId())
-                .buyerOrgId(entity.getBuyerOrgId())
+                .campaignId(entity.getCampaign().getId())
+                .buyerOrgId(entity.getOrganization().getId())
                 .quantity(entity.getQuantity())
                 .status(entity.getStatus())
                 .committedAt(entity.getCommittedAt())

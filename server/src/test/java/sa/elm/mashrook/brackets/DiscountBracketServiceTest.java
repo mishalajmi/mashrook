@@ -7,14 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import sa.elm.mashrook.brackets.DiscountBracketRepository;
-import sa.elm.mashrook.brackets.DiscountBracketService;
 import sa.elm.mashrook.brackets.domain.DiscountBracketEntity;
-import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.common.util.UuidGeneratorUtil;
-import sa.elm.mashrook.pledges.PledgeService;
-import sa.elm.mashrook.pledges.domain.PledgeEntity;
-import sa.elm.mashrook.pledges.domain.PledgeStatus;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -32,64 +26,14 @@ class DiscountBracketServiceTest {
     @Mock
     private DiscountBracketRepository discountBracketRepository;
 
-    @Mock
-    private CampaignRepository campaignRepository;
-
-    @Mock
-    private PledgeService pledgeService;
-
     private DiscountBracketService discountBracketService;
 
     private UUID campaignId;
 
     @BeforeEach
     void setUp() {
-        discountBracketService = new DiscountBracketService(discountBracketRepository, campaignRepository, pledgeService);
+        discountBracketService = new DiscountBracketService(discountBracketRepository);
         campaignId = UuidGeneratorUtil.generateUuidV7();
-    }
-
-    @Nested
-    @DisplayName("calculateTotalPledged")
-    class CalculateTotalPledged {
-
-        @Test
-        @DisplayName("should return zero when no pledges exist for campaign")
-        void shouldReturnZeroWhenNoPledgesExist() {
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(Collections.emptyList());
-
-            int total = discountBracketService.calculateTotalPledged(campaignId);
-
-            assertThat(total).isZero();
-        }
-
-        @Test
-        @DisplayName("should sum only COMMITTED pledge quantities")
-        void shouldSumOnlyCommittedPledgeQuantities() {
-            PledgeEntity pledge1 = createPledge(campaignId, 10, PledgeStatus.COMMITTED);
-            PledgeEntity pledge2 = createPledge(campaignId, 25, PledgeStatus.COMMITTED);
-            PledgeEntity pledge3 = createPledge(campaignId, 15, PledgeStatus.COMMITTED);
-
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge1, pledge2, pledge3));
-
-            int total = discountBracketService.calculateTotalPledged(campaignId);
-
-            assertThat(total).isEqualTo(50);
-        }
-
-        @Test
-        @DisplayName("should handle single committed pledge")
-        void shouldHandleSingleCommittedPledge() {
-            PledgeEntity pledge = createPledge(campaignId, 100, PledgeStatus.COMMITTED);
-
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge));
-
-            int total = discountBracketService.calculateTotalPledged(campaignId);
-
-            assertThat(total).isEqualTo(100);
-        }
     }
 
     @Nested
@@ -110,9 +54,9 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return brackets ordered by bracket_order ascending")
         void shouldReturnBracketsOrderedByBracketOrder() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
-            DiscountBracketEntity bracket3 = createBracket(campaignId, 100, null, new BigDecimal("80.00"), 2);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketEntity bracket3 = createBracket(100, null, new BigDecimal("80.00"), 2);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2, bracket3));
@@ -136,23 +80,21 @@ class DiscountBracketServiceTest {
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(Collections.emptyList());
 
-            Optional<DiscountBracketEntity> bracket = discountBracketService.getCurrentBracket(campaignId);
+            Optional<DiscountBracketEntity> bracket = discountBracketService.getCurrentBracket(campaignId, 0);
 
             assertThat(bracket).isEmpty();
         }
 
         @Test
-        @DisplayName("should return first bracket when no pledges exist")
-        void shouldReturnFirstBracketWhenNoPledgesExist() {
-            DiscountBracketEntity firstBracket = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity secondBracket = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
+        @DisplayName("should return first bracket when totalPledged is zero")
+        void shouldReturnFirstBracketWhenTotalPledgedIsZero() {
+            DiscountBracketEntity firstBracket = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity secondBracket = createBracket(50, 99, new BigDecimal("90.00"), 1);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(firstBracket, secondBracket));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(Collections.emptyList());
 
-            Optional<DiscountBracketEntity> bracket = discountBracketService.getCurrentBracket(campaignId);
+            Optional<DiscountBracketEntity> bracket = discountBracketService.getCurrentBracket(campaignId, 0);
 
             assertThat(bracket).isPresent();
             assertThat(bracket.get().getBracketOrder()).isEqualTo(0);
@@ -162,19 +104,15 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return bracket where totalPledged is within min and max quantity range")
         void shouldReturnBracketWhereQuantityIsWithinRange() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
-            DiscountBracketEntity bracket3 = createBracket(campaignId, 100, null, new BigDecimal("80.00"), 2);
-
-            PledgeEntity pledge1 = createPledge(campaignId, 30, PledgeStatus.COMMITTED);
-            PledgeEntity pledge2 = createPledge(campaignId, 35, PledgeStatus.COMMITTED);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketEntity bracket3 = createBracket(100, null, new BigDecimal("80.00"), 2);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2, bracket3));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge1, pledge2));
 
-            Optional<DiscountBracketEntity> result = discountBracketService.getCurrentBracket(campaignId);
+            // totalPledged = 65 (within bracket2's range 50-99)
+            Optional<DiscountBracketEntity> result = discountBracketService.getCurrentBracket(campaignId, 65);
 
             assertThat(result).isPresent();
             assertThat(result.get().getBracketOrder()).isEqualTo(1);
@@ -185,18 +123,14 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return bracket with null maxQuantity when totalPledged exceeds all bounded brackets")
         void shouldReturnUnlimitedBracketWhenQuantityExceedsAllBounds() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
-            DiscountBracketEntity bracket3 = createBracket(campaignId, 100, null, new BigDecimal("80.00"), 2);
-
-            PledgeEntity pledge = createPledge(campaignId, 150, PledgeStatus.COMMITTED);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketEntity bracket3 = createBracket(100, null, new BigDecimal("80.00"), 2);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2, bracket3));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge));
 
-            Optional<DiscountBracketEntity> result = discountBracketService.getCurrentBracket(campaignId);
+            Optional<DiscountBracketEntity> result = discountBracketService.getCurrentBracket(campaignId, 150);
 
             assertThat(result).isPresent();
             assertThat(result.get().getBracketOrder()).isEqualTo(2);
@@ -204,19 +138,15 @@ class DiscountBracketServiceTest {
         }
 
         @Test
-        @DisplayName("should return first bracket when totalPledged is exactly at minQuantity boundary")
+        @DisplayName("should return bracket when totalPledged is exactly at minQuantity boundary")
         void shouldReturnBracketWhenQuantityEqualsMinQuantity() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
-
-            PledgeEntity pledge = createPledge(campaignId, 50, PledgeStatus.COMMITTED);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge));
 
-            Optional<DiscountBracketEntity> result = discountBracketService.getCurrentBracket(campaignId);
+            Optional<DiscountBracketEntity> result = discountBracketService.getCurrentBracket(campaignId, 50);
 
             assertThat(result).isPresent();
             assertThat(result.get().getBracketOrder()).isEqualTo(1);
@@ -225,17 +155,13 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return bracket when totalPledged equals maxQuantity")
         void shouldReturnBracketWhenQuantityEqualsMaxQuantity() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
-
-            PledgeEntity pledge = createPledge(campaignId, 49, PledgeStatus.COMMITTED);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge));
 
-            Optional<DiscountBracketEntity> result = discountBracketService.getCurrentBracket(campaignId);
+            Optional<DiscountBracketEntity> result = discountBracketService.getCurrentBracket(campaignId, 49);
 
             assertThat(result).isPresent();
             assertThat(result.get().getBracketOrder()).isEqualTo(0);
@@ -244,16 +170,12 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should handle single bracket scenario")
         void shouldHandleSingleBracket() {
-            DiscountBracketEntity singleBracket = createBracket(campaignId, 0, null, new BigDecimal("50.00"), 0);
-
-            PledgeEntity pledge = createPledge(campaignId, 1000, PledgeStatus.COMMITTED);
+            DiscountBracketEntity singleBracket = createBracket(0, null, new BigDecimal("50.00"), 0);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(singleBracket));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge));
 
-            Optional<DiscountBracketEntity> result = discountBracketService.getCurrentBracket(campaignId);
+            Optional<DiscountBracketEntity> result = discountBracketService.getCurrentBracket(campaignId, 1000);
 
             assertThat(result).isPresent();
             assertThat(result.get().getBracketOrder()).isEqualTo(0);
@@ -270,7 +192,7 @@ class DiscountBracketServiceTest {
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(Collections.emptyList());
 
-            Optional<DiscountBracketEntity> result = discountBracketService.getNextBracket(campaignId);
+            Optional<DiscountBracketEntity> result = discountBracketService.getNextBracket(campaignId, 0);
 
             assertThat(result).isEmpty();
         }
@@ -278,18 +200,15 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return second bracket when currently in first bracket")
         void shouldReturnSecondBracketWhenInFirstBracket() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
-            DiscountBracketEntity bracket3 = createBracket(campaignId, 100, null, new BigDecimal("80.00"), 2);
-
-            PledgeEntity pledge = createPledge(campaignId, 25, PledgeStatus.COMMITTED);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketEntity bracket3 = createBracket(100, null, new BigDecimal("80.00"), 2);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2, bracket3));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge));
 
-            Optional<DiscountBracketEntity> result = discountBracketService.getNextBracket(campaignId);
+            // totalPledged = 25 is in bracket1, next should be bracket2
+            Optional<DiscountBracketEntity> result = discountBracketService.getNextBracket(campaignId, 25);
 
             assertThat(result).isPresent();
             assertThat(result.get().getBracketOrder()).isEqualTo(1);
@@ -299,17 +218,14 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return empty when already at highest bracket")
         void shouldReturnEmptyWhenAtHighestBracket() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, null, new BigDecimal("90.00"), 1);
-
-            PledgeEntity pledge = createPledge(campaignId, 100, PledgeStatus.COMMITTED);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, null, new BigDecimal("90.00"), 1);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge));
 
-            Optional<DiscountBracketEntity> result = discountBracketService.getNextBracket(campaignId);
+            // totalPledged = 100 is in bracket2 (the highest), no next
+            Optional<DiscountBracketEntity> result = discountBracketService.getNextBracket(campaignId, 100);
 
             assertThat(result).isEmpty();
         }
@@ -317,18 +233,15 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return next bracket when at boundary of current bracket")
         void shouldReturnNextBracketWhenAtBoundary() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
-            DiscountBracketEntity bracket3 = createBracket(campaignId, 100, null, new BigDecimal("80.00"), 2);
-
-            PledgeEntity pledge = createPledge(campaignId, 50, PledgeStatus.COMMITTED);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketEntity bracket3 = createBracket(100, null, new BigDecimal("80.00"), 2);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2, bracket3));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge));
 
-            Optional<DiscountBracketEntity> result = discountBracketService.getNextBracket(campaignId);
+            // totalPledged = 50 is in bracket2, next should be bracket3
+            Optional<DiscountBracketEntity> result = discountBracketService.getNextBracket(campaignId, 50);
 
             assertThat(result).isPresent();
             assertThat(result.get().getBracketOrder()).isEqualTo(2);
@@ -337,14 +250,12 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should handle single bracket with no next")
         void shouldHandleSingleBracketWithNoNext() {
-            DiscountBracketEntity singleBracket = createBracket(campaignId, 0, null, new BigDecimal("50.00"), 0);
+            DiscountBracketEntity singleBracket = createBracket(0, null, new BigDecimal("50.00"), 0);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(singleBracket));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(Collections.emptyList());
 
-            Optional<DiscountBracketEntity> result = discountBracketService.getNextBracket(campaignId);
+            Optional<DiscountBracketEntity> result = discountBracketService.getNextBracket(campaignId, 0);
 
             assertThat(result).isEmpty();
         }
@@ -368,8 +279,8 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return price for first bracket when quantity is within range")
         void shouldReturnPriceForFirstBracket() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2));
@@ -383,8 +294,8 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return price for second bracket when quantity is within range")
         void shouldReturnPriceForSecondBracket() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2));
@@ -398,8 +309,8 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return price for unlimited bracket when quantity exceeds bounded brackets")
         void shouldReturnPriceForUnlimitedBracket() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, null, new BigDecimal("80.00"), 1);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, null, new BigDecimal("80.00"), 1);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2));
@@ -413,8 +324,8 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return price when quantity equals minQuantity boundary")
         void shouldReturnPriceAtMinQuantityBoundary() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2));
@@ -428,8 +339,8 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return price when quantity equals maxQuantity boundary")
         void shouldReturnPriceAtMaxQuantityBoundary() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2));
@@ -443,8 +354,8 @@ class DiscountBracketServiceTest {
         @Test
         @DisplayName("should return first bracket price when quantity is zero")
         void shouldReturnFirstBracketPriceForZeroQuantity() {
-            DiscountBracketEntity bracket1 = createBracket(campaignId, 0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketEntity bracket2 = createBracket(campaignId, 50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketEntity bracket1 = createBracket(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketEntity bracket2 = createBracket(50, 99, new BigDecimal("90.00"), 1);
 
             when(discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId))
                     .thenReturn(List.of(bracket1, bracket2));
@@ -456,20 +367,10 @@ class DiscountBracketServiceTest {
         }
     }
 
-    private PledgeEntity createPledge(UUID campaignId, int quantity, PledgeStatus status) {
-        PledgeEntity pledge = new PledgeEntity();
-        pledge.setId(UuidGeneratorUtil.generateUuidV7());
-        pledge.setCampaignId(campaignId);
-        pledge.setQuantity(quantity);
-        pledge.setStatus(status);
-        return pledge;
-    }
-
-    private DiscountBracketEntity createBracket(UUID campaignId, int minQuantity, Integer maxQuantity,
-                                                 BigDecimal unitPrice, int bracketOrder) {
+    private DiscountBracketEntity createBracket(int minQuantity, Integer maxQuantity,
+                                                BigDecimal unitPrice, int bracketOrder) {
         DiscountBracketEntity bracket = new DiscountBracketEntity();
         bracket.setId(UuidGeneratorUtil.generateUuidV7());
-        bracket.setCampaignId(campaignId);
         bracket.setMinQuantity(minQuantity);
         bracket.setMaxQuantity(maxQuantity);
         bracket.setUnitPrice(unitPrice);

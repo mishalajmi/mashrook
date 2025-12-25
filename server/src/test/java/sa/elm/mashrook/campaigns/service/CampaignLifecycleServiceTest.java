@@ -25,6 +25,7 @@ import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
 import sa.elm.mashrook.pledges.PledgeService;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
+import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -92,9 +93,12 @@ class CampaignLifecycleServiceTest {
     }
 
     private DiscountBracketEntity createBracket(UUID campaignId, int minQty, Integer maxQty, BigDecimal price, int order) {
+        CampaignEntity camp = new CampaignEntity();
+        camp.setId(campaignId);
+
         DiscountBracketEntity bracket = new DiscountBracketEntity();
         bracket.setId(UuidGeneratorUtil.generateUuidV7());
-        bracket.setCampaignId(campaignId);
+        bracket.setCampaign(camp);
         bracket.setMinQuantity(minQty);
         bracket.setMaxQuantity(maxQty);
         bracket.setUnitPrice(price);
@@ -103,10 +107,16 @@ class CampaignLifecycleServiceTest {
     }
 
     private PledgeEntity createPledge(UUID campaignId, int quantity, PledgeStatus status) {
+        CampaignEntity camp = new CampaignEntity();
+        camp.setId(campaignId);
+
+        OrganizationEntity org = new OrganizationEntity();
+        org.setId(UuidGeneratorUtil.generateUuidV7());
+
         PledgeEntity pledge = new PledgeEntity();
         pledge.setId(UuidGeneratorUtil.generateUuidV7());
-        pledge.setCampaignId(campaignId);
-        pledge.setBuyerOrgId(UuidGeneratorUtil.generateUuidV7());
+        pledge.setCampaign(camp);
+        pledge.setOrganization(org);
         pledge.setQuantity(quantity);
         pledge.setStatus(status);
         return pledge;
@@ -445,7 +455,7 @@ class CampaignLifecycleServiceTest {
 
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
             paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
-            paymentIntent.setCampaignId(campaignId);
+            paymentIntent.setCampaign(campaign);
             paymentIntent.setPledgeId(pledgeId);
             paymentIntent.setStatus(PaymentIntentStatus.SUCCEEDED);
 
@@ -500,7 +510,7 @@ class CampaignLifecycleServiceTest {
 
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
             paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
-            paymentIntent.setCampaignId(campaignId);
+            paymentIntent.setCampaign(campaign);
             paymentIntent.setPledgeId(pledgeId);
             paymentIntent.setStatus(PaymentIntentStatus.PENDING);
 
@@ -526,7 +536,7 @@ class CampaignLifecycleServiceTest {
 
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
             paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
-            paymentIntent.setCampaignId(campaignId);
+            paymentIntent.setCampaign(campaign);
             paymentIntent.setPledgeId(pledgeId);
             paymentIntent.setStatus(PaymentIntentStatus.SUCCEEDED);
 
@@ -562,12 +572,12 @@ class CampaignLifecycleServiceTest {
             pledge2.setId(pledgeId2);
 
             PaymentIntentEntity payment1 = new PaymentIntentEntity();
-            payment1.setCampaignId(campaignId);
+            payment1.setCampaign(campaign);
             payment1.setPledgeId(pledgeId1);
             payment1.setStatus(PaymentIntentStatus.SUCCEEDED);
 
             PaymentIntentEntity payment2 = new PaymentIntentEntity();
-            payment2.setCampaignId(campaignId);
+            payment2.setCampaign(campaign);
             payment2.setPledgeId(pledgeId2);
             payment2.setStatus(PaymentIntentStatus.COLLECTED_VIA_AR);
 

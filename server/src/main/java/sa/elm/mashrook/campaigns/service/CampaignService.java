@@ -24,6 +24,7 @@ import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignValidationException;
 import sa.elm.mashrook.organizations.OrganizationService;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
+import sa.elm.mashrook.pledges.PledgeService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -40,6 +41,7 @@ public class CampaignService {
     private final CampaignRepository campaignRepository;
     private final DiscountBracketService discountBracketService;
     private final OrganizationService organizationService;
+    private final PledgeService pledgeService;
 
     @Transactional
     public CampaignResponse createCampaign(CampaignCreateRequest request, UUID supplierId) {
@@ -52,7 +54,7 @@ public class CampaignService {
         CampaignEntity saved = campaignRepository.save(campaign);
         log.info("Created campaign: {}", saved.getId());
 
-        List<DiscountBracketResponse> brackets = discountBracketService.saveBrackets(request.brackets(), saved.getId());
+        List<DiscountBracketResponse> brackets = discountBracketService.saveBrackets(request.brackets(), saved);
 
         return CampaignResponse.from(saved, brackets);
     }
@@ -95,7 +97,7 @@ public class CampaignService {
         List<DiscountBracketResponse> brackets;
         if (request.brackets() != null) {
             discountBracketService.deleteAllBracketsForCampaign(campaignId);
-            brackets = discountBracketService.saveBrackets(request.brackets(), campaignId);
+            brackets = discountBracketService.saveBrackets(request.brackets(), campaign);
         } else {
             brackets = discountBracketService.getBracketsForCampaign(campaignId);
         }
@@ -193,7 +195,7 @@ public class CampaignService {
         }
 
         OrganizationEntity supplier = organizationService.findById(campaign.getSupplierId());
-        int totalPledged = discountBracketService.calculateTotalPledged(campaignId);
+        int totalPledged = pledgeService.calculateTotalCommitedPledges(campaignId);
         List<DiscountBracketEntity> brackets = discountBracketService.getAllBrackets(campaignId);
 
         List<DiscountBracketDto> bracketDtos = brackets.stream()
@@ -224,9 +226,9 @@ public class CampaignService {
             throw new CampaignNotFoundException("Campaign is not available for public viewing");
         }
 
-        int totalPledged = discountBracketService.calculateTotalPledged(campaignId);
-        Optional<DiscountBracketEntity> currentBracket = discountBracketService.getCurrentBracket(campaignId);
-        Optional<DiscountBracketEntity> nextBracket = discountBracketService.getNextBracket(campaignId);
+        int totalPledged = pledgeService.calculateTotalCommitedPledges(campaignId);
+        Optional<DiscountBracketEntity> currentBracket = discountBracketService.getCurrentBracket(campaignId, totalPledged);
+        Optional<DiscountBracketEntity> nextBracket = discountBracketService.getNextBracket(campaignId, totalPledged);
 
         BigDecimal percentageToNextTier = calculatePercentageToNextTier(totalPledged, currentBracket, nextBracket);
 
@@ -239,21 +241,6 @@ public class CampaignService {
                 .build();
     }
 
-    // ==================== Public Validation Methods for Cross-Feature Access ====================
-
-    /**
-     * Finds a campaign by ID. Used by other services for campaign validation.
-     */
-    @Transactional(readOnly = true)
-    public CampaignEntity findCampaignEntityById(UUID campaignId) {
-        return campaignRepository.findById(campaignId)
-                .orElseThrow(() -> new CampaignNotFoundException("Campaign not found with id: " + campaignId));
-    }
-
-    /**
-     * Finds a campaign by ID and validates supplier ownership.
-     * Used by bracket service for ownership validation.
-     */
     @Transactional(readOnly = true)
     public CampaignEntity findCampaignByIdAndSupplier(UUID campaignId, UUID supplierId) {
         return campaignRepository.findById(campaignId)
@@ -261,34 +248,7 @@ public class CampaignService {
                 .orElseThrow(() -> new CampaignNotFoundException("Campaign not found with id: " + campaignId));
     }
 
-    /**
-     * Validates that a campaign is in DRAFT status.
-     */
-    public void validateCampaignIsDraft(CampaignEntity campaign, String errorMessage) {
-        if (campaign.getStatus() != CampaignStatus.DRAFT) {
-            throw new CampaignValidationException(errorMessage);
-        }
-    }
 
-    /**
-     * Validates that a campaign is in ACTIVE status.
-     */
-    public void validateCampaignIsActive(CampaignEntity campaign) {
-        if (campaign.getStatus() != CampaignStatus.ACTIVE) {
-            throw new CampaignValidationException("Campaign is not active. Current status: " + campaign.getStatus());
-        }
-    }
-
-    /**
-     * Validates that a campaign is in LOCKED status.
-     */
-    public void validateCampaignIsLocked(CampaignEntity campaign) {
-        if (campaign.getStatus() != CampaignStatus.LOCKED) {
-            throw new CampaignValidationException("Campaign must be locked. Current status: " + campaign.getStatus());
-        }
-    }
-
-    // ==================== Private Helper Methods ====================
 
     private void validateDraftStatus(CampaignEntity campaign, String errorMessage) {
         if (campaign.getStatus() != CampaignStatus.DRAFT) {
@@ -324,7 +284,7 @@ public class CampaignService {
 
     private CampaignListResponse.CampaignSummary toCampaignSummary(CampaignEntity campaign) {
         OrganizationEntity supplier = organizationService.findById(campaign.getSupplierId());
-        int totalPledged = discountBracketService.calculateTotalPledged(campaign.getId());
+        int totalPledged = pledgeService.calculateTotalCommitedPledges(campaign.getId());
         List<DiscountBracketEntity> brackets = discountBracketService.getAllBrackets(campaign.getId());
 
         BigDecimal originalPrice = brackets.stream()
@@ -377,5 +337,9 @@ public class CampaignService {
         return BigDecimal.valueOf(progressInRange)
                 .multiply(BigDecimal.valueOf(100))
                 .divide(BigDecimal.valueOf(rangeSize), 2, RoundingMode.HALF_UP);
+    }
+
+    public Optional<CampaignEntity> findById(UUID campaignId) {
+        return campaignRepository.findById(campaignId);
     }
 }

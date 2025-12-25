@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
-import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
+import sa.elm.mashrook.campaigns.service.CampaignService;
 import sa.elm.mashrook.brackets.domain.DiscountBracketEntity;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
@@ -30,7 +30,7 @@ public class PaymentIntentService {
 
     private final PaymentIntentRepository paymentIntentRepository;
     private final PledgeService pledgeService;
-    private final CampaignRepository campaignRepository;
+    private final CampaignService campaignService;
 
     private static final int MAX_RETRIES = 3;
 
@@ -62,7 +62,7 @@ public class PaymentIntentService {
 
     @Transactional
     public List<PaymentIntentEntity> generatePaymentIntents(UUID campaignId, DiscountBracketEntity finalBracket) {
-        CampaignEntity campaign = campaignRepository.findById(campaignId)
+        CampaignEntity campaign = campaignService.findById(campaignId)
                 .orElseThrow(() -> new CampaignNotFoundException(
                         String.format("Campaign with id %s not found", campaignId)));
 
@@ -141,9 +141,9 @@ public class PaymentIntentService {
 
     private PaymentIntentEntity createPaymentIntent(PledgeEntity pledge, DiscountBracketEntity finalBracket) {
         PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-        paymentIntent.setCampaignId(pledge.getCampaignId());
+        paymentIntent.setCampaign(pledge.getCampaign());
         paymentIntent.setPledgeId(pledge.getId());
-        paymentIntent.setBuyerOrgId(pledge.getBuyerOrgId());
+        paymentIntent.setBuyerOrg(pledge.getOrganization());
         paymentIntent.setAmount(calculatePaymentAmount(pledge, finalBracket));
         paymentIntent.setStatus(PaymentIntentStatus.PENDING);
         paymentIntent.setRetryCount(0);

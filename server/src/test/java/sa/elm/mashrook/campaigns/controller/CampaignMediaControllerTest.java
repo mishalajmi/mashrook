@@ -114,7 +114,7 @@ class CampaignMediaControllerTest {
             when(campaignMediaService.addMedia(eq(CAMPAIGN_ID), nullable(UUID.class), any(), eq(0)))
                     .thenReturn(response);
 
-            mockMvc.perform(multipart("/api/campaigns/{id}/media", CAMPAIGN_ID)
+            mockMvc.perform(multipart("/api/v1/campaigns/{id}/media", CAMPAIGN_ID)
                             .file(file)
                             .param("order", "0"))
                     .andExpect(status().isCreated())
@@ -137,7 +137,7 @@ class CampaignMediaControllerTest {
             when(campaignMediaService.addMedia(eq(CAMPAIGN_ID), nullable(UUID.class), any(), anyInt()))
                     .thenThrow(new InvalidMediaTypeException("Unsupported content type: application/pdf"));
 
-            mockMvc.perform(multipart("/api/campaigns/{id}/media", CAMPAIGN_ID)
+            mockMvc.perform(multipart("/api/v1/campaigns/{id}/media", CAMPAIGN_ID)
                             .file(file)
                             .param("order", "0"))
                     .andExpect(status().isBadRequest());
@@ -156,7 +156,7 @@ class CampaignMediaControllerTest {
             when(campaignMediaService.addMedia(eq(CAMPAIGN_ID), nullable(UUID.class), any(), anyInt()))
                     .thenThrow(new FileSizeExceededException("Image file size exceeds maximum allowed size of 50MB"));
 
-            mockMvc.perform(multipart("/api/campaigns/{id}/media", CAMPAIGN_ID)
+            mockMvc.perform(multipart("/api/v1/campaigns/{id}/media", CAMPAIGN_ID)
                             .file(file)
                             .param("order", "0"))
                     .andExpect(status().isBadRequest());
@@ -175,7 +175,7 @@ class CampaignMediaControllerTest {
             when(campaignMediaService.addMedia(eq(CAMPAIGN_ID), nullable(UUID.class), any(), anyInt()))
                     .thenThrow(new CampaignNotFoundException("Campaign not found"));
 
-            mockMvc.perform(multipart("/api/campaigns/{id}/media", CAMPAIGN_ID)
+            mockMvc.perform(multipart("/api/v1/campaigns/{id}/media", CAMPAIGN_ID)
                             .file(file)
                             .param("order", "0"))
                     .andExpect(status().isNotFound());
@@ -191,7 +191,7 @@ class CampaignMediaControllerTest {
         void shouldDeleteMediaSuccessfully() throws Exception {
             doNothing().when(campaignMediaService).deleteMedia(eq(CAMPAIGN_ID), eq(MEDIA_ID), nullable(UUID.class));
 
-            mockMvc.perform(delete("/api/campaigns/{id}/media/{mediaId}", CAMPAIGN_ID, MEDIA_ID)
+            mockMvc.perform(delete("/api/v1/campaigns/{id}/media/{mediaId}", CAMPAIGN_ID, MEDIA_ID)
                             .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
                     .andExpect(status().isNoContent());
 
@@ -204,7 +204,7 @@ class CampaignMediaControllerTest {
             doThrow(new CampaignMediaNotFoundException("Media not found"))
                     .when(campaignMediaService).deleteMedia(eq(CAMPAIGN_ID), eq(MEDIA_ID), nullable(UUID.class));
 
-            mockMvc.perform(delete("/api/campaigns/{id}/media/{mediaId}", CAMPAIGN_ID, MEDIA_ID)
+            mockMvc.perform(delete("/api/v1/campaigns/{id}/media/{mediaId}", CAMPAIGN_ID, MEDIA_ID)
                             .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
@@ -215,7 +215,7 @@ class CampaignMediaControllerTest {
             doThrow(new CampaignNotFoundException("Campaign not found"))
                     .when(campaignMediaService).deleteMedia(eq(CAMPAIGN_ID), eq(MEDIA_ID), nullable(UUID.class));
 
-            mockMvc.perform(delete("/api/campaigns/{id}/media/{mediaId}", CAMPAIGN_ID, MEDIA_ID)
+            mockMvc.perform(delete("/api/v1/campaigns/{id}/media/{mediaId}", CAMPAIGN_ID, MEDIA_ID)
                             .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
@@ -245,7 +245,7 @@ class CampaignMediaControllerTest {
             when(campaignMediaService.getMediaForCampaign(CAMPAIGN_ID))
                     .thenReturn(List.of(media1, media2));
 
-            mockMvc.perform(get("/api/campaigns/{id}/media", CAMPAIGN_ID)
+            mockMvc.perform(get("/api/v1/campaigns/{id}/media", CAMPAIGN_ID)
                             .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(2))
@@ -259,7 +259,7 @@ class CampaignMediaControllerTest {
             when(campaignMediaService.getMediaForCampaign(CAMPAIGN_ID))
                     .thenReturn(List.of());
 
-            mockMvc.perform(get("/api/campaigns/{id}/media", CAMPAIGN_ID)
+            mockMvc.perform(get("/api/v1/campaigns/{id}/media", CAMPAIGN_ID)
                             .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(0));

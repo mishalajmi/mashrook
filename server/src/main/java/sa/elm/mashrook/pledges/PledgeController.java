@@ -17,6 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import sa.elm.mashrook.campaigns.domain.CampaignEntity;
+import sa.elm.mashrook.campaigns.service.CampaignService;
+import sa.elm.mashrook.exceptions.CampaignNotFoundException;
+import sa.elm.mashrook.organizations.OrganizationService;
+import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
 import sa.elm.mashrook.pledges.dto.PledgeCreateRequest;
 import sa.elm.mashrook.pledges.dto.PledgeListResponse;
@@ -27,43 +32,47 @@ import sa.elm.mashrook.security.domain.JwtPrincipal;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1/pledges")
 @RequiredArgsConstructor
 public class PledgeController {
 
     private final PledgeService pledgeService;
+    private final OrganizationService organizationService;
+    private final CampaignService campaignService;
 
-    @PostMapping("/campaigns/{id}/pledges")
+    @PostMapping("/campaigns/{id}")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('pledge:create')")
     public PledgeResponse createPledge(
             @PathVariable UUID id,
             @Valid @RequestBody PledgeCreateRequest request,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        return pledgeService.createPledge(id, principal.getOrganizationId(), request);
+        CampaignEntity campaign = campaignService.findById(id)
+                .orElseThrow(() ->
+                        new CampaignNotFoundException(String.format("Could not find campaign with id: %s", id)));
+        OrganizationEntity organization = organizationService.findById(principal.getOrganizationId());
+        return pledgeService.createPledge(campaign, organization, request);
     }
 
-    @PutMapping("/campaigns/{id}/pledges/{pledgeId}")
+    @PutMapping("/{pledgeId}")
     @PreAuthorize("hasAuthority('pledge:update')")
     public PledgeResponse updatePledge(
-            @PathVariable UUID id,
             @PathVariable UUID pledgeId,
             @Valid @RequestBody PledgeUpdateRequest request,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        return pledgeService.updatePledge(id, pledgeId, principal.getOrganizationId(), request);
+        return pledgeService.updatePledge(pledgeId, principal.getOrganizationId(), request);
     }
 
-    @DeleteMapping("/campaigns/{id}/pledges/{pledgeId}")
+    @DeleteMapping("/{pledgeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('pledge:delete')")
     public void cancelPledge(
-            @PathVariable UUID id,
             @PathVariable UUID pledgeId,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        pledgeService.cancelPledge(id, pledgeId, principal.getOrganizationId());
+        pledgeService.cancelPledge(pledgeId, principal.getOrganizationId());
     }
 
-    @GetMapping("/pledges")
+    @GetMapping("/")
     @PreAuthorize("hasAuthority('pledge:read')")
     public PledgeListResponse getBuyerPledges(
             @RequestParam(required = false) PledgeStatus status,
@@ -74,7 +83,7 @@ public class PledgeController {
         return pledgeService.getBuyerPledges(principal.getOrganizationId(), status, pageable);
     }
 
-    @GetMapping("/campaigns/{id}/pledges")
+    @GetMapping("/campaigns/{id}")
     @PreAuthorize("hasAuthority('pledge:read')")
     public PledgeListResponse getCampaignPledges(
             @PathVariable UUID id,

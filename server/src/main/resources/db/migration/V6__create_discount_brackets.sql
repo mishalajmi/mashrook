@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS discount_brackets (
     max_quantity    INTEGER,
     unit_price      NUMERIC(19, 4)  NOT NULL,
     bracket_order   INTEGER         NOT NULL,
+    status          VARCHAR(255)    NOT NULL DEFAULT 'ACTIVE',
     created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP,
 

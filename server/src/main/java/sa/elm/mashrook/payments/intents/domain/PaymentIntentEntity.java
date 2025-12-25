@@ -7,6 +7,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -17,6 +19,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import sa.elm.mashrook.campaigns.domain.CampaignEntity;
+import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,14 +36,16 @@ public class PaymentIntentEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, name = "campaign_id")
-    private UUID campaignId;
+    @ManyToOne
+    @JoinColumn(nullable = false, name = "campaign_id")
+    private CampaignEntity campaign;
 
     @Column(nullable = false, name = "pledge_id")
     private UUID pledgeId;
 
-    @Column(nullable = false, name = "buyer_org_id")
-    private UUID buyerOrgId;
+    @ManyToOne
+    @JoinColumn(nullable = false, name = "buyer_org_id")
+    private OrganizationEntity buyerOrg;
 
     @DecimalMin(value = "0", inclusive = false)
     @Column(nullable = false, precision = 19, scale = 4)
