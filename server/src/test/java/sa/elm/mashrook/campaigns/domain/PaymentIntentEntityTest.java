@@ -8,7 +8,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
+import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
+import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -36,7 +38,7 @@ class PaymentIntentEntityTest {
         @DisplayName("should store id as UUID")
         void shouldStoreIdAsUuid() {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            UUID id = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
 
             paymentIntent.setId(id);
 
@@ -47,7 +49,7 @@ class PaymentIntentEntityTest {
         @DisplayName("should store campaignId as UUID reference to campaigns")
         void shouldStoreCampaignIdAsUuid() {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            UUID campaignId = UuidGenerator.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
             paymentIntent.setCampaignId(campaignId);
 
@@ -58,7 +60,7 @@ class PaymentIntentEntityTest {
         @DisplayName("should store pledgeId as UUID reference to pledges")
         void shouldStorePledgeIdAsUuid() {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            UUID pledgeId = UuidGenerator.generateUuidV7();
+            UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
 
             paymentIntent.setPledgeId(pledgeId);
 
@@ -69,7 +71,7 @@ class PaymentIntentEntityTest {
         @DisplayName("should store buyerOrgId as UUID reference to organizations")
         void shouldStoreBuyerOrgIdAsUuid() {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            UUID buyerOrgId = UuidGenerator.generateUuidV7();
+            UUID buyerOrgId = UuidGeneratorUtil.generateUuidV7();
 
             paymentIntent.setBuyerOrgId(buyerOrgId);
 
@@ -294,10 +296,10 @@ class PaymentIntentEntityTest {
         @Test
         @DisplayName("should create payment intent with all fields populated")
         void shouldCreatePaymentIntentWithAllFieldsPopulated() {
-            UUID id = UuidGenerator.generateUuidV7();
-            UUID campaignId = UuidGenerator.generateUuidV7();
-            UUID pledgeId = UuidGenerator.generateUuidV7();
-            UUID buyerOrgId = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+            UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
+            UUID buyerOrgId = UuidGeneratorUtil.generateUuidV7();
             BigDecimal amount = new BigDecimal("9999.9999");
             PaymentIntentStatus status = PaymentIntentStatus.SUCCEEDED;
             Integer retryCount = 1;
@@ -412,9 +414,9 @@ class PaymentIntentEntityTest {
 
     private PaymentIntentEntity createValidPaymentIntent() {
         PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-        paymentIntent.setCampaignId(UuidGenerator.generateUuidV7());
-        paymentIntent.setPledgeId(UuidGenerator.generateUuidV7());
-        paymentIntent.setBuyerOrgId(UuidGenerator.generateUuidV7());
+        paymentIntent.setCampaignId(UuidGeneratorUtil.generateUuidV7());
+        paymentIntent.setPledgeId(UuidGeneratorUtil.generateUuidV7());
+        paymentIntent.setBuyerOrgId(UuidGeneratorUtil.generateUuidV7());
         paymentIntent.setAmount(new BigDecimal("100.00"));
         paymentIntent.setRetryCount(0);
         return paymentIntent;

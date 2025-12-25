@@ -11,7 +11,29 @@ import { apiClient } from "@/lib/api-client";
 import type { CampaignStatus, MediaType } from "@/types/campaign";
 
 /**
- * Request payload for creating/updating a discount bracket
+ * Request payload for creating a discount bracket (includes campaignId for new API)
+ */
+export interface BracketCreateRequest {
+	campaignId: string;
+	minQuantity: number;
+	maxQuantity: number | null;
+	unitPrice: string;
+	bracketOrder: number;
+}
+
+/**
+ * Request payload for updating a discount bracket
+ */
+export interface BracketUpdateRequest {
+	minQuantity: number;
+	maxQuantity: number | null;
+	unitPrice: string;
+	bracketOrder: number;
+}
+
+/**
+ * Legacy interface for backward compatibility
+ * @deprecated Use BracketCreateRequest or BracketUpdateRequest instead
  */
 export interface BracketRequest {
 	minQuantity: number;
@@ -174,7 +196,7 @@ export const campaignService = {
 	 * @returns List of active campaigns with pledge summaries
 	 */
 	async getActiveCampaigns(): Promise<ActiveCampaignsResponse> {
-		return apiClient.get<ActiveCampaignsResponse>("/api/campaigns/active");
+		return apiClient.get<ActiveCampaignsResponse>("/api/v1/public/campaigns");
 	},
 
 	/**
@@ -185,7 +207,7 @@ export const campaignService = {
 	 * @throws Error if campaign not found
 	 */
 	async getPublicCampaign(id: string): Promise<PublicCampaignResponse> {
-		return apiClient.get<PublicCampaignResponse>(`/api/campaigns/${id}/public`);
+		return apiClient.get<PublicCampaignResponse>(`/api/v1/public/campaigns/${id}`);
 	},
 
 	/**
@@ -196,7 +218,7 @@ export const campaignService = {
 	 * @throws Error if campaign not found
 	 */
 	async getBracketProgress(id: string): Promise<BracketProgressResponse> {
-		return apiClient.get<BracketProgressResponse>(`/api/campaigns/${id}/bracket-progress`);
+		return apiClient.get<BracketProgressResponse>(`/api/v1/public/campaigns/${id}/bracket-progress`);
 	},
 
 	/**
@@ -274,16 +296,21 @@ export const campaignService = {
 	 * @throws Error if campaign not found, not authorized, or validation fails
 	 */
 	async addBracket(campaignId: string, bracket: BracketRequest): Promise<BracketResponse> {
-		return apiClient.post<BracketResponse>(
-			`/api/campaigns/${campaignId}/brackets`,
-			bracket
-		);
+		// New API expects campaignId in the request body
+		const requestBody: BracketCreateRequest = {
+			campaignId,
+			minQuantity: bracket.minQuantity,
+			maxQuantity: bracket.maxQuantity,
+			unitPrice: bracket.unitPrice,
+			bracketOrder: bracket.bracketOrder,
+		};
+		return apiClient.post<BracketResponse>("/api/v1/brackets", requestBody);
 	},
 
 	/**
 	 * Update a discount bracket
 	 *
-	 * @param campaignId - Campaign ID
+	 * @param campaignId - Campaign ID (kept for backward compatibility, not used in new API)
 	 * @param bracketId - Bracket ID
 	 * @param bracket - Updated bracket data
 	 * @returns Updated bracket response
@@ -294,21 +321,26 @@ export const campaignService = {
 		bracketId: string,
 		bracket: BracketRequest
 	): Promise<BracketResponse> {
-		return apiClient.put<BracketResponse>(
-			`/api/campaigns/${campaignId}/brackets/${bracketId}`,
-			bracket
-		);
+		// New API uses bracketId in the path only, campaignId is not needed
+		const requestBody: BracketUpdateRequest = {
+			minQuantity: bracket.minQuantity,
+			maxQuantity: bracket.maxQuantity,
+			unitPrice: bracket.unitPrice,
+			bracketOrder: bracket.bracketOrder,
+		};
+		return apiClient.put<BracketResponse>(`/api/v1/brackets/${bracketId}`, requestBody);
 	},
 
 	/**
 	 * Delete a discount bracket
 	 *
-	 * @param campaignId - Campaign ID
+	 * @param campaignId - Campaign ID (kept for backward compatibility, not used in new API)
 	 * @param bracketId - Bracket ID
 	 * @throws Error if bracket not found or not authorized
 	 */
 	async deleteBracket(campaignId: string, bracketId: string): Promise<void> {
-		return apiClient.delete(`/api/campaigns/${campaignId}/brackets/${bracketId}`);
+		// New API uses bracketId in the path only
+		return apiClient.delete(`/api/v1/brackets/${bracketId}`);
 	},
 
 	/**

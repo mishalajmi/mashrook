@@ -26,7 +26,7 @@ import sa.elm.mashrook.security.services.JwtService;
 import sa.elm.mashrook.users.UserRepository;
 import sa.elm.mashrook.users.domain.UserEntity;
 import sa.elm.mashrook.users.domain.UserStatus;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -227,7 +227,7 @@ public abstract class AbstractIntegrationTest {
         OrganizationEntity testOrganization = new OrganizationEntity();
         testOrganization.setNameEn("Test Organization");
         testOrganization.setNameAr("منظمة اختبار");
-        testOrganization.setSlug("test-org-" + UuidGenerator.generateUuidV7String());
+        testOrganization.setSlug("test-org-" + UuidGeneratorUtil.generateUuidV7String());
         testOrganization.setIndustry("Technology");
         testOrganization.setType(OrganizationType.BUYER);
         testOrganization.setStatus(OrganizationStatus.ACTIVE);

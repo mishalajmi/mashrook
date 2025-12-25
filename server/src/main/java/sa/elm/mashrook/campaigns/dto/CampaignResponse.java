@@ -1,6 +1,7 @@
 package sa.elm.mashrook.campaigns.dto;
 
 import lombok.Builder;
+import sa.elm.mashrook.brackets.dtos.DiscountBracketResponse;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
 

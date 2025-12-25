@@ -5,7 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationType;
 import sa.elm.mashrook.security.domain.Permission;
@@ -39,12 +39,12 @@ class MashrookUserDetailsTest {
     @BeforeEach
     void setUp() {
         OrganizationEntity organization = new OrganizationEntity();
-        organization.setId(UuidGenerator.generateUuidV7());
+        organization.setId(UuidGeneratorUtil.generateUuidV7());
         organization.setNameEn("Test Org");
         organization.setType(OrganizationType.BUYER);
 
         user = new UserEntity();
-        user.setId(UuidGenerator.generateUuidV7());
+        user.setId(UuidGeneratorUtil.generateUuidV7());
         user.setEmail("test@example.com");
         user.setPassword("hashedPassword");
         user.setFirstName("Test");

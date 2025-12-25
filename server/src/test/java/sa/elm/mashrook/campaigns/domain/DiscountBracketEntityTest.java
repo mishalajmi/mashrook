@@ -3,7 +3,8 @@ package sa.elm.mashrook.campaigns.domain;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.brackets.domain.DiscountBracketEntity;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,7 +23,7 @@ class DiscountBracketEntityTest {
         @DisplayName("should store id as UUID")
         void shouldStoreIdAsUuid() {
             DiscountBracketEntity bracket = new DiscountBracketEntity();
-            UUID id = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
 
             bracket.setId(id);
 
@@ -33,7 +34,7 @@ class DiscountBracketEntityTest {
         @DisplayName("should store campaignId as UUID reference to campaigns")
         void shouldStoreCampaignIdAsUuid() {
             DiscountBracketEntity bracket = new DiscountBracketEntity();
-            UUID campaignId = UuidGenerator.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
             bracket.setCampaignId(campaignId);
 
@@ -330,8 +331,8 @@ class DiscountBracketEntityTest {
         @Test
         @DisplayName("should create discount bracket with all fields populated")
         void shouldCreateDiscountBracketWithAllFieldsPopulated() {
-            UUID id = UuidGenerator.generateUuidV7();
-            UUID campaignId = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
             Integer minQuantity = 10;
             Integer maxQuantity = 50;
             BigDecimal unitPrice = new BigDecimal("25.99");
@@ -363,7 +364,7 @@ class DiscountBracketEntityTest {
         @DisplayName("should create unlimited bracket with null maxQuantity")
         void shouldCreateUnlimitedBracketWithNullMaxQuantity() {
             DiscountBracketEntity bracket = new DiscountBracketEntity();
-            bracket.setCampaignId(UuidGenerator.generateUuidV7());
+            bracket.setCampaignId(UuidGeneratorUtil.generateUuidV7());
             bracket.setMinQuantity(100);
             bracket.setMaxQuantity(null);
             bracket.setUnitPrice(new BigDecimal("19.99"));

@@ -161,7 +161,7 @@ describe("Campaign Service", () => {
 		});
 	});
 
-	describe("campaignService.addBracket(campaignId, bracket) - POST /campaigns/{id}/brackets", () => {
+	describe("campaignService.addBracket(campaignId, bracket) - POST /api/v1/brackets", () => {
 		const mockBracketRequest: BracketRequest = {
 			minQuantity: 10,
 			maxQuantity: 49,
@@ -180,14 +180,20 @@ describe("Campaign Service", () => {
 			updatedAt: "2024-01-01T00:00:00Z",
 		};
 
-		it("should make POST request to /campaigns/{id}/brackets with bracket data", async () => {
+		it("should make POST request to /api/v1/brackets with campaignId in request body", async () => {
 			(apiClient.post as Mock).mockResolvedValueOnce(mockBracketResponse);
 
 			await campaignService.addBracket("campaign-123", mockBracketRequest);
 
 			expect(apiClient.post).toHaveBeenCalledWith(
-				"/api/campaigns/campaign-123/brackets",
-				mockBracketRequest
+				"/api/v1/brackets",
+				{
+					campaignId: "campaign-123",
+					minQuantity: 10,
+					maxQuantity: 49,
+					unitPrice: "25.00",
+					bracketOrder: 1,
+				}
 			);
 		});
 
@@ -240,7 +246,7 @@ describe("Campaign Service", () => {
 		});
 	});
 
-	describe("campaignService.updateBracket(campaignId, bracketId, bracket) - PUT /campaigns/{id}/brackets/{bracketId}", () => {
+	describe("campaignService.updateBracket(campaignId, bracketId, bracket) - PUT /api/v1/brackets/{bracketId}", () => {
 		const mockBracketRequest: BracketRequest = {
 			minQuantity: 10,
 			maxQuantity: 99,
@@ -259,7 +265,7 @@ describe("Campaign Service", () => {
 			updatedAt: "2024-01-02T00:00:00Z",
 		};
 
-		it("should make PUT request to /campaigns/{id}/brackets/{bracketId} with bracket data", async () => {
+		it("should make PUT request to /api/v1/brackets/{bracketId} with bracket data", async () => {
 			(apiClient.put as Mock).mockResolvedValueOnce(mockBracketResponse);
 
 			await campaignService.updateBracket(
@@ -269,7 +275,7 @@ describe("Campaign Service", () => {
 			);
 
 			expect(apiClient.put).toHaveBeenCalledWith(
-				"/api/campaigns/campaign-123/brackets/bracket-123",
+				"/api/v1/brackets/bracket-123",
 				mockBracketRequest
 			);
 		});
@@ -315,14 +321,14 @@ describe("Campaign Service", () => {
 		});
 	});
 
-	describe("campaignService.deleteBracket(campaignId, bracketId) - DELETE /campaigns/{id}/brackets/{bracketId}", () => {
-		it("should make DELETE request to /campaigns/{id}/brackets/{bracketId}", async () => {
+	describe("campaignService.deleteBracket(campaignId, bracketId) - DELETE /api/v1/brackets/{bracketId}", () => {
+		it("should make DELETE request to /api/v1/brackets/{bracketId}", async () => {
 			(apiClient.delete as Mock).mockResolvedValueOnce(undefined);
 
 			await campaignService.deleteBracket("campaign-123", "bracket-123");
 
 			expect(apiClient.delete).toHaveBeenCalledWith(
-				"/api/campaigns/campaign-123/brackets/bracket-123"
+				"/api/v1/brackets/bracket-123"
 			);
 		});
 

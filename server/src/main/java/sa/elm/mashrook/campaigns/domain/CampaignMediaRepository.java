@@ -1,6 +1,8 @@
 package sa.elm.mashrook.campaigns.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import sa.elm.mashrook.common.storage.domain.MediaStatus;
+import sa.elm.mashrook.common.storage.domain.MediaType;
 
 import java.util.List;
 import java.util.Optional;

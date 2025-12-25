@@ -3,7 +3,9 @@ package sa.elm.mashrook.campaigns.domain;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
+import sa.elm.mashrook.fulfillments.domain.CampaignFulfillmentEntity;
+import sa.elm.mashrook.fulfillments.domain.DeliveryStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,7 +24,7 @@ class CampaignFulfillmentEntityTest {
         @DisplayName("should store id as UUID")
         void shouldStoreIdAsUuid() {
             CampaignFulfillmentEntity fulfillment = new CampaignFulfillmentEntity();
-            UUID id = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
 
             fulfillment.setId(id);
 
@@ -33,7 +35,7 @@ class CampaignFulfillmentEntityTest {
         @DisplayName("should store campaignId as UUID reference to campaigns")
         void shouldStoreCampaignIdAsUuid() {
             CampaignFulfillmentEntity fulfillment = new CampaignFulfillmentEntity();
-            UUID campaignId = UuidGenerator.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
             fulfillment.setCampaignId(campaignId);
 
@@ -44,7 +46,7 @@ class CampaignFulfillmentEntityTest {
         @DisplayName("should store buyerOrgId as UUID reference to organizations")
         void shouldStoreBuyerOrgIdAsUuid() {
             CampaignFulfillmentEntity fulfillment = new CampaignFulfillmentEntity();
-            UUID buyerOrgId = UuidGenerator.generateUuidV7();
+            UUID buyerOrgId = UuidGeneratorUtil.generateUuidV7();
 
             fulfillment.setBuyerOrgId(buyerOrgId);
 
@@ -55,7 +57,7 @@ class CampaignFulfillmentEntityTest {
         @DisplayName("should store pledgeId as UUID reference to pledges")
         void shouldStorePledgeIdAsUuid() {
             CampaignFulfillmentEntity fulfillment = new CampaignFulfillmentEntity();
-            UUID pledgeId = UuidGenerator.generateUuidV7();
+            UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
 
             fulfillment.setPledgeId(pledgeId);
 
@@ -212,10 +214,10 @@ class CampaignFulfillmentEntityTest {
         @Test
         @DisplayName("should create fulfillment with all fields populated")
         void shouldCreateFulfillmentWithAllFieldsPopulated() {
-            UUID id = UuidGenerator.generateUuidV7();
-            UUID campaignId = UuidGenerator.generateUuidV7();
-            UUID buyerOrgId = UuidGenerator.generateUuidV7();
-            UUID pledgeId = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+            UUID buyerOrgId = UuidGeneratorUtil.generateUuidV7();
+            UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
             DeliveryStatus deliveryStatus = DeliveryStatus.DELIVERED;
             Integer deliveredQuantity = 50;
             LocalDate deliveryDate = LocalDate.of(2025, 6, 20);

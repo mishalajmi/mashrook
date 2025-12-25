@@ -3,7 +3,9 @@ package sa.elm.mashrook.campaigns.domain;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
+import sa.elm.mashrook.pledges.domain.PledgeEntity;
+import sa.elm.mashrook.pledges.domain.PledgeStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,7 +23,7 @@ class PledgeEntityTest {
         @DisplayName("should store id as UUID")
         void shouldStoreIdAsUuid() {
             PledgeEntity pledge = new PledgeEntity();
-            UUID id = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
 
             pledge.setId(id);
 
@@ -32,7 +34,7 @@ class PledgeEntityTest {
         @DisplayName("should store campaignId as UUID reference to campaigns")
         void shouldStoreCampaignIdAsUuid() {
             PledgeEntity pledge = new PledgeEntity();
-            UUID campaignId = UuidGenerator.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
             pledge.setCampaignId(campaignId);
 
@@ -43,7 +45,7 @@ class PledgeEntityTest {
         @DisplayName("should store buyerOrgId as UUID reference to organizations")
         void shouldStoreBuyerOrgIdAsUuid() {
             PledgeEntity pledge = new PledgeEntity();
-            UUID buyerOrgId = UuidGenerator.generateUuidV7();
+            UUID buyerOrgId = UuidGeneratorUtil.generateUuidV7();
 
             pledge.setBuyerOrgId(buyerOrgId);
 
@@ -169,9 +171,9 @@ class PledgeEntityTest {
         @Test
         @DisplayName("should create pledge with all fields populated")
         void shouldCreatePledgeWithAllFieldsPopulated() {
-            UUID id = UuidGenerator.generateUuidV7();
-            UUID campaignId = UuidGenerator.generateUuidV7();
-            UUID buyerOrgId = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+            UUID buyerOrgId = UuidGeneratorUtil.generateUuidV7();
             Integer quantity = 50;
             PledgeStatus status = PledgeStatus.COMMITTED;
             LocalDateTime committedAt = LocalDateTime.of(2025, 3, 15, 10, 0, 0);

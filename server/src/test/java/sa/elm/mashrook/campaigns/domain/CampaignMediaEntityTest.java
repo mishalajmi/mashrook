@@ -3,7 +3,9 @@ package sa.elm.mashrook.campaigns.domain;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.storage.domain.MediaStatus;
+import sa.elm.mashrook.common.storage.domain.MediaType;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,7 +23,7 @@ class CampaignMediaEntityTest {
         @DisplayName("should store id as UUID")
         void shouldStoreIdAsUuid() {
             CampaignMediaEntity media = new CampaignMediaEntity();
-            UUID id = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
 
             media.setId(id);
 
@@ -32,7 +34,7 @@ class CampaignMediaEntityTest {
         @DisplayName("should store campaignId as UUID reference to campaigns")
         void shouldStoreCampaignIdAsUuid() {
             CampaignMediaEntity media = new CampaignMediaEntity();
-            UUID campaignId = UuidGenerator.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
             media.setCampaignId(campaignId);
 
@@ -96,7 +98,7 @@ class CampaignMediaEntityTest {
         @DisplayName("should store createdBy as nullable UUID reference to users")
         void shouldStoreCreatedByAsNullableUuid() {
             CampaignMediaEntity media = new CampaignMediaEntity();
-            UUID createdBy = UuidGenerator.generateUuidV7();
+            UUID createdBy = UuidGeneratorUtil.generateUuidV7();
 
             media.setCreatedBy(createdBy);
 
@@ -190,12 +192,12 @@ class CampaignMediaEntityTest {
         @Test
         @DisplayName("should create campaign media with all fields populated")
         void shouldCreateCampaignMediaWithAllFieldsPopulated() {
-            UUID id = UuidGenerator.generateUuidV7();
-            UUID campaignId = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
             String mediaUrl = "https://cdn.example.com/campaigns/product-hero.jpg";
             MediaType mediaType = MediaType.IMAGE;
             MediaStatus status = MediaStatus.ENABLED;
-            UUID createdBy = UuidGenerator.generateUuidV7();
+            UUID createdBy = UuidGeneratorUtil.generateUuidV7();
             LocalDateTime createdAt = LocalDateTime.now();
 
             CampaignMediaEntity media = new CampaignMediaEntity();
@@ -219,8 +221,8 @@ class CampaignMediaEntityTest {
         @Test
         @DisplayName("should create video campaign media")
         void shouldCreateVideoCampaignMedia() {
-            UUID id = UuidGenerator.generateUuidV7();
-            UUID campaignId = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
             String mediaUrl = "https://cdn.example.com/campaigns/product-demo.mp4";
             MediaType mediaType = MediaType.VIDEO;
 

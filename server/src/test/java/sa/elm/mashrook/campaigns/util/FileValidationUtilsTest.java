@@ -4,7 +4,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.multipart.MultipartFile;
-import sa.elm.mashrook.campaigns.domain.MediaType;
+import sa.elm.mashrook.common.storage.domain.MediaType;
+import sa.elm.mashrook.common.util.FileValidationUtils;
 import sa.elm.mashrook.exceptions.FileSizeExceededException;
 import sa.elm.mashrook.exceptions.InvalidMediaTypeException;
 

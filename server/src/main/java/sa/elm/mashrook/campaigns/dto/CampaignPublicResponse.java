@@ -1,6 +1,7 @@
 package sa.elm.mashrook.campaigns.dto;
 
 import lombok.Builder;
+import sa.elm.mashrook.brackets.dtos.DiscountBracketDto;
 
 import java.time.LocalDate;
 import java.util.List;

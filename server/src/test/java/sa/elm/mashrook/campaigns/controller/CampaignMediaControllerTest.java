@@ -17,10 +17,11 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import sa.elm.mashrook.campaigns.domain.MediaType;
+import sa.elm.mashrook.common.storage.domain.MediaType;
 import sa.elm.mashrook.campaigns.dto.CampaignMediaResponse;
 import sa.elm.mashrook.campaigns.service.CampaignMediaService;
 import sa.elm.mashrook.campaigns.service.CampaignService;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.exceptions.CampaignMediaNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.FileSizeExceededException;
@@ -229,7 +230,7 @@ class CampaignMediaControllerTest {
         void shouldReturnMediaList() throws Exception {
             CampaignMediaResponse media1 = createMediaResponse();
             CampaignMediaResponse media2 = CampaignMediaResponse.builder()
-                    .id(UUID.randomUUID())
+                    .id(UuidGeneratorUtil.generateUuidV7())
                     .campaignId(CAMPAIGN_ID)
                     .storageKey("org/2024-12/campaign/uuid_test2.png")
                     .originalFilename("test2.png")

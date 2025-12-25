@@ -2,7 +2,7 @@ package sa.elm.mashrook.campaigns.dto;
 
 import lombok.Builder;
 import sa.elm.mashrook.campaigns.domain.CampaignMediaEntity;
-import sa.elm.mashrook.campaigns.domain.MediaType;
+import sa.elm.mashrook.common.storage.domain.MediaType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

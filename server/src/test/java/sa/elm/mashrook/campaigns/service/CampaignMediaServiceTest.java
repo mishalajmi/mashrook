@@ -15,8 +15,9 @@ import sa.elm.mashrook.campaigns.domain.CampaignMediaEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignMediaRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
-import sa.elm.mashrook.campaigns.domain.MediaType;
+import sa.elm.mashrook.common.storage.domain.MediaType;
 import sa.elm.mashrook.campaigns.dto.CampaignMediaResponse;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.exceptions.CampaignMediaNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.FileSizeExceededException;
@@ -182,7 +183,7 @@ class CampaignMediaServiceTest {
         @Test
         @DisplayName("should throw exception when supplier is not campaign owner")
         void shouldThrowWhenNotCampaignOwner() {
-            UUID otherSupplierId = UUID.randomUUID();
+            UUID otherSupplierId = UuidGeneratorUtil.generateUuidV7();
             CampaignEntity campaign = createCampaign(CampaignStatus.DRAFT);
             MultipartFile file = mock(MultipartFile.class);
 
@@ -294,7 +295,7 @@ class CampaignMediaServiceTest {
         @Test
         @DisplayName("should throw exception when not campaign owner")
         void shouldThrowWhenNotOwner() {
-            UUID otherSupplierId = UUID.randomUUID();
+            UUID otherSupplierId = UuidGeneratorUtil.generateUuidV7();
             CampaignEntity campaign = createCampaign(CampaignStatus.DRAFT);
 
             when(campaignRepository.findById(CAMPAIGN_ID)).thenReturn(Optional.of(campaign));
@@ -316,7 +317,7 @@ class CampaignMediaServiceTest {
         void shouldReturnMediaWithPresignedUrls() {
             CampaignMediaEntity media1 = createMediaEntity();
             CampaignMediaEntity media2 = createMediaEntity();
-            media2.setId(UUID.randomUUID());
+            media2.setId(UuidGeneratorUtil.generateUuidV7());
             media2.setMediaOrder(1);
             media2.setStorageKey("org/2024-12/campaign/uuid_test2.jpg");
 

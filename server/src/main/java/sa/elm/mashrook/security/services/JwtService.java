@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.configurations.AuthenticationConfigurationProperties;
 import sa.elm.mashrook.security.details.MashrookUserDetails;
 
@@ -54,7 +54,7 @@ public class JwtService {
     private String buildToken(String subject, Map<String, Object> claims, Long expiration) {
         Key signingKey = getSigningKey();
         return Jwts.builder()
-                .id(UuidGenerator.generateUuidV7String())
+                .id(UuidGeneratorUtil.generateUuidV7String())
                 .subject(subject)
                 .claims(claims)
                 .issuer(properties.jwt().issuer())

@@ -13,21 +13,28 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import sa.elm.mashrook.brackets.dtos.BracketProgressResponse;
+import sa.elm.mashrook.brackets.dtos.DiscountBracketDto;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
 import sa.elm.mashrook.campaigns.dto.CampaignCreateRequest;
+import sa.elm.mashrook.campaigns.dto.CampaignListResponse;
+import sa.elm.mashrook.campaigns.dto.CampaignPublicResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignUpdateRequest;
-import sa.elm.mashrook.campaigns.dto.DiscountBracketRequest;
-import sa.elm.mashrook.campaigns.dto.DiscountBracketResponse;
 import sa.elm.mashrook.campaigns.service.CampaignMediaService;
 import sa.elm.mashrook.campaigns.service.CampaignService;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignValidationException;
-import sa.elm.mashrook.exceptions.DiscountBracketNotFoundException;
 import sa.elm.mashrook.exceptions.GlobalExceptionHandler;
 
 import java.math.BigDecimal;
@@ -36,9 +43,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -68,7 +77,6 @@ class CampaignControllerTest {
 
     private static final UUID CAMPAIGN_ID = UUID.fromString("01234567-89ab-cdef-0123-456789abcdef");
     private static final UUID SUPPLIER_ID = UUID.fromString("fedcba98-7654-3210-fedc-ba9876543210");
-    private static final UUID BRACKET_ID = UUID.fromString("11111111-2222-3333-4444-555555555555");
 
     @BeforeEach
     void setUp() {
@@ -83,6 +91,7 @@ class CampaignControllerTest {
         CampaignController controller = new CampaignController(campaignService, campaignMediaService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
+                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .setMessageConverters(converter)
                 .build();
     }
@@ -100,19 +109,6 @@ class CampaignControllerTest {
                 .targetQty(100)
                 .status(status)
                 .brackets(List.of())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-    }
-
-    private DiscountBracketResponse createBracketResponse() {
-        return DiscountBracketResponse.builder()
-                .id(BRACKET_ID)
-                .campaignId(CAMPAIGN_ID)
-                .minQuantity(10)
-                .maxQuantity(50)
-                .unitPrice(new BigDecimal("99.99"))
-                .bracketOrder(1)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -385,160 +381,268 @@ class CampaignControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /api/campaigns/{id}/brackets - Add Discount Bracket")
-    class AddBracketTests {
+    @DisplayName("GET /api/v1/public/campaigns")
+    class ListActiveCampaigns {
 
         @Test
-        @DisplayName("should add discount bracket successfully")
-        void shouldAddDiscountBracketSuccessfully() throws Exception {
-            DiscountBracketRequest request = DiscountBracketRequest.builder()
-                    .minQuantity(10)
-                    .maxQuantity(50)
-                    .unitPrice(new BigDecimal("99.99"))
-                    .bracketOrder(1)
-                    .build();
+        @DisplayName("should return paginated list of active campaigns")
+        void shouldReturnPaginatedListOfActiveCampaigns() throws Exception {
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+            UUID supplierId = UuidGeneratorUtil.generateUuidV7();
 
-            DiscountBracketResponse response = createBracketResponse();
+            CampaignListResponse.CampaignSummary summary = new CampaignListResponse.CampaignSummary(
+                    campaignId,
+                    "Test Campaign",
+                    "Test Description",
+                    supplierId,
+                    "Test Supplier",
+                    LocalDate.now(),
+                    LocalDate.now().plusDays(30),
+                    100,
+                    50,
+                    new BigDecimal("100.00"),
+                    new BigDecimal("90.00")
+            );
 
-            when(campaignService.addBracket(eq(CAMPAIGN_ID), any(DiscountBracketRequest.class), nullable(UUID.class)))
+            Page<CampaignListResponse.CampaignSummary> page = new PageImpl<>(
+                    List.of(summary),
+                    PageRequest.of(0, 20),
+                    1
+            );
+
+            CampaignListResponse response = new CampaignListResponse(page);
+
+            when(campaignService.findActiveCampaigns(eq(null), eq(null), any(Pageable.class)))
                     .thenReturn(response);
 
-            mockMvc.perform(post("/api/campaigns/{id}/brackets", CAMPAIGN_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.id").value(BRACKET_ID.toString()))
-                    .andExpect(jsonPath("$.min_quantity").value(10))
-                    .andExpect(jsonPath("$.unit_price").value(99.99));
-        }
-
-        @Test
-        @DisplayName("should return 400 when bracket data is invalid")
-        void shouldReturn400WhenBracketDataIsInvalid() throws Exception {
-            DiscountBracketRequest request = DiscountBracketRequest.builder()
-                    .minQuantity(-1)
-                    .unitPrice(new BigDecimal("-10"))
-                    .bracketOrder(0)
-                    .build();
-
-            mockMvc.perform(post("/api/campaigns/{id}/brackets", CAMPAIGN_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("should return 400 when adding bracket to non-draft campaign")
-        void shouldReturn400WhenAddingBracketToNonDraftCampaign() throws Exception {
-            DiscountBracketRequest request = DiscountBracketRequest.builder()
-                    .minQuantity(10)
-                    .maxQuantity(50)
-                    .unitPrice(new BigDecimal("99.99"))
-                    .bracketOrder(1)
-                    .build();
-
-            when(campaignService.addBracket(eq(CAMPAIGN_ID), any(DiscountBracketRequest.class), nullable(UUID.class)))
-                    .thenThrow(new CampaignValidationException("Cannot add brackets to non-DRAFT campaigns"));
-
-            mockMvc.perform(post("/api/campaigns/{id}/brackets", CAMPAIGN_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest());
-        }
-    }
-
-    @Nested
-    @DisplayName("PUT /api/campaigns/{id}/brackets/{bracketId} - Update Discount Bracket")
-    class UpdateBracketTests {
-
-        @Test
-        @DisplayName("should update discount bracket successfully")
-        void shouldUpdateDiscountBracketSuccessfully() throws Exception {
-            DiscountBracketRequest request = DiscountBracketRequest.builder()
-                    .minQuantity(20)
-                    .maxQuantity(100)
-                    .unitPrice(new BigDecimal("89.99"))
-                    .bracketOrder(1)
-                    .build();
-
-            DiscountBracketResponse response = DiscountBracketResponse.builder()
-                    .id(BRACKET_ID)
-                    .campaignId(CAMPAIGN_ID)
-                    .minQuantity(20)
-                    .maxQuantity(100)
-                    .unitPrice(new BigDecimal("89.99"))
-                    .bracketOrder(1)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-
-            when(campaignService.updateBracket(eq(CAMPAIGN_ID), eq(BRACKET_ID), any(DiscountBracketRequest.class), nullable(UUID.class)))
-                    .thenReturn(response);
-
-            mockMvc.perform(put("/api/campaigns/{id}/brackets/{bracketId}", CAMPAIGN_ID, BRACKET_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            mockMvc.perform(get("/api/v1/public/campaigns")
+                            .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.min_quantity").value(20))
-                    .andExpect(jsonPath("$.unit_price").value(89.99));
+                    .andExpect(jsonPath("$.campaigns", hasSize(1)))
+                    .andExpect(jsonPath("$.campaigns[0].id", is(campaignId.toString())))
+                    .andExpect(jsonPath("$.campaigns[0].title", is("Test Campaign")))
+                    .andExpect(jsonPath("$.campaigns[0].supplier_id", is(supplierId.toString())))
+                    .andExpect(jsonPath("$.campaigns[0].total_pledged", is(50)))
+                    .andExpect(jsonPath("$.page.number", is(0)))
+                    .andExpect(jsonPath("$.page.size", is(20)))
+                    .andExpect(jsonPath("$.page.total_elements", is(1)))
+                    .andExpect(jsonPath("$.page.total_pages", is(1)));
         }
 
         @Test
-        @DisplayName("should return 404 when bracket not found")
-        void shouldReturn404WhenBracketNotFound() throws Exception {
-            DiscountBracketRequest request = DiscountBracketRequest.builder()
-                    .minQuantity(20)
-                    .maxQuantity(100)
-                    .unitPrice(new BigDecimal("89.99"))
-                    .bracketOrder(1)
-                    .build();
+        @DisplayName("should filter campaigns by search term in title")
+        void shouldFilterCampaignsBySearchTerm() throws Exception {
+            String searchTerm = "laptop";
 
-            when(campaignService.updateBracket(eq(CAMPAIGN_ID), eq(BRACKET_ID), any(DiscountBracketRequest.class), nullable(UUID.class)))
-                    .thenThrow(new DiscountBracketNotFoundException("Bracket not found"));
+            CampaignListResponse response = new CampaignListResponse(
+                    new PageImpl<>(List.of(), PageRequest.of(0, 20), 0)
+            );
 
-            mockMvc.perform(put("/api/campaigns/{id}/brackets/{bracketId}", CAMPAIGN_ID, BRACKET_ID)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
+            when(campaignService.findActiveCampaigns(eq(searchTerm), eq(null), any(Pageable.class)))
+                    .thenReturn(response);
+
+            mockMvc.perform(get("/api/v1/public/campaigns")
+                            .param("search", searchTerm)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.campaigns", hasSize(0)));
+        }
+
+        @Test
+        @DisplayName("should return empty list when no active campaigns exist")
+        void shouldReturnEmptyListWhenNoActiveCampaigns() throws Exception {
+            CampaignListResponse response = new CampaignListResponse(
+                    new PageImpl<>(List.of(), PageRequest.of(0, 20), 0)
+            );
+
+            when(campaignService.findActiveCampaigns(eq(null), eq(null), any(Pageable.class)))
+                    .thenReturn(response);
+
+            mockMvc.perform(get("/api/v1/public/campaigns")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.campaigns", hasSize(0)))
+                    .andExpect(jsonPath("$.page.total_elements", is(0)));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/v1/public/campaigns/{id}")
+    class GetPublicCampaignDetails {
+
+        @Test
+        @DisplayName("should return public campaign details for active campaign")
+        void shouldReturnPublicCampaignDetailsForActiveCampaign() throws Exception {
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+            UUID supplierId = UuidGeneratorUtil.generateUuidV7();
+
+            List<DiscountBracketDto> brackets = List.of(
+                    new DiscountBracketDto(0, 49, new BigDecimal("100.00"), 0),
+                    new DiscountBracketDto(50, 99, new BigDecimal("90.00"), 1),
+                    new DiscountBracketDto(100, null, new BigDecimal("80.00"), 2)
+            );
+
+            CampaignPublicResponse response = new CampaignPublicResponse(
+                    campaignId,
+                    "Test Campaign",
+                    "Detailed description of the campaign",
+                    "{\"color\": \"blue\", \"size\": \"large\"}",
+                    supplierId,
+                    "Test Supplier",
+                    LocalDate.now(),
+                    LocalDate.now().plusDays(30),
+                    100,
+                    50,
+                    brackets
+            );
+
+            when(campaignService.getPublicCampaignDetails(campaignId)).thenReturn(response);
+
+            mockMvc.perform(get("/api/v1/public/campaigns/{id}", campaignId)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id", is(campaignId.toString())))
+                    .andExpect(jsonPath("$.title", is("Test Campaign")))
+                    .andExpect(jsonPath("$.description", is("Detailed description of the campaign")))
+                    .andExpect(jsonPath("$.product_details", is("{\"color\": \"blue\", \"size\": \"large\"}")))
+                    .andExpect(jsonPath("$.supplier_id", is(supplierId.toString())))
+                    .andExpect(jsonPath("$.supplier_name", is("Test Supplier")))
+                    .andExpect(jsonPath("$.target_qty", is(100)))
+                    .andExpect(jsonPath("$.total_pledged", is(50)))
+                    .andExpect(jsonPath("$.brackets", hasSize(3)))
+                    .andExpect(jsonPath("$.brackets[0].min_quantity", is(0)))
+                    .andExpect(jsonPath("$.brackets[0].max_quantity", is(49)))
+                    .andExpect(jsonPath("$.brackets[0].unit_price", is(100.00)))
+                    .andExpect(jsonPath("$.brackets[2].max_quantity", nullValue()));
+        }
+
+        @Test
+        @DisplayName("should return 404 when campaign is not found")
+        void shouldReturn404WhenCampaignNotFound() throws Exception {
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+
+            when(campaignService.getPublicCampaignDetails(campaignId))
+                    .thenThrow(new CampaignNotFoundException("Campaign not found: " + campaignId));
+
+            mockMvc.perform(get("/api/v1/public/campaigns/{id}", campaignId)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("should return 404 when campaign is not active")
+        void shouldReturn404WhenCampaignNotActive() throws Exception {
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+
+            when(campaignService.getPublicCampaignDetails(campaignId))
+                    .thenThrow(new CampaignNotFoundException("Campaign is not available for public viewing"));
+
+            mockMvc.perform(get("/api/v1/public/campaigns/{id}", campaignId)
+                            .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("DELETE /api/campaigns/{id}/brackets/{bracketId} - Delete Discount Bracket")
-    class DeleteBracketTests {
+    @DisplayName("GET /api/v1/public/campaigns/{id}/bracket-progress")
+    class GetBracketProgress {
 
         @Test
-        @DisplayName("should delete discount bracket successfully")
-        void shouldDeleteDiscountBracketSuccessfully() throws Exception {
-            doNothing().when(campaignService).deleteBracket(eq(CAMPAIGN_ID), eq(BRACKET_ID), nullable(UUID.class));
+        @DisplayName("should return bracket progress information")
+        void shouldReturnBracketProgressInformation() throws Exception {
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
-            mockMvc.perform(delete("/api/campaigns/{id}/brackets/{bracketId}", CAMPAIGN_ID, BRACKET_ID)
+            DiscountBracketDto currentBracket = new DiscountBracketDto(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketDto nextBracket = new DiscountBracketDto(50, 99, new BigDecimal("90.00"), 1);
+
+            BracketProgressResponse response = new BracketProgressResponse(
+                    campaignId,
+                    25,
+                    currentBracket,
+                    nextBracket,
+                    new BigDecimal("50.00")
+            );
+
+            when(campaignService.getBracketProgress(campaignId)).thenReturn(response);
+
+            mockMvc.perform(get("/api/v1/public/campaigns/{id}/bracket-progress", campaignId)
                             .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isNoContent());
-
-            verify(campaignService).deleteBracket(eq(CAMPAIGN_ID), eq(BRACKET_ID), nullable(UUID.class));
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.campaign_id", is(campaignId.toString())))
+                    .andExpect(jsonPath("$.total_pledged", is(25)))
+                    .andExpect(jsonPath("$.current_bracket.min_quantity", is(0)))
+                    .andExpect(jsonPath("$.current_bracket.max_quantity", is(49)))
+                    .andExpect(jsonPath("$.current_bracket.unit_price", is(100.00)))
+                    .andExpect(jsonPath("$.next_bracket.min_quantity", is(50)))
+                    .andExpect(jsonPath("$.next_bracket.max_quantity", is(99)))
+                    .andExpect(jsonPath("$.next_bracket.unit_price", is(90.00)))
+                    .andExpect(jsonPath("$.percentage_to_next_tier", is(50.00)));
         }
 
         @Test
-        @DisplayName("should return 404 when bracket not found")
-        void shouldReturn404WhenBracketNotFound() throws Exception {
-            doThrow(new DiscountBracketNotFoundException("Bracket not found"))
-                    .when(campaignService).deleteBracket(eq(CAMPAIGN_ID), eq(BRACKET_ID), nullable(UUID.class));
+        @DisplayName("should return null next bracket when at highest tier")
+        void shouldReturnNullNextBracketWhenAtHighestTier() throws Exception {
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
-            mockMvc.perform(delete("/api/campaigns/{id}/brackets/{bracketId}", CAMPAIGN_ID, BRACKET_ID)
+            DiscountBracketDto currentBracket = new DiscountBracketDto(100, null, new BigDecimal("80.00"), 2);
+
+            BracketProgressResponse response = new BracketProgressResponse(
+                    campaignId,
+                    150,
+                    currentBracket,
+                    null,
+                    new BigDecimal("100.00")
+            );
+
+            when(campaignService.getBracketProgress(campaignId)).thenReturn(response);
+
+            mockMvc.perform(get("/api/v1/public/campaigns/{id}/bracket-progress", campaignId)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.campaign_id", is(campaignId.toString())))
+                    .andExpect(jsonPath("$.total_pledged", is(150)))
+                    .andExpect(jsonPath("$.current_bracket.min_quantity", is(100)))
+                    .andExpect(jsonPath("$.current_bracket.max_quantity", nullValue()))
+                    .andExpect(jsonPath("$.next_bracket", nullValue()))
+                    .andExpect(jsonPath("$.percentage_to_next_tier", is(100.00)));
+        }
+
+        @Test
+        @DisplayName("should return 404 when campaign not found")
+        void shouldReturn404WhenCampaignNotFound() throws Exception {
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
+
+            when(campaignService.getBracketProgress(campaignId))
+                    .thenThrow(new CampaignNotFoundException("Campaign not found: " + campaignId));
+
+            mockMvc.perform(get("/api/v1/public/campaigns/{id}/bracket-progress", campaignId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound());
         }
 
         @Test
-        @DisplayName("should return 400 when deleting bracket from non-draft campaign")
-        void shouldReturn400WhenDeletingBracketFromNonDraftCampaign() throws Exception {
-            doThrow(new CampaignValidationException("Cannot delete brackets from non-DRAFT campaigns"))
-                    .when(campaignService).deleteBracket(eq(CAMPAIGN_ID), eq(BRACKET_ID), nullable(UUID.class));
+        @DisplayName("should return progress with zero pledges")
+        void shouldReturnProgressWithZeroPledges() throws Exception {
+            UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
-            mockMvc.perform(delete("/api/campaigns/{id}/brackets/{bracketId}", CAMPAIGN_ID, BRACKET_ID)
+            DiscountBracketDto currentBracket = new DiscountBracketDto(0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketDto nextBracket = new DiscountBracketDto(50, 99, new BigDecimal("90.00"), 1);
+
+            BracketProgressResponse response = new BracketProgressResponse(
+                    campaignId,
+                    0,
+                    currentBracket,
+                    nextBracket,
+                    new BigDecimal("0.00")
+            );
+
+            when(campaignService.getBracketProgress(campaignId)).thenReturn(response);
+
+            mockMvc.perform(get("/api/v1/public/campaigns/{id}/bracket-progress", campaignId)
                             .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.total_pledged", is(0)))
+                    .andExpect(jsonPath("$.percentage_to_next_tier", is(0.00)));
         }
     }
 }

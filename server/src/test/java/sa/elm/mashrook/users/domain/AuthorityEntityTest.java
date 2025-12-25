@@ -3,7 +3,7 @@ package sa.elm.mashrook.users.domain;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.security.domain.Permission;
 import sa.elm.mashrook.security.domain.Resource;
 import sa.elm.mashrook.security.domain.ResourcePermission;
@@ -86,7 +86,7 @@ class AuthorityEntityTest {
             ResourcePermission resourcePermission = ResourcePermission.of(Resource.ORGANIZATIONS, Permission.UPDATE);
             UserEntity user = new UserEntity();
 
-            var id = UuidGenerator.generateUuidV7();
+            var id = UuidGeneratorUtil.generateUuidV7();
             // Act
             AuthorityEntity authority = AuthorityEntity.from(resourcePermission, user, id);
 
@@ -120,7 +120,7 @@ class AuthorityEntityTest {
             AuthorityEntity authority = new AuthorityEntity();
             authority.setResource(Resource.CAMPAIGNS);
             authority.setPermission(Permission.READ);
-            UUID deactivatedByUserId = UuidGenerator.generateUuidV7();
+            UUID deactivatedByUserId = UuidGeneratorUtil.generateUuidV7();
 
             // Act
             authority.deactivate(deactivatedByUserId);
@@ -162,7 +162,7 @@ class AuthorityEntityTest {
         void shouldTrackWhoAssignedTheAuthority() {
             // Arrange
             AuthorityEntity authority = new AuthorityEntity();
-            UUID assignedByUserId = UuidGenerator.generateUuidV7();
+            UUID assignedByUserId = UuidGeneratorUtil.generateUuidV7();
 
             // Act
             authority.setAssignedBy(assignedByUserId);

@@ -2,6 +2,7 @@ package sa.elm.mashrook.campaigns.dto;
 
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
+import sa.elm.mashrook.brackets.dtos.DiscountBracketRequest;
 
 import java.time.LocalDate;
 import java.util.List;

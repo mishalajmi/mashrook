@@ -2,22 +2,31 @@ package sa.elm.mashrook.campaigns.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sa.elm.mashrook.brackets.DiscountBracketService;
+import sa.elm.mashrook.brackets.domain.DiscountBracketEntity;
+import sa.elm.mashrook.brackets.dtos.BracketProgressResponse;
+import sa.elm.mashrook.brackets.dtos.DiscountBracketDto;
+import sa.elm.mashrook.brackets.dtos.DiscountBracketResponse;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
-import sa.elm.mashrook.campaigns.domain.DiscountBracketEntity;
-import sa.elm.mashrook.campaigns.domain.DiscountBracketRepository;
 import sa.elm.mashrook.campaigns.dto.CampaignCreateRequest;
+import sa.elm.mashrook.campaigns.dto.CampaignListResponse;
+import sa.elm.mashrook.campaigns.dto.CampaignPublicResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignUpdateRequest;
-import sa.elm.mashrook.campaigns.dto.DiscountBracketRequest;
-import sa.elm.mashrook.campaigns.dto.DiscountBracketResponse;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignValidationException;
-import sa.elm.mashrook.exceptions.DiscountBracketNotFoundException;
+import sa.elm.mashrook.organizations.OrganizationService;
+import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +38,8 @@ import java.util.UUID;
 public class CampaignService {
 
     private final CampaignRepository campaignRepository;
-    private final DiscountBracketRepository discountBracketRepository;
+    private final DiscountBracketService discountBracketService;
+    private final OrganizationService organizationService;
 
     @Transactional
     public CampaignResponse createCampaign(CampaignCreateRequest request, UUID supplierId) {
@@ -42,28 +52,9 @@ public class CampaignService {
         CampaignEntity saved = campaignRepository.save(campaign);
         log.info("Created campaign: {}", saved.getId());
 
-        List<DiscountBracketResponse> brackets = saveBracketsIfProvided(request.brackets(), saved.getId());
+        List<DiscountBracketResponse> brackets = discountBracketService.saveBrackets(request.brackets(), saved.getId());
 
         return CampaignResponse.from(saved, brackets);
-    }
-
-    private List<DiscountBracketResponse> saveBracketsIfProvided(List<DiscountBracketRequest> brackets, UUID campaignId) {
-        if (brackets == null || brackets.isEmpty()) {
-            return List.of();
-        }
-
-        return brackets.stream()
-                .map(bracketRequest -> {
-                    DiscountBracketEntity bracket = new DiscountBracketEntity();
-                    bracket.setCampaignId(campaignId);
-                    bracket.setMinQuantity(bracketRequest.minQuantity());
-                    bracket.setMaxQuantity(bracketRequest.maxQuantity());
-                    bracket.setUnitPrice(bracketRequest.unitPrice());
-                    bracket.setBracketOrder(bracketRequest.bracketOrder());
-                    return discountBracketRepository.save(bracket);
-                })
-                .map(DiscountBracketResponse::from)
-                .toList();
     }
 
     private static CampaignEntity createCampaignEntity(CampaignCreateRequest request, UUID supplierId, int durationDays) {
@@ -94,7 +85,6 @@ public class CampaignService {
         Optional.ofNullable(request.endDate()).ifPresent(campaign::setEndDate);
         Optional.ofNullable(request.targetQuantity()).ifPresent(campaign::setTargetQty);
 
-        // Recalculate durationDays if either date was updated
         if (request.startDate() != null || request.endDate() != null) {
             int durationDays = (int) ChronoUnit.DAYS.between(campaign.getStartDate(), campaign.getEndDate());
             campaign.setDurationDays(durationDays);
@@ -102,13 +92,12 @@ public class CampaignService {
 
         CampaignEntity saved = campaignRepository.save(campaign);
 
-        // Update brackets if provided (delete existing, add new ones)
         List<DiscountBracketResponse> brackets;
         if (request.brackets() != null) {
-            discountBracketRepository.deleteAllByCampaignId(campaignId);
-            brackets = saveBracketsIfProvided(request.brackets(), campaignId);
+            discountBracketService.deleteAllBracketsForCampaign(campaignId);
+            brackets = discountBracketService.saveBrackets(request.brackets(), campaignId);
         } else {
-            brackets = getBracketsForCampaign(campaignId);
+            brackets = discountBracketService.getBracketsForCampaign(campaignId);
         }
 
         log.info("Updated campaign: {}", campaignId);
@@ -122,7 +111,7 @@ public class CampaignService {
         CampaignEntity campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new CampaignNotFoundException("Campaign not found with id: " + campaignId));
 
-        List<DiscountBracketResponse> brackets = getBracketsForCampaign(campaignId);
+        List<DiscountBracketResponse> brackets = discountBracketService.getBracketsForCampaign(campaignId);
         return CampaignResponse.from(campaign, brackets);
     }
 
@@ -134,7 +123,7 @@ public class CampaignService {
 
         return campaigns.stream()
                 .map(campaign -> {
-                    List<DiscountBracketResponse> brackets = getBracketsForCampaign(campaign.getId());
+                    List<DiscountBracketResponse> brackets = discountBracketService.getBracketsForCampaign(campaign.getId());
                     return CampaignResponse.from(campaign, brackets);
                 })
                 .toList();
@@ -149,7 +138,7 @@ public class CampaignService {
 
         campaign.setStatus(CampaignStatus.ACTIVE);
         CampaignEntity saved = campaignRepository.save(campaign);
-        List<DiscountBracketResponse> brackets = getBracketsForCampaign(campaignId);
+        List<DiscountBracketResponse> brackets = discountBracketService.getBracketsForCampaign(campaignId);
 
         log.info("Published campaign: {}", campaignId);
         return CampaignResponse.from(saved, brackets);
@@ -162,87 +151,149 @@ public class CampaignService {
         CampaignEntity campaign = findCampaignByIdAndSupplier(campaignId, supplierId);
         validateDraftStatus(campaign, "Only DRAFT campaigns can be deleted");
 
-        discountBracketRepository.deleteAllByCampaignId(campaignId);
+        discountBracketService.deleteAllBracketsForCampaign(campaignId);
         campaignRepository.delete(campaign);
 
         log.info("Deleted campaign: {}", campaignId);
     }
 
-    @Transactional
-    public DiscountBracketResponse addBracket(UUID campaignId, DiscountBracketRequest request, UUID supplierId) {
-        log.debug("Adding bracket to campaign: {} for supplier: {}", campaignId, supplierId);
+    @Transactional(readOnly = true)
+    public CampaignListResponse findActiveCampaigns(String search, UUID supplierId, Pageable pageable) {
+        List<CampaignEntity> activeCampaigns = campaignRepository.findAllByStatus(CampaignStatus.ACTIVE);
 
-        CampaignEntity campaign = findCampaignByIdAndSupplier(campaignId, supplierId);
-        validateDraftStatus(campaign, "Cannot add brackets to non-DRAFT campaigns");
+        List<CampaignEntity> filtered = activeCampaigns.stream()
+                .filter(campaign -> filterBySearch(campaign, search))
+                .filter(campaign -> filterBySupplierId(campaign, supplierId))
+                .toList();
 
-        DiscountBracketEntity bracket = new DiscountBracketEntity();
-        bracket.setCampaignId(campaignId);
-        bracket.setMinQuantity(request.minQuantity());
-        bracket.setMaxQuantity(request.maxQuantity());
-        bracket.setUnitPrice(request.unitPrice());
-        bracket.setBracketOrder(request.bracketOrder());
+        List<CampaignListResponse.CampaignSummary> summaries = filtered.stream()
+                .map(this::toCampaignSummary)
+                .toList();
 
-        DiscountBracketEntity saved = discountBracketRepository.save(bracket);
-        log.info("Added bracket: {} to campaign: {}", saved.getId(), campaignId);
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), summaries.size());
 
-        return DiscountBracketResponse.from(saved);
+        List<CampaignListResponse.CampaignSummary> pageContent =
+                start > summaries.size() ? List.of() : summaries.subList(start, end);
+
+        Page<CampaignListResponse.CampaignSummary> page = new PageImpl<>(
+                pageContent, pageable, summaries.size()
+        );
+
+        return new CampaignListResponse(page);
     }
 
-    @Transactional
-    public DiscountBracketResponse updateBracket(UUID campaignId, UUID bracketId,
-                                                  DiscountBracketRequest request, UUID supplierId) {
-        log.debug("Updating bracket: {} for campaign: {}", bracketId, campaignId);
+    @Transactional(readOnly = true)
+    public CampaignPublicResponse getPublicCampaignDetails(UUID campaignId) {
+        CampaignEntity campaign = campaignRepository.findById(campaignId)
+                .orElseThrow(() -> new CampaignNotFoundException("Campaign not found: " + campaignId));
 
-        CampaignEntity campaign = findCampaignByIdAndSupplier(campaignId, supplierId);
-        validateDraftStatus(campaign, "Cannot update brackets in non-DRAFT campaigns");
+        if (campaign.getStatus() != CampaignStatus.ACTIVE) {
+            throw new CampaignNotFoundException("Campaign is not available for public viewing");
+        }
 
-        DiscountBracketEntity bracket = discountBracketRepository.findById(bracketId)
-                .filter(b -> b.getCampaignId().equals(campaignId))
-                .orElseThrow(() -> new DiscountBracketNotFoundException("Bracket not found with id: " + bracketId));
+        OrganizationEntity supplier = organizationService.findById(campaign.getSupplierId());
+        int totalPledged = discountBracketService.calculateTotalPledged(campaignId);
+        List<DiscountBracketEntity> brackets = discountBracketService.getAllBrackets(campaignId);
 
-        bracket.setMinQuantity(request.minQuantity());
-        bracket.setMaxQuantity(request.maxQuantity());
-        bracket.setUnitPrice(request.unitPrice());
-        bracket.setBracketOrder(request.bracketOrder());
+        List<DiscountBracketDto> bracketDtos = brackets.stream()
+                .map(DiscountBracketDto::from)
+                .toList();
 
-        DiscountBracketEntity saved = discountBracketRepository.save(bracket);
-        log.info("Updated bracket: {}", bracketId);
-
-        return DiscountBracketResponse.from(saved);
+        return CampaignPublicResponse.builder()
+                .id(campaign.getId())
+                .title(campaign.getTitle())
+                .description(campaign.getDescription())
+                .productDetails(campaign.getProductDetails())
+                .supplierId(campaign.getSupplierId())
+                .supplierName(supplier.getNameEn())
+                .startDate(campaign.getStartDate())
+                .endDate(campaign.getEndDate())
+                .targetQty(campaign.getTargetQty())
+                .totalPledged(totalPledged)
+                .brackets(bracketDtos)
+                .build();
     }
 
-    @Transactional
-    public void deleteBracket(UUID campaignId, UUID bracketId, UUID supplierId) {
-        log.debug("Deleting bracket: {} from campaign: {}", bracketId, campaignId);
+    @Transactional(readOnly = true)
+    public BracketProgressResponse getBracketProgress(UUID campaignId) {
+        CampaignEntity campaign = campaignRepository.findById(campaignId)
+                .orElseThrow(() -> new CampaignNotFoundException("Campaign not found: " + campaignId));
 
-        CampaignEntity campaign = findCampaignByIdAndSupplier(campaignId, supplierId);
-        validateDraftStatus(campaign, "Cannot delete brackets from non-DRAFT campaigns");
+        if (campaign.getStatus() != CampaignStatus.ACTIVE) {
+            throw new CampaignNotFoundException("Campaign is not available for public viewing");
+        }
 
-        DiscountBracketEntity bracket = discountBracketRepository.findById(bracketId)
-                .filter(b -> b.getCampaignId().equals(campaignId))
-                .orElseThrow(() -> new DiscountBracketNotFoundException("Bracket not found with id: " + bracketId));
+        int totalPledged = discountBracketService.calculateTotalPledged(campaignId);
+        Optional<DiscountBracketEntity> currentBracket = discountBracketService.getCurrentBracket(campaignId);
+        Optional<DiscountBracketEntity> nextBracket = discountBracketService.getNextBracket(campaignId);
 
-        discountBracketRepository.delete(bracket);
-        log.info("Deleted bracket: {} from campaign: {}", bracketId, campaignId);
+        BigDecimal percentageToNextTier = calculatePercentageToNextTier(totalPledged, currentBracket, nextBracket);
+
+        return BracketProgressResponse.builder()
+                .campaignId(campaignId)
+                .totalPledged(totalPledged)
+                .currentBracket(currentBracket.map(DiscountBracketDto::from).orElse(null))
+                .nextBracket(nextBracket.map(DiscountBracketDto::from).orElse(null))
+                .percentageToNextTier(percentageToNextTier)
+                .build();
     }
 
-    private CampaignEntity findCampaignByIdAndSupplier(UUID campaignId, UUID supplierId) {
+    // ==================== Public Validation Methods for Cross-Feature Access ====================
+
+    /**
+     * Finds a campaign by ID. Used by other services for campaign validation.
+     */
+    @Transactional(readOnly = true)
+    public CampaignEntity findCampaignEntityById(UUID campaignId) {
+        return campaignRepository.findById(campaignId)
+                .orElseThrow(() -> new CampaignNotFoundException("Campaign not found with id: " + campaignId));
+    }
+
+    /**
+     * Finds a campaign by ID and validates supplier ownership.
+     * Used by bracket service for ownership validation.
+     */
+    @Transactional(readOnly = true)
+    public CampaignEntity findCampaignByIdAndSupplier(UUID campaignId, UUID supplierId) {
         return campaignRepository.findById(campaignId)
                 .filter(campaign -> campaign.getSupplierId().equals(supplierId))
                 .orElseThrow(() -> new CampaignNotFoundException("Campaign not found with id: " + campaignId));
     }
 
-    private void validateDraftStatus(CampaignEntity campaign, String errorMessage) {
+    /**
+     * Validates that a campaign is in DRAFT status.
+     */
+    public void validateCampaignIsDraft(CampaignEntity campaign, String errorMessage) {
         if (campaign.getStatus() != CampaignStatus.DRAFT) {
             throw new CampaignValidationException(errorMessage);
         }
     }
 
-    private List<DiscountBracketResponse> getBracketsForCampaign(UUID campaignId) {
-        return discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId)
-                .stream()
-                .map(DiscountBracketResponse::from)
-                .toList();
+    /**
+     * Validates that a campaign is in ACTIVE status.
+     */
+    public void validateCampaignIsActive(CampaignEntity campaign) {
+        if (campaign.getStatus() != CampaignStatus.ACTIVE) {
+            throw new CampaignValidationException("Campaign is not active. Current status: " + campaign.getStatus());
+        }
+    }
+
+    /**
+     * Validates that a campaign is in LOCKED status.
+     */
+    public void validateCampaignIsLocked(CampaignEntity campaign) {
+        if (campaign.getStatus() != CampaignStatus.LOCKED) {
+            throw new CampaignValidationException("Campaign must be locked. Current status: " + campaign.getStatus());
+        }
+    }
+
+    // ==================== Private Helper Methods ====================
+
+    private void validateDraftStatus(CampaignEntity campaign, String errorMessage) {
+        if (campaign.getStatus() != CampaignStatus.DRAFT) {
+            throw new CampaignValidationException(errorMessage);
+        }
     }
 
     private List<CampaignEntity> findCampaignsByFilter(UUID supplierId, CampaignStatus status) {
@@ -255,5 +306,76 @@ public class CampaignService {
         } else {
             return campaignRepository.findAll();
         }
+    }
+
+    private boolean filterBySearch(CampaignEntity campaign, String search) {
+        if (search == null || search.isBlank()) {
+            return true;
+        }
+        return campaign.getTitle().toLowerCase().contains(search.toLowerCase());
+    }
+
+    private boolean filterBySupplierId(CampaignEntity campaign, UUID supplierId) {
+        if (supplierId == null) {
+            return true;
+        }
+        return campaign.getSupplierId().equals(supplierId);
+    }
+
+    private CampaignListResponse.CampaignSummary toCampaignSummary(CampaignEntity campaign) {
+        OrganizationEntity supplier = organizationService.findById(campaign.getSupplierId());
+        int totalPledged = discountBracketService.calculateTotalPledged(campaign.getId());
+        List<DiscountBracketEntity> brackets = discountBracketService.getAllBrackets(campaign.getId());
+
+        BigDecimal originalPrice = brackets.stream()
+                .filter(b -> b.getBracketOrder() == 0)
+                .findFirst()
+                .map(DiscountBracketEntity::getUnitPrice)
+                .orElse(null);
+
+        BigDecimal currentPrice = discountBracketService.getUnitPriceForQuantity(campaign.getId(), totalPledged)
+                .orElse(null);
+
+        return CampaignListResponse.CampaignSummary.builder()
+                .id(campaign.getId())
+                .title(campaign.getTitle())
+                .description(campaign.getDescription())
+                .supplierId(campaign.getSupplierId())
+                .supplierName(supplier.getNameEn())
+                .startDate(campaign.getStartDate())
+                .endDate(campaign.getEndDate())
+                .targetQty(campaign.getTargetQty())
+                .totalPledged(totalPledged)
+                .originalPrice(originalPrice)
+                .currentPrice(currentPrice)
+                .build();
+    }
+
+    private BigDecimal calculatePercentageToNextTier(
+            int totalPledged,
+            Optional<DiscountBracketEntity> currentBracket,
+            Optional<DiscountBracketEntity> nextBracket
+    ) {
+        if (nextBracket.isEmpty()) {
+            return new BigDecimal("100.00");
+        }
+
+        if (currentBracket.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        int currentMin = currentBracket.get().getMinQuantity();
+        int nextMin = nextBracket.get().getMinQuantity();
+        int rangeSize = nextMin - currentMin;
+
+        if (rangeSize <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        int progressInRange = totalPledged - currentMin;
+
+        return BigDecimal.valueOf(progressInRange)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(BigDecimal.valueOf(rangeSize), 2, RoundingMode.HALF_UP);
     }
 }

@@ -18,9 +18,10 @@ import sa.elm.mashrook.auth.dto.LoginRequest;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
-import sa.elm.mashrook.campaigns.domain.PledgeEntity;
-import sa.elm.mashrook.campaigns.domain.PledgeRepository;
-import sa.elm.mashrook.campaigns.domain.PledgeStatus;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
+import sa.elm.mashrook.pledges.domain.PledgeEntity;
+import sa.elm.mashrook.pledges.PledgeRepository;
+import sa.elm.mashrook.pledges.domain.PledgeStatus;
 import sa.elm.mashrook.configurations.RedisConfig;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationType;
@@ -65,20 +66,20 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
                 .apply(springSecurity())
                 .build();
 
-        String uniqueSuffix = UUID.randomUUID().toString().substring(0, 8);
+        String uniqueSuffix = UuidGeneratorUtil.generateUuidV7String().substring(0, 8);
 
         supplierOrganization = createTestOrganization();
         supplierOrganization.setNameEn("Supplier Organization " + uniqueSuffix);
         supplierOrganization.setNameAr("مورد " + uniqueSuffix);
         supplierOrganization.setType(OrganizationType.SUPPLIER);
-        supplierOrganization.setSlug("supplier-org-" + UUID.randomUUID());
+        supplierOrganization.setSlug("supplier-org-" + UuidGeneratorUtil.generateUuidV7String());
         supplierOrganization = organizationRepository.save(supplierOrganization);
 
         buyerOrganization = createTestOrganization();
         buyerOrganization.setNameEn("Buyer Organization " + uniqueSuffix);
         buyerOrganization.setNameAr("مشتري " + uniqueSuffix);
         buyerOrganization.setType(OrganizationType.BUYER);
-        buyerOrganization.setSlug("buyer-org-" + UUID.randomUUID());
+        buyerOrganization.setSlug("buyer-org-" + UuidGeneratorUtil.generateUuidV7String());
         buyerOrganization = organizationRepository.save(buyerOrganization);
 
         activeCampaign = createActiveCampaign(supplierOrganization.getId());
@@ -214,7 +215,7 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
                     }
                     """;
 
-            mockMvc.perform(post("/v1/campaigns/{id}/pledges", UUID.randomUUID())
+            mockMvc.perform(post("/v1/campaigns/{id}/pledges", UuidGeneratorUtil.generateUuidV7String())
                             .header("Authorization", "Bearer " + buyerAccessToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -292,12 +293,12 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
         @Test
         @DisplayName("should return 403 when trying to update another buyer's pledge")
         void shouldForbidUpdatingOtherBuyersPledge() throws Exception {
-            String suffix = UUID.randomUUID().toString().substring(0, 8);
+            String suffix = UuidGeneratorUtil.generateUuidV7String().substring(0, 8);
             OrganizationEntity otherBuyerOrg = createTestOrganization();
             otherBuyerOrg.setNameEn("Other Buyer " + suffix);
             otherBuyerOrg.setNameAr("مشتري اخر " + suffix);
             otherBuyerOrg.setType(OrganizationType.BUYER);
-            otherBuyerOrg.setSlug("other-buyer-" + UUID.randomUUID());
+            otherBuyerOrg.setSlug("other-buyer-" + UuidGeneratorUtil.generateUuidV7String());
             otherBuyerOrg = organizationRepository.save(otherBuyerOrg);
 
             PledgeEntity otherPledge = new PledgeEntity();
@@ -356,7 +357,7 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
                     }
                     """;
 
-            mockMvc.perform(put("/v1/campaigns/{id}/pledges/{pledgeId}", activeCampaign.getId(), UUID.randomUUID())
+            mockMvc.perform(put("/v1/campaigns/{id}/pledges/{pledgeId}", activeCampaign.getId(), UuidGeneratorUtil.generateUuidV7String())
                             .header("Authorization", "Bearer " + buyerAccessToken)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
@@ -389,12 +390,12 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
         @Test
         @DisplayName("should return 403 when trying to cancel another buyer's pledge")
         void shouldForbidCancellingOtherBuyersPledge() throws Exception {
-            String suffix = UUID.randomUUID().toString().substring(0, 8);
+            String suffix = UuidGeneratorUtil.generateUuidV7String().substring(0, 8);
             OrganizationEntity otherBuyerOrg = createTestOrganization();
             otherBuyerOrg.setNameEn("Other Cancel Buyer " + suffix);
             otherBuyerOrg.setNameAr("مشتري الغاء " + suffix);
             otherBuyerOrg.setType(OrganizationType.BUYER);
-            otherBuyerOrg.setSlug("other-buyer-" + UUID.randomUUID());
+            otherBuyerOrg.setSlug("other-buyer-" + UuidGeneratorUtil.generateUuidV7String());
             otherBuyerOrg = organizationRepository.save(otherBuyerOrg);
 
             PledgeEntity otherPledge = new PledgeEntity();
@@ -492,12 +493,12 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
         @Test
         @DisplayName("should not return other buyers' pledges")
         void shouldNotReturnOtherBuyersPledges() throws Exception {
-            String suffix = UUID.randomUUID().toString().substring(0, 8);
+            String suffix = UuidGeneratorUtil.generateUuidV7String().substring(0, 8);
             OrganizationEntity otherBuyerOrg = createTestOrganization();
             otherBuyerOrg.setNameEn("Other Pledges Buyer " + suffix);
             otherBuyerOrg.setNameAr("مشتري تعهدات " + suffix);
             otherBuyerOrg.setType(OrganizationType.BUYER);
-            otherBuyerOrg.setSlug("other-buyer-" + UUID.randomUUID());
+            otherBuyerOrg.setSlug("other-buyer-" + UuidGeneratorUtil.generateUuidV7String());
             otherBuyerOrg = organizationRepository.save(otherBuyerOrg);
 
             PledgeEntity otherPledge = new PledgeEntity();
@@ -525,12 +526,12 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
         @DisplayName("should return all pledges for campaign when accessed by supplier")
         void shouldReturnCampaignPledgesForSupplier() throws Exception {
             for (int i = 0; i < 3; i++) {
-                String suffix = UUID.randomUUID().toString().substring(0, 8);
+                String suffix = UuidGeneratorUtil.generateUuidV7String().substring(0, 8);
                 OrganizationEntity buyerOrg = createTestOrganization();
                 buyerOrg.setNameEn("Test Buyer " + i + " " + suffix);
                 buyerOrg.setNameAr("مشتري اختبار " + i + " " + suffix);
                 buyerOrg.setType(OrganizationType.BUYER);
-                buyerOrg.setSlug("test-buyer-" + i + "-" + UUID.randomUUID());
+                buyerOrg.setSlug("test-buyer-" + i + "-" + UuidGeneratorUtil.generateUuidV7String());
                 buyerOrg = organizationRepository.save(buyerOrg);
 
                 PledgeEntity pledge = new PledgeEntity();
@@ -554,7 +555,7 @@ class PledgeControllerIntegrationTest extends AbstractIntegrationTest {
         @Test
         @DisplayName("should return 404 when campaign does not exist")
         void shouldReturn404WhenCampaignNotFound() throws Exception {
-            mockMvc.perform(get("/v1/campaigns/{id}/pledges", UUID.randomUUID())
+            mockMvc.perform(get("/v1/campaigns/{id}/pledges", UuidGeneratorUtil.generateUuidV7String())
                             .header("Authorization", "Bearer " + supplierAccessToken)
                             .param("page", "0")
                             .param("size", "10"))

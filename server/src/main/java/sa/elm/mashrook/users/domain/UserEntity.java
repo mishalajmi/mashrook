@@ -89,7 +89,7 @@ public class UserEntity {
     @PrePersist
     public void onCreate() {
         if (this.username == null) {
-            this.username = this.firstName.substring(0, 2) + this.lastName;
+            this.username = this.firstName.substring(0, 2).toLowerCase() + this.lastName.toLowerCase();
         }
     }
 

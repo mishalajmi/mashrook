@@ -3,7 +3,7 @@ package sa.elm.mashrook.campaigns.domain;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,7 +23,7 @@ class CampaignEntityTest {
         void shouldStoreIdAsUuid() {
             // Arrange
             CampaignEntity campaign = new CampaignEntity();
-            UUID id = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
 
             // Act
             campaign.setId(id);
@@ -37,7 +37,7 @@ class CampaignEntityTest {
         void shouldStoreSupplierIdAsUuid() {
             // Arrange
             CampaignEntity campaign = new CampaignEntity();
-            UUID supplierId = UuidGenerator.generateUuidV7();
+            UUID supplierId = UuidGeneratorUtil.generateUuidV7();
 
             // Act
             campaign.setSupplierId(supplierId);
@@ -272,8 +272,8 @@ class CampaignEntityTest {
         @DisplayName("should create campaign with all fields populated")
         void shouldCreateCampaignWithAllFieldsPopulated() {
             // Arrange
-            UUID id = UuidGenerator.generateUuidV7();
-            UUID supplierId = UuidGenerator.generateUuidV7();
+            UUID id = UuidGeneratorUtil.generateUuidV7();
+            UUID supplierId = UuidGeneratorUtil.generateUuidV7();
             String title = "Bulk Laptop Procurement";
             String description = "Group buying campaign for enterprise laptops";
             String productDetails = """
