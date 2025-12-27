@@ -1,7 +1,7 @@
 package sa.elm.mashrook.auth.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -40,7 +40,7 @@ public record RefreshToken(
      */
     public static RefreshToken create(UUID userId, String tokenValue, Instant expiresAt, String deviceInfo) {
         return new RefreshToken(
-                UuidGenerator.generateUuidV7(),
+                UuidGeneratorUtil.generateUuidV7(),
                 userId,
                 tokenValue,
                 expiresAt,

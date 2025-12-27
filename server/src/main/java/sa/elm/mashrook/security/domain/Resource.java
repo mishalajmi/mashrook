@@ -34,7 +34,9 @@ public enum Resource {
     REPORTS("reports"),
     MODERATION("moderation"),
     COMMUNICATIONS("communications"),
-    CONFIGURATION("configuration");
+    CONFIGURATION("configuration"),
+    BRACKETS("brackets"),
+    PLEDGES("pledges");
 
     private final String resource;
 

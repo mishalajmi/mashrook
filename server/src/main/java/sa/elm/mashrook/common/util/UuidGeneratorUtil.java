@@ -1,4 +1,4 @@
-package sa.elm.mashrook.common.uuid;
+package sa.elm.mashrook.common.util;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 
@@ -7,9 +7,9 @@ import java.util.UUID;
 /**
  * Centralized UUID v7 generation utility following RFC 9562.
  */
-public final class UuidGenerator {
+public final class UuidGeneratorUtil {
 
-    private UuidGenerator() {
+    private UuidGeneratorUtil() {
         // Utility class - prevent instantiation
     }
 

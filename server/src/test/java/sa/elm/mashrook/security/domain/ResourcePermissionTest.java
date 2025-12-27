@@ -60,12 +60,12 @@ class ResourcePermissionTest {
 
         @ParameterizedTest
         @CsvSource({
-                "ORGANIZATIONS, READ, ORGANIZATIONS:READ",
-                "CAMPAIGNS, WRITE, CAMPAIGNS:WRITE",
-                "USER_MANAGEMENT, UPDATE, USER_MANAGEMENT:UPDATE",
-                "DASHBOARD, DELETE, DASHBOARD:DELETE"
+                "ORGANIZATIONS, READ, organizations:read",
+                "CAMPAIGNS, WRITE, campaign:create",
+                "USER_MANAGEMENT, UPDATE, user-management:update",
+                "DASHBOARD, DELETE, dashboard:delete"
         })
-        @DisplayName("should format as RESOURCE:PERMISSION")
+        @DisplayName("should format as resource:permission (lowercase)")
         void shouldFormatAsResourceColonPermission(String resourceName, String permissionName, String expected) {
             // Arrange
             Resource resource = Resource.valueOf(resourceName);
@@ -89,7 +89,7 @@ class ResourcePermissionTest {
             String result = permission.toString();
 
             // Assert
-            assertThat(result).isEqualTo("ORGANIZATIONS:READ");
+            assertThat(result).isEqualTo("organizations:read");
         }
     }
 

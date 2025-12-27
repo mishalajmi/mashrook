@@ -349,40 +349,67 @@ export function createApiClient(baseUrl: string = API_BASE_URL) {
 		}
 	}
 
+	/**
+	 * Make a multipart form data request (for file uploads)
+	 */
+	async function requestFormData<T>(
+		endpoint: string,
+		formData: FormData
+	): Promise<T> {
+		const url = `${baseUrl}${endpoint}`;
+		const headers = buildHeaders();
+
+		try {
+			const response = await fetch(url, {
+				method: "POST",
+				headers,
+				body: formData,
+				credentials: "include",
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				const camelCaseData = convertKeysToCamelCase(data);
+				return camelCaseData as T;
+			}
+
+			const errorData = await parseErrorResponse(response);
+			throw createApiError(
+				errorData.message,
+				response.status,
+				errorData.code || getErrorCodeFromStatus(response.status)
+			);
+		} catch (error) {
+			if (error && typeof error === "object" && "code" in error && "status" in error) {
+				throw error;
+			}
+			throw transformError(error, "Upload failed");
+		}
+	}
+
 	return {
-		/**
-		 * Make a GET request
-		 */
 		get<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {
 			return request<T>(endpoint, { method: "GET", headers });
 		},
 
-		/**
-		 * Make a POST request
-		 */
 		post<T>(endpoint: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
 			return request<T>(endpoint, { method: "POST", body, headers });
 		},
 
-		/**
-		 * Make a PUT request
-		 */
 		put<T>(endpoint: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
 			return request<T>(endpoint, { method: "PUT", body, headers });
 		},
 
-		/**
-		 * Make a DELETE request
-		 */
 		delete<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {
 			return request<T>(endpoint, { method: "DELETE", headers });
 		},
 
-		/**
-		 * Make a PATCH request
-		 */
 		patch<T>(endpoint: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
 			return request<T>(endpoint, { method: "PATCH", body, headers });
+		},
+
+		postFormData<T>(endpoint: string, formData: FormData): Promise<T> {
+			return requestFormData<T>(endpoint, formData);
 		},
 	};
 }

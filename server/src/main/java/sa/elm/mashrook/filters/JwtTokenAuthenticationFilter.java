@@ -39,6 +39,8 @@ public class JwtTokenAuthenticationFilter extends OncePerRequestFilter {
             "/v1/auth/reset-password",
             "/v1/auth/check-email",
             "/v1/auth/activate/**",
+            "/v1/campaigns/public",
+            "/v1/campaigns/public/**",
             "/actuator/**"
     );
 

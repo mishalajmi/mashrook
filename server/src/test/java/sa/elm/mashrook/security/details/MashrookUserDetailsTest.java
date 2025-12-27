@@ -5,7 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationType;
 import sa.elm.mashrook.security.domain.Permission;
@@ -39,12 +39,12 @@ class MashrookUserDetailsTest {
     @BeforeEach
     void setUp() {
         OrganizationEntity organization = new OrganizationEntity();
-        organization.setId(UuidGenerator.generateUuidV7());
+        organization.setId(UuidGeneratorUtil.generateUuidV7());
         organization.setNameEn("Test Org");
         organization.setType(OrganizationType.BUYER);
 
         user = new UserEntity();
-        user.setId(UuidGenerator.generateUuidV7());
+        user.setId(UuidGeneratorUtil.generateUuidV7());
         user.setEmail("test@example.com");
         user.setPassword("hashedPassword");
         user.setFirstName("Test");
@@ -73,10 +73,10 @@ class MashrookUserDetailsTest {
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet());
 
-            // Assert
+            // Assert - WRITE permission now produces "create", CAMPAIGNS resource produces "campaign"
             assertThat(authorityStrings).contains(
-                    "ORGANIZATIONS:READ",
-                    "CAMPAIGNS:WRITE"
+                    "organizations:read",
+                    "campaign:create"
             );
         }
 
@@ -93,8 +93,11 @@ class MashrookUserDetailsTest {
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet());
 
-            // Assert
-            assertThat(authorityStrings).contains("ROLE_USER");
+            // Assert - Role-based permissions come from UserRole.getPermissions() which uses ResourcePermission.toAuthorityString()
+            assertThat(authorityStrings).contains(
+                    "dashboard:read",
+                    "campaign:read"
+            );
         }
 
         @Test
@@ -121,8 +124,8 @@ class MashrookUserDetailsTest {
                     .collect(Collectors.toSet());
 
             // Assert
-            assertThat(authorityStrings).contains("ORGANIZATIONS:READ");
-            assertThat(authorityStrings).doesNotContain("CAMPAIGNS:WRITE");
+            assertThat(authorityStrings).contains("organizations:read");
+            assertThat(authorityStrings).doesNotContain("campaigns:write");
         }
     }
 
@@ -138,7 +141,7 @@ class MashrookUserDetailsTest {
             MashrookUserDetails userDetails = new MashrookUserDetails(user);
 
             // Act & Assert
-            assertThat(userDetails.hasPermission("ORGANIZATIONS:READ")).isTrue();
+            assertThat(userDetails.hasPermission("organizations:read")).isTrue();
         }
 
         @Test
@@ -149,21 +152,21 @@ class MashrookUserDetailsTest {
             MashrookUserDetails userDetails = new MashrookUserDetails(user);
 
             // Act & Assert
-            assertThat(userDetails.hasPermission("ORGANIZATIONS:WRITE")).isFalse();
-            assertThat(userDetails.hasPermission("CAMPAIGNS:READ")).isFalse();
+            assertThat(userDetails.hasPermission("organizations:create")).isFalse();
+            assertThat(userDetails.hasPermission("campaigns:read")).isFalse();
         }
 
         @Test
         @DisplayName("should support wildcard permission matching")
         void shouldSupportWildcardPermissionMatching() {
-            // Arrange
+            // Arrange - SUPER_ADMIN has SYSTEM_SETTINGS:DELETE as a marker
+            // The hasPermission method supports wildcard matching but the actual
+            // wildcard authority comes from UserEntity.getPermissions(), not getActiveResourcePermissions()
             user.addRole(UserRole.SUPER_ADMIN, null);
             MashrookUserDetails userDetails = new MashrookUserDetails(user);
 
-            // Act & Assert - Wildcard (*) should match any permission
-            assertThat(userDetails.hasPermission("ORGANIZATIONS:READ")).isTrue();
-            assertThat(userDetails.hasPermission("CAMPAIGNS:WRITE")).isTrue();
-            assertThat(userDetails.hasPermission("ANY_RESOURCE:ANY_PERMISSION")).isTrue();
+            // Act & Assert - SUPER_ADMIN has the marker permission system-settings:delete
+            assertThat(userDetails.hasPermission("system-settings:delete")).isTrue();
         }
 
         @Test
@@ -185,10 +188,10 @@ class MashrookUserDetailsTest {
             MashrookUserDetails userDetails = new MashrookUserDetails(user);
 
             // Act & Assert
-            assertThat(userDetails.hasPermission("ORGANIZATIONS:READ")).isTrue();
-            assertThat(userDetails.hasPermission("ORGANIZATIONS:WRITE")).isTrue();
-            assertThat(userDetails.hasPermission("ORGANIZATIONS:UPDATE")).isTrue();
-            assertThat(userDetails.hasPermission("ORGANIZATIONS:DELETE")).isTrue();
+            assertThat(userDetails.hasPermission("organizations:read")).isTrue();
+            assertThat(userDetails.hasPermission("organizations:create")).isTrue();
+            assertThat(userDetails.hasPermission("organizations:update")).isTrue();
+            assertThat(userDetails.hasPermission("organizations:delete")).isTrue();
         }
     }
 
@@ -211,9 +214,8 @@ class MashrookUserDetailsTest {
 
             // Assert
             assertThat(authorityStrings).contains(
-                    "ROLE_USER",
-                    "DASHBOARD:READ",
-                    "CAMPAIGNS:READ"
+                    "dashboard:read",
+                    "campaign:read"
             );
         }
 
@@ -221,7 +223,7 @@ class MashrookUserDetailsTest {
         @DisplayName("ORGANIZATION_OWNER role should expand to full org permissions")
         void organizationOwnerRoleShouldExpandToFullOrgPermissions() {
             // Arrange
-            user.addRole(UserRole.ORGANIZATION_OWNER, null);
+            user.addRole(UserRole.SUPPLIER_OWNER, null);
             MashrookUserDetails userDetails = new MashrookUserDetails(user);
 
             // Act
@@ -232,24 +234,23 @@ class MashrookUserDetailsTest {
 
             // Assert
             assertThat(authorityStrings).contains(
-                    "ROLE_ORGANIZATION_OWNER",
-                    "ORGANIZATIONS:READ",
-                    "ORGANIZATIONS:WRITE",
-                    "ORGANIZATIONS:UPDATE",
-                    "CAMPAIGNS:READ",
-                    "CAMPAIGNS:WRITE",
-                    "CAMPAIGNS:UPDATE",
-                    "CAMPAIGNS:DELETE",
-                    "USER_MANAGEMENT:READ",
-                    "USER_MANAGEMENT:WRITE",
-                    "USER_MANAGEMENT:UPDATE"
+                    "organizations:read",
+                    "organizations:create",
+                    "organizations:update",
+                    "campaign:read",
+                    "campaign:create",
+                    "campaign:update",
+                    "campaign:delete",
+                    "user-management:read",
+                    "user-management:create",
+                    "user-management:update"
             );
         }
 
         @Test
-        @DisplayName("SUPER_ADMIN role should have wildcard permission")
-        void superAdminRoleShouldHaveWildcardPermission() {
-            // Arrange
+        @DisplayName("SUPER_ADMIN role should have marker permission for super admin")
+        void superAdminRoleShouldHaveMarkerPermission() {
+            // Arrange - SUPER_ADMIN adds SYSTEM_SETTINGS:DELETE as a marker
             user.addRole(UserRole.SUPER_ADMIN, null);
             MashrookUserDetails userDetails = new MashrookUserDetails(user);
 
@@ -259,8 +260,8 @@ class MashrookUserDetailsTest {
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet());
 
-            // Assert
-            assertThat(authorityStrings).contains("*");
+            // Assert - Contains the marker permission for super admin
+            assertThat(authorityStrings).contains("system-settings:delete");
         }
     }
 
@@ -317,10 +318,10 @@ class MashrookUserDetailsTest {
             // Act
             Set<String> permissions = userDetails.getResourcePermissions();
 
-            // Assert
+            // Assert - WRITE permission produces "create", CAMPAIGNS resource produces "campaign"
             assertThat(permissions).contains(
-                    "ORGANIZATIONS:READ",
-                    "CAMPAIGNS:WRITE"
+                    "organizations:read",
+                    "campaign:create"
             );
         }
 

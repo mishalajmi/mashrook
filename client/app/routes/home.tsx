@@ -1,17 +1,21 @@
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import type { MetaDescriptor } from "react-router";
+import { useLoaderData } from "react-router";
 import { useTranslation } from "react-i18next";
 import {
 	Header,
 	Hero,
 	Features,
+	FeaturedCampaigns,
 	HowItWorks,
 	Pricing,
 	Testimonials,
 	CTA,
 	Footer,
 } from "@/components/landing";
+import type { Campaign, CampaignPledgeSummary } from "@/types/campaign";
+import { campaignService, type CampaignSummary } from "@/services/campaign.service";
 
 // SEO and Open Graph metadata
 export function meta(): MetaDescriptor[] {
@@ -64,6 +68,75 @@ export function meta(): MetaDescriptor[] {
 	];
 }
 
+// Loader data type
+interface HomeLoaderData {
+	campaigns: Campaign[];
+	pledgeSummaries: Record<string, CampaignPledgeSummary>;
+}
+
+/**
+ * Transform API response to component-compatible format
+ */
+function transformToCompatibleFormat(
+	campaignSummaries: CampaignSummary[]
+): HomeLoaderData {
+	// Transform campaign summaries to Campaign type
+	const transformedCampaigns: Campaign[] = campaignSummaries.map((c) => ({
+		id: c.id,
+		title: c.title,
+		description: c.description,
+		productDetails: "", // Not included in summary
+		targetQuantity: c.targetQty,
+		startDate: c.startDate,
+		endDate: c.endDate,
+		status: "ACTIVE" as const, // Public endpoint only returns active campaigns
+		supplierId: c.supplierId,
+		createdAt: "",
+		updatedAt: "",
+	}));
+
+	// Create pledge summaries from campaign summary data
+	const transformedSummaries: Record<string, CampaignPledgeSummary> = {};
+	for (const campaign of campaignSummaries) {
+		// Create a synthetic current bracket from the campaign's current price
+		const currentBracket = campaign.currentPrice ? {
+			id: "",
+			campaignId: campaign.id,
+			minQuantity: 0,
+			maxQuantity: null,
+			unitPrice: campaign.currentPrice,
+			bracketOrder: 0,
+		} : null;
+
+		transformedSummaries[campaign.id] = {
+			campaignId: campaign.id,
+			totalPledges: campaign.totalPledged,
+			totalQuantity: campaign.totalPledged,
+			currentBracket,
+			nextBracket: null, // Not available in summary
+			unitsToNextBracket: null, // Not available in summary
+		};
+	}
+
+	return { campaigns: transformedCampaigns, pledgeSummaries: transformedSummaries };
+}
+
+/**
+ * SSR Loader for home page
+ * Fetches featured campaigns data for server-side rendering
+ */
+export async function loader(): Promise<HomeLoaderData> {
+	try {
+		const response = await campaignService.getActiveCampaigns();
+		// Take first 4 campaigns for featured section
+		const campaigns = response.campaigns.slice(0, 4);
+		return transformToCompatibleFormat(campaigns);
+	} catch {
+		// Return empty data on error to allow page to render
+		return { campaigns: [], pledgeSummaries: {} };
+	}
+}
+
 // Helper to detect system preference for dark mode
 function getInitialTheme(): boolean {
 	if (typeof window === "undefined") return false;
@@ -72,6 +145,7 @@ function getInitialTheme(): boolean {
 
 function HomeContent(): ReactNode {
 	const { t } = useTranslation();
+	const { campaigns, pledgeSummaries } = useLoaderData<HomeLoaderData>();
 	const [isDark, setIsDark] = useState(false);
 	const [mounted, setMounted] = useState(false);
 
@@ -128,6 +202,10 @@ function HomeContent(): ReactNode {
 			<main id="main-content" role="main">
 				<Hero />
 				<Features />
+				<FeaturedCampaigns
+					campaigns={campaigns}
+					pledgeSummaries={pledgeSummaries}
+				/>
 				<HowItWorks />
 				<Pricing />
 				<Testimonials />

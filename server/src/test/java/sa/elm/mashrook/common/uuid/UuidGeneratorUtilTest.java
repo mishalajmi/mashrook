@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * - Generated UUIDs are compatible with java.util.UUID
  */
 @DisplayName("UuidGenerator Utility Tests")
-class UuidGeneratorTest {
+class UuidGeneratorUtilTest {
 
     private static final int UUID_VERSION_7 = 7;
     private static final int UUID_VARIANT_RFC_4122 = 2;
@@ -37,7 +38,7 @@ class UuidGeneratorTest {
         @DisplayName("should generate a valid UUID")
         void shouldGenerateValidUuid() {
             // Act
-            UUID uuid = UuidGenerator.generateUuidV7();
+            UUID uuid = UuidGeneratorUtil.generateUuidV7();
 
             // Assert
             assertThat(uuid).isNotNull();
@@ -47,7 +48,7 @@ class UuidGeneratorTest {
         @DisplayName("should generate UUID with version 7")
         void shouldGenerateUuidWithVersion7() {
             // Act
-            UUID uuid = UuidGenerator.generateUuidV7();
+            UUID uuid = UuidGeneratorUtil.generateUuidV7();
 
             // Assert
             assertThat(uuid.version()).isEqualTo(UUID_VERSION_7);
@@ -57,7 +58,7 @@ class UuidGeneratorTest {
         @DisplayName("should generate UUID with RFC 4122 variant")
         void shouldGenerateUuidWithRfc4122Variant() {
             // Act
-            UUID uuid = UuidGenerator.generateUuidV7();
+            UUID uuid = UuidGeneratorUtil.generateUuidV7();
 
             // Assert
             assertThat(uuid.variant()).isEqualTo(UUID_VARIANT_RFC_4122);
@@ -71,7 +72,7 @@ class UuidGeneratorTest {
 
             // Act
             for (int i = 0; i < 1000; i++) {
-                uuids.add(UuidGenerator.generateUuidV7());
+                uuids.add(UuidGeneratorUtil.generateUuidV7());
             }
 
             // Assert
@@ -91,7 +92,7 @@ class UuidGeneratorTest {
 
             // Act - generate UUIDs sequentially
             for (int i = 0; i < 100; i++) {
-                uuids.add(UuidGenerator.generateUuidV7());
+                uuids.add(UuidGeneratorUtil.generateUuidV7());
             }
 
             // Assert - UUIDs should be in ascending order when sorted lexicographically
@@ -117,7 +118,7 @@ class UuidGeneratorTest {
             long beforeMs = System.currentTimeMillis();
 
             // Act
-            UUID uuid = UuidGenerator.generateUuidV7();
+            UUID uuid = UuidGeneratorUtil.generateUuidV7();
 
             // Assert
             long afterMs = System.currentTimeMillis();
@@ -149,7 +150,7 @@ class UuidGeneratorTest {
         @DisplayName("should generate UUID string in standard format")
         void shouldGenerateUuidStringInStandardFormat() {
             // Act
-            String uuidString = UuidGenerator.generateUuidV7String();
+            String uuidString = UuidGeneratorUtil.generateUuidV7String();
 
             // Assert - UUID string format: 8-4-4-4-12 (36 characters including hyphens)
             assertThat(uuidString)
@@ -161,7 +162,7 @@ class UuidGeneratorTest {
         @DisplayName("should be parseable back to UUID")
         void shouldBeParseableBackToUuid() {
             // Act
-            String uuidString = UuidGenerator.generateUuidV7String();
+            String uuidString = UuidGeneratorUtil.generateUuidV7String();
             UUID parsed = UUID.fromString(uuidString);
 
             // Assert
@@ -181,7 +182,7 @@ class UuidGeneratorTest {
             List<UUID> generatedOrder = new ArrayList<>();
 
             for (int i = 0; i < 10; i++) {
-                generatedOrder.add(UuidGenerator.generateUuidV7());
+                generatedOrder.add(UuidGeneratorUtil.generateUuidV7());
             }
 
             // Act - sort UUIDs using natural ordering (how database would sort them)

@@ -48,7 +48,7 @@ server:
 
 logging:
   level:
-    root: debug
+    root: info
     sa:
       elm:
         mashrook:
@@ -69,6 +69,14 @@ springdoc:
   default-produces-media-type: application/json
 
 mashrook:
+  storage:
+    r2:
+      endpoint: ${R2_ENDPOINT:https://your-account-id.r2.cloudflarestorage.com}
+      access-key-id: ${R2_ACCESS_KEY_ID:your-access-key}
+      secret-access-key: ${R2_SECRET_ACCESS_KEY:your-secret-key}
+      bucket-name: ${R2_BUCKET_NAME:mashrook-media}
+      region: ${R2_REGION:auto}
+      presigned-url-expiry-seconds: ${R2_PRESIGNED_URL_EXPIRY_SECONDS:3600}
   auth:
     jwt:
       secret: ${JWT_SECRET_KEY}

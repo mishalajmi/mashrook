@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -35,6 +36,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final MashrookUserDetailsService userDetailsService;
@@ -42,7 +44,7 @@ public class SecurityConfig {
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final PasswordEncoder passwordEncoder;
 
-    private static final List<String> ALLOWED_ORIGINS = List.of("http://localhost:5173");
+    private static final List<String> ALLOWED_ORIGINS = List.of("http://localhost:5173/");
     private static final List<String> ALLOWED_METHODS = List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS");
     private static final List<String> EXPOSED_HEADERS = List.of(HttpHeaders.SET_COOKIE, HttpHeaders.AUTHORIZATION);
     private static final List<String> ALLOWED_HEADERS = List.of(HttpHeaders.AUTHORIZATION,
@@ -83,6 +85,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/activate/**").permitAll()
+                        // Public campaign discovery endpoints
+                        .requestMatchers(HttpMethod.GET, "/v1/campaigns/public/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -145,20 +149,6 @@ public class SecurityConfig {
         return handler;
     }
 
-    /**
-     * Configures CORS settings for cross-origin requests from the frontend.
-     * <p>
-     * This configuration:
-     * <ul>
-     *   <li>Allows requests from configured origins (e.g., <a href="http://localhost:5173">...</a> for Vite dev server)</li>
-     *   <li>Supports credentials for HTTP-only cookie handling (refresh tokens)</li>
-     *   <li>Allows standard HTTP methods: GET, POST, PUT, DELETE, PATCH, OPTIONS</li>
-     *   <li>Exposes Set-Cookie header for the frontend to receive cookies</li>
-     * </ul>
-     * </p>
-     *
-     * @return the CORS configuration source
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

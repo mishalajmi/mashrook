@@ -26,7 +26,7 @@ import sa.elm.mashrook.security.services.JwtService;
 import sa.elm.mashrook.users.UserRepository;
 import sa.elm.mashrook.users.domain.UserEntity;
 import sa.elm.mashrook.users.domain.UserStatus;
-import sa.elm.mashrook.common.uuid.UuidGenerator;
+import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -155,8 +155,8 @@ public abstract class AbstractIntegrationTest {
      */
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-        // PostgreSQL configuration
-        registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
+        // PostgreSQL configuration - add stringtype=unspecified for JSONB column compatibility
+        registry.add("spring.datasource.url", () -> POSTGRES_CONTAINER.getJdbcUrl() + "&stringtype=unspecified");
         registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
         registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
         registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
@@ -166,7 +166,7 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(REDIS_PORT));
 
         // Flyway configuration - use same datasource
-        registry.add("spring.flyway.url", POSTGRES_CONTAINER::getJdbcUrl);
+        registry.add("spring.flyway.url", () -> POSTGRES_CONTAINER.getJdbcUrl() + "&stringtype=unspecified");
         registry.add("spring.flyway.user", POSTGRES_CONTAINER::getUsername);
         registry.add("spring.flyway.password", POSTGRES_CONTAINER::getPassword);
     }
@@ -227,7 +227,7 @@ public abstract class AbstractIntegrationTest {
         OrganizationEntity testOrganization = new OrganizationEntity();
         testOrganization.setNameEn("Test Organization");
         testOrganization.setNameAr("منظمة اختبار");
-        testOrganization.setSlug("test-org-" + UuidGenerator.generateUuidV7String());
+        testOrganization.setSlug("test-org-" + UuidGeneratorUtil.generateUuidV7String());
         testOrganization.setIndustry("Technology");
         testOrganization.setType(OrganizationType.BUYER);
         testOrganization.setStatus(OrganizationStatus.ACTIVE);

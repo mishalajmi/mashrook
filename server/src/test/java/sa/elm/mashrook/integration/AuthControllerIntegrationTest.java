@@ -555,7 +555,7 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
 
             UserEntity supplierUser = createTestUser(org, passwordEncoder.encode(TEST_PASSWORD));
             supplierUser.getAuthorities().clear();
-            supplierUser.addRole(UserRole.ORGANIZATION_OWNER, null);
+            supplierUser.addRole(UserRole.SUPPLIER_OWNER, null);
             userRepository.save(supplierUser);
 
             // Arrange - Login to get access token
@@ -592,7 +592,7 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
             UserEntity ownerUser = createTestUser(org, passwordEncoder.encode(TEST_PASSWORD));
             // Clear existing roles and add ORGANIZATION_OWNER role
             ownerUser.getAuthorities().clear();
-            ownerUser.addRole(UserRole.ORGANIZATION_OWNER, null);
+            ownerUser.addRole(UserRole.BUYER_OWNER, null);
             userRepository.save(ownerUser);
 
             // Arrange - Login to get access token

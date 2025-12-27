@@ -8,6 +8,19 @@ export { LoadingState } from "./loading-state";
 export { DataTable, type Column } from "./data-table";
 
 // shadcn/ui components
+export {
+	AlertDialog,
+	AlertDialogPortal,
+	AlertDialogOverlay,
+	AlertDialogTrigger,
+	AlertDialogContent,
+	AlertDialogHeader,
+	AlertDialogFooter,
+	AlertDialogTitle,
+	AlertDialogDescription,
+	AlertDialogAction,
+	AlertDialogCancel,
+} from "./alert-dialog";
 export { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 export { Badge, badgeVariants } from "./badge";
 export { Button, buttonVariants } from "./button";

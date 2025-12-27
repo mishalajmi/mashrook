@@ -60,7 +60,7 @@ class PermissionTest {
         void shouldFindPermissionByLowercaseValue() {
             // Act & Assert
             assertThat(Permission.fromString("read")).isEqualTo(Permission.READ);
-            assertThat(Permission.fromString("write")).isEqualTo(Permission.WRITE);
+            assertThat(Permission.fromString("create")).isEqualTo(Permission.WRITE);
             assertThat(Permission.fromString("update")).isEqualTo(Permission.UPDATE);
             assertThat(Permission.fromString("delete")).isEqualTo(Permission.DELETE);
         }
@@ -75,7 +75,7 @@ class PermissionTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"invalid", "unknown", "create", "execute", ""})
+        @ValueSource(strings = {"invalid", "unknown", "execute", ""})
         @DisplayName("should throw exception for invalid permission string")
         void shouldThrowExceptionForInvalidPermission(String invalidPermission) {
             // Act & Assert
@@ -94,7 +94,7 @@ class PermissionTest {
         void shouldReturnLowercasePermissionValue() {
             // Act & Assert
             assertThat(Permission.READ.getPermission()).isEqualTo("read");
-            assertThat(Permission.WRITE.getPermission()).isEqualTo("write");
+            assertThat(Permission.WRITE.getPermission()).isEqualTo("create");
             assertThat(Permission.UPDATE.getPermission()).isEqualTo("update");
             assertThat(Permission.DELETE.getPermission()).isEqualTo("delete");
         }
