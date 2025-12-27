@@ -265,7 +265,7 @@ export const campaignService = {
 	 * @throws Error if campaign not found
 	 */
 	async getCampaign(id: string): Promise<CampaignResponse> {
-		return apiClient.get<CampaignResponse>(`/api/campaigns/${id}`);
+		return apiClient.get<CampaignResponse>(`/v1/campaigns/${id}`);
 	},
 
 	/**
@@ -276,7 +276,7 @@ export const campaignService = {
 	 */
 	async listCampaigns(options: ListCampaignsOptions = {}): Promise<CampaignResponse[]> {
 		const queryString = buildQueryString(options);
-		return apiClient.get<CampaignResponse[]>(`/api/campaigns${queryString}`);
+		return apiClient.get<CampaignResponse[]>(`/v1/campaigns${queryString}`);
 	},
 
 	/**
@@ -287,7 +287,7 @@ export const campaignService = {
 	 * @throws Error on validation failure
 	 */
 	async createCampaign(data: CampaignCreateRequest): Promise<CampaignResponse> {
-		return apiClient.post<CampaignResponse>("/api/campaigns", data);
+		return apiClient.post<CampaignResponse>("/v1/campaigns", data);
 	},
 
 	/**
@@ -299,7 +299,7 @@ export const campaignService = {
 	 * @throws Error if campaign not found or not authorized
 	 */
 	async updateCampaign(id: string, data: CampaignUpdateRequest): Promise<CampaignResponse> {
-		return apiClient.put<CampaignResponse>(`/api/campaigns/${id}`, data);
+		return apiClient.put<CampaignResponse>(`/v1/campaigns/${id}`, data);
 	},
 
 	/**
@@ -310,7 +310,7 @@ export const campaignService = {
 	 * @throws Error if campaign not found or not in DRAFT status
 	 */
 	async publishCampaign(id: string): Promise<CampaignResponse> {
-		return apiClient.patch<CampaignResponse>(`/api/campaigns/${id}/publish`);
+		return apiClient.patch<CampaignResponse>(`/v1/campaigns/${id}/publish`);
 	},
 
 	/**
@@ -320,7 +320,7 @@ export const campaignService = {
 	 * @throws Error if campaign not found or not authorized
 	 */
 	async deleteCampaign(id: string): Promise<void> {
-		return apiClient.delete(`/api/campaigns/${id}`);
+		return apiClient.delete(`/v1/campaigns/${id}`);
 	},
 
 	/**
@@ -340,7 +340,7 @@ export const campaignService = {
 			unitPrice: bracket.unitPrice,
 			bracketOrder: bracket.bracketOrder,
 		};
-		return apiClient.post<BracketResponse>("/api/v1/brackets", requestBody);
+		return apiClient.post<BracketResponse>("/v1/brackets", requestBody);
 	},
 
 	/**
@@ -364,7 +364,7 @@ export const campaignService = {
 			unitPrice: bracket.unitPrice,
 			bracketOrder: bracket.bracketOrder,
 		};
-		return apiClient.put<BracketResponse>(`/api/v1/brackets/${bracketId}`, requestBody);
+		return apiClient.put<BracketResponse>(`/v1/brackets/${bracketId}`, requestBody);
 	},
 
 	/**
@@ -376,7 +376,7 @@ export const campaignService = {
 	 */
 	async deleteBracket(campaignId: string, bracketId: string): Promise<void> {
 		// New API uses bracketId in the path only
-		return apiClient.delete(`/api/v1/brackets/${bracketId}`);
+		return apiClient.delete(`/v1/brackets/${bracketId}`);
 	},
 
 	/**
@@ -392,16 +392,16 @@ export const campaignService = {
 		formData.append("order", order.toString());
 
 		return apiClient.postFormData<CampaignMediaResponse>(
-			`/api/campaigns/${campaignId}/media`,
+			`/v1/campaigns/${campaignId}/media`,
 			formData
 		);
 	},
 
 	async deleteMedia(campaignId: string, mediaId: string): Promise<void> {
-		return apiClient.delete(`/api/campaigns/${campaignId}/media/${mediaId}`);
+		return apiClient.delete(`/v1/campaigns/${campaignId}/media/${mediaId}`);
 	},
 
 	async listMedia(campaignId: string): Promise<CampaignMediaResponse[]> {
-		return apiClient.get<CampaignMediaResponse[]>(`/api/campaigns/${campaignId}/media`);
+		return apiClient.get<CampaignMediaResponse[]>(`/v1/campaigns/${campaignId}/media`);
 	},
 };
