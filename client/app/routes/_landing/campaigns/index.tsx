@@ -5,9 +5,11 @@
  * No authentication required.
  */
 
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import type { MetaDescriptor } from "react-router";
+
+import { Header } from "@/components/landing/header";
 
 import {
 	CampaignGrid,
@@ -117,6 +119,27 @@ export default function PublicCampaignsPage(): ReactNode {
 		status: "ACTIVE",
 		search: "",
 	});
+	const [isDark, setIsDark] = useState(false);
+
+	// Initialize theme from document class on mount
+	useEffect(() => {
+		const isDarkMode = document.documentElement.classList.contains("dark");
+		setIsDark(isDarkMode);
+	}, []);
+
+	const handleThemeToggle = useCallback(() => {
+		setIsDark((prev) => {
+			const newValue = !prev;
+			if (newValue) {
+				document.documentElement.classList.add("dark");
+				localStorage.setItem("theme", "dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+				localStorage.setItem("theme", "light");
+			}
+			return newValue;
+		});
+	}, []);
 
 	// Fetch campaigns on mount
 	useEffect(() => {
@@ -149,8 +172,10 @@ export default function PublicCampaignsPage(): ReactNode {
 			data-testid="public-campaigns-page"
 			className="min-h-screen bg-background"
 		>
-			{/* Header Section */}
-			<div className="bg-card border-b border-border">
+			<Header isDark={isDark} onThemeToggle={handleThemeToggle} />
+
+			{/* Page Header Section */}
+			<div className="bg-card border-b border-border pt-16">
 				<div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
 					<div className="text-center">
 						<h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">

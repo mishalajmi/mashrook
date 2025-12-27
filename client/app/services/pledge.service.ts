@@ -182,7 +182,7 @@ export const pledgeService = {
 	): Promise<PledgeListResponse> {
 		const queryString = buildCampaignPledgesQueryString(options);
 		return apiClient.get<PledgeListResponse>(
-			`/v1/campaigns/${campaignId}/pledges${queryString}`
+			`/v1/pledges/campaigns/${campaignId}${queryString}`
 		);
 	},
 };

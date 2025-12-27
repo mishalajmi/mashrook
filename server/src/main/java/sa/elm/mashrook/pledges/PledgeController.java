@@ -42,7 +42,7 @@ public class PledgeController {
 
     @PostMapping("/campaigns/{id}")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('pledge:create')")
+    @PreAuthorize("hasAuthority('pledges:create')")
     public PledgeResponse createPledge(
             @PathVariable UUID id,
             @Valid @RequestBody PledgeCreateRequest request,
@@ -55,7 +55,7 @@ public class PledgeController {
     }
 
     @PutMapping("/{pledgeId}")
-    @PreAuthorize("hasAuthority('pledge:update')")
+    @PreAuthorize("hasAuthority('pledges:update')")
     public PledgeResponse updatePledge(
             @PathVariable UUID pledgeId,
             @Valid @RequestBody PledgeUpdateRequest request,
@@ -65,7 +65,7 @@ public class PledgeController {
 
     @DeleteMapping("/{pledgeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('pledge:delete')")
+    @PreAuthorize("hasAuthority('pledges:delete')")
     public void cancelPledge(
             @PathVariable UUID pledgeId,
             @AuthenticationPrincipal JwtPrincipal principal) {
@@ -73,7 +73,7 @@ public class PledgeController {
     }
 
     @GetMapping("/")
-    @PreAuthorize("hasAuthority('pledge:read')")
+    @PreAuthorize("hasAuthority('pledges:read')")
     public PledgeListResponse getBuyerPledges(
             @RequestParam(required = false) PledgeStatus status,
             @RequestParam(defaultValue = "0") int page,
@@ -84,7 +84,7 @@ public class PledgeController {
     }
 
     @GetMapping("/campaigns/{id}")
-    @PreAuthorize("hasAuthority('pledge:read')")
+    @PreAuthorize("hasAuthority('pledges:read')")
     public PledgeListResponse getCampaignPledges(
             @PathVariable UUID id,
             @RequestParam(defaultValue = "0") int page,

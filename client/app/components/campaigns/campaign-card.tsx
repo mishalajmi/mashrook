@@ -5,11 +5,26 @@
  * Used in campaign lists for both suppliers and buyers.
  */
 
-import type { ReactNode } from "react";
-import { Users, DollarSign, Clock } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Users, DollarSign, Clock, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardFooter, CardHeader, Button } from "@/components/ui";
+import {
+	Card,
+	CardContent,
+	CardFooter,
+	CardHeader,
+	Button,
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui";
 import type { Campaign, CampaignPledgeSummary } from "@/types/campaign";
 import { CampaignStatusBadge } from "./campaign-status-badge";
 import { BracketProgressIndicator } from "./bracket-progress-indicator";
@@ -21,10 +36,16 @@ interface CampaignCardProps {
 	pledgeSummary?: CampaignPledgeSummary;
 	/** Show action buttons (Edit for DRAFT) */
 	showActions?: boolean;
+	/** Whether to show the edit button */
+	canEdit?: boolean;
+	/** Whether to show the delete button */
+	canDelete?: boolean;
 	/** Callback when View Details is clicked */
 	onViewDetails?: (campaign: Campaign) => void;
 	/** Callback when Edit is clicked */
 	onEdit?: (campaign: Campaign) => void;
+	/** Callback when Delete is clicked */
+	onDelete?: (campaign: Campaign) => void;
 	/** Additional class names */
 	className?: string;
 }
@@ -62,14 +83,23 @@ export function CampaignCard({
 	campaign,
 	pledgeSummary,
 	showActions = false,
+	canEdit = false,
+	canDelete = false,
 	onViewDetails,
 	onEdit,
+	onDelete,
 	className,
 }: CampaignCardProps): ReactNode {
+	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 	const daysRemaining = calculateDaysRemaining(campaign.endDate);
 	const totalPledges = pledgeSummary?.totalPledges ?? 0;
 	const currentPrice = pledgeSummary?.currentBracket?.unitPrice;
 	const isDraft = campaign.status === "DRAFT";
+
+	const handleDeleteConfirm = () => {
+		setIsDeleteDialogOpen(false);
+		onDelete?.(campaign);
+	};
 
 	return (
 		<Card
@@ -147,7 +177,7 @@ export function CampaignCard({
 				>
 					View Details
 				</Button>
-				{showActions && isDraft && (
+				{showActions && isDraft && canEdit && (
 					<Button
 						variant="secondary"
 						className="flex-1"
@@ -155,6 +185,36 @@ export function CampaignCard({
 					>
 						Edit
 					</Button>
+				)}
+				{showActions && canDelete && (
+					<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+						<AlertDialogTrigger asChild>
+							<Button
+								variant="destructive"
+								size="icon"
+								aria-label="Delete campaign"
+							>
+								<Trash2 className="h-4 w-4" />
+							</Button>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+								<AlertDialogDescription>
+									Are you sure you want to delete "{campaign.title}"? This action cannot be undone.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<AlertDialogAction
+									onClick={handleDeleteConfirm}
+									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+								>
+									Delete
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
 				)}
 			</CardFooter>
 		</Card>

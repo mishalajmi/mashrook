@@ -83,12 +83,23 @@ const sizeStyles: Record<BadgeSize, string> = {
  * - Size variants
  * - Dark mode support
  */
+/**
+ * Default fallback config for unknown status values
+ */
+const fallbackConfig: StatusConfig = {
+	label: "Unknown",
+	styles: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+	showDot: false,
+	dotStyles: "",
+	animated: false,
+};
+
 export function CampaignStatusBadge({
 	status,
 	size = "md",
 	className,
 }: CampaignStatusBadgeProps): ReactNode {
-	const config = statusConfig[status];
+	const config = statusConfig[status] ?? fallbackConfig;
 
 	return (
 		<span

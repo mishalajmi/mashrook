@@ -5,7 +5,7 @@
  * Supports responsive behavior, RTL, and dark/light mode.
  */
 
-import { type ReactNode, useState, useCallback } from "react";
+import { type ReactNode, useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
 	Menu,
@@ -39,6 +39,7 @@ import {
 	SheetDescription,
 } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 import { SidebarNav } from "./sidebar-nav";
 import {type DecodedTokenPayload, decodeToken, getAccessToken} from "@/lib/jwt";
@@ -57,6 +58,55 @@ export function DashboardLayout({ children }: DashboardLayoutProps): ReactNode {
 
 	const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 	const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+	const [isDark, setIsDark] = useState(() => {
+		// Initialize from localStorage or document class on initial render
+		if (typeof window !== "undefined") {
+			const storedTheme = localStorage.getItem("theme");
+			if (storedTheme) {
+				return storedTheme === "dark";
+			}
+			return document.documentElement.classList.contains("dark");
+		}
+		return false;
+	});
+
+	// Initialize theme from localStorage on mount and apply to document
+	useEffect(() => {
+		const storedTheme = localStorage.getItem("theme");
+		if (storedTheme) {
+			// Apply stored theme preference
+			const shouldBeDark = storedTheme === "dark";
+			if (shouldBeDark) {
+				document.documentElement.classList.add("dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+			}
+			setIsDark(shouldBeDark);
+		} else {
+			// No stored preference, check system preference
+			const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+			if (prefersDark) {
+				document.documentElement.classList.add("dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+			}
+			setIsDark(prefersDark);
+		}
+	}, []);
+
+	const handleThemeToggle = useCallback(() => {
+		setIsDark((prev) => {
+			const newValue = !prev;
+			if (newValue) {
+				document.documentElement.classList.add("dark");
+				localStorage.setItem("theme", "dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+				localStorage.setItem("theme", "light");
+			}
+			return newValue;
+		});
+	}, []);
 
 	const toggleSidebar = useCallback(() => {
 		setIsSidebarExpanded((prev) => !prev);
@@ -92,7 +142,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps): ReactNode {
 				data-expanded={isSidebarExpanded ? "true" : "false"}
 				className={cn(
 					"fixed top-0 z-40 hidden h-screen flex-col border-e border-sidebar-border bg-sidebar transition-all duration-300 lg:flex",
-					isRtl ? "end-0" : "start-0",
+					isRtl ? "right-0" : "left-0",
 					isSidebarExpanded ? "w-[280px]" : "w-16"
 				)}
 			>
@@ -167,8 +217,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps): ReactNode {
 			<div
 				className={cn(
 					"flex min-h-screen flex-col transition-all duration-300",
-					"lg:ps-[280px]",
-					!isSidebarExpanded && "lg:ps-16"
+					isRtl ? "lg:pr-[280px]" : "lg:pl-[280px]",
+					!isSidebarExpanded && (isRtl ? "lg:pr-16" : "lg:pl-16")
 				)}
 			>
 				{/* Topbar */}
@@ -209,9 +259,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps): ReactNode {
 							<Search className="h-5 w-5" />
 						</Button>
 
+						{/* Language Switcher */}
+						<LanguageSwitcher />
+
 						{/* Theme Toggle */}
 						<div data-testid="topbar-theme-toggle">
-							<ThemeToggle />
+							<ThemeToggle isDark={isDark} onToggle={handleThemeToggle} />
 						</div>
 
 						{/* Notifications */}

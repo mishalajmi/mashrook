@@ -6,7 +6,7 @@
  */
 
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +16,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/i18n/language-context";
 import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
+import { Header } from "@/components/landing/header";
 import {
 	Button,
 	Card,
@@ -46,6 +47,27 @@ export default function LoginPage(): ReactNode {
 	const [showPassword, setShowPassword] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [isDark, setIsDark] = useState(false);
+
+	// Initialize theme from document class on mount
+	useEffect(() => {
+		const isDarkMode = document.documentElement.classList.contains("dark");
+		setIsDark(isDarkMode);
+	}, []);
+
+	const handleThemeToggle = useCallback(() => {
+		setIsDark((prev) => {
+			const newValue = !prev;
+			if (newValue) {
+				document.documentElement.classList.add("dark");
+				localStorage.setItem("theme", "dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+				localStorage.setItem("theme", "light");
+			}
+			return newValue;
+		});
+	}, []);
 
 	const form = useForm<LoginFormData>({
 		resolver: zodResolver(loginSchema),
@@ -75,9 +97,11 @@ export default function LoginPage(): ReactNode {
 
 	return (
 		<div
-			className="min-h-screen flex items-center justify-center bg-background px-4 py-12"
+			className="min-h-screen flex flex-col bg-background"
 			dir={isRtl ? "rtl" : "ltr"}
 		>
+			<Header isDark={isDark} onThemeToggle={handleThemeToggle} />
+			<div className="flex-1 flex items-center justify-center px-4 py-12 pt-24">
 			<Card className="w-full max-w-md">
 				<CardHeader className="space-y-1 text-center">
 					<CardTitle className="text-2xl font-bold">
@@ -187,6 +211,7 @@ export default function LoginPage(): ReactNode {
 					</div>
 				</CardFooter>
 			</Card>
+			</div>
 		</div>
 	);
 }

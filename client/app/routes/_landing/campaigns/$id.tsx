@@ -12,6 +12,8 @@ import type { MetaDescriptor } from "react-router";
 import { ArrowLeft, Calendar, Package, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { Header } from "@/components/landing/header";
+
 import {
 	Button,
 	Card,
@@ -154,6 +156,29 @@ export default function PublicCampaignDetailPage(): ReactNode {
 	// State for pledge submission
 	const [isSubmittingPledge, setIsSubmittingPledge] = useState(false);
 
+	// Theme state
+	const [isDark, setIsDark] = useState(false);
+
+	// Initialize theme from document class on mount
+	useEffect(() => {
+		const isDarkMode = document.documentElement.classList.contains("dark");
+		setIsDark(isDarkMode);
+	}, []);
+
+	const handleThemeToggle = useCallback(() => {
+		setIsDark((prev) => {
+			const newValue = !prev;
+			if (newValue) {
+				document.documentElement.classList.add("dark");
+				localStorage.setItem("theme", "dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+				localStorage.setItem("theme", "light");
+			}
+			return newValue;
+		});
+	}, []);
+
 	// Fetch campaign data (public endpoint - no auth required)
 	const fetchCampaign = useCallback(async () => {
 		if (!id) return;
@@ -288,9 +313,12 @@ export default function PublicCampaignDetailPage(): ReactNode {
 		return (
 			<div
 				data-testid="public-campaign-detail"
-				className="min-h-screen bg-background flex items-center justify-center"
+				className="min-h-screen bg-background"
 			>
-				<LoadingState message="Loading campaign..." />
+				<Header isDark={isDark} onThemeToggle={handleThemeToggle} />
+				<div className="flex items-center justify-center pt-24 min-h-[calc(100vh-4rem)]">
+					<LoadingState message="Loading campaign..." />
+				</div>
 			</div>
 		);
 	}
@@ -302,7 +330,8 @@ export default function PublicCampaignDetailPage(): ReactNode {
 				data-testid="public-campaign-detail"
 				className="min-h-screen bg-background"
 			>
-				<div className="bg-card border-b border-border">
+				<Header isDark={isDark} onThemeToggle={handleThemeToggle} />
+				<div className="bg-card border-b border-border pt-16">
 					<div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 						<Link
 							to="/campaigns"
@@ -348,8 +377,10 @@ export default function PublicCampaignDetailPage(): ReactNode {
 			data-testid="public-campaign-detail"
 			className="min-h-screen bg-background"
 		>
-			{/* Header */}
-			<div className="bg-card border-b border-border">
+			<Header isDark={isDark} onThemeToggle={handleThemeToggle} />
+
+			{/* Back Navigation */}
+			<div className="bg-card border-b border-border pt-16">
 				<div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 					<Link
 						to="/campaigns"

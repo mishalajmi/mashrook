@@ -19,6 +19,7 @@ import type {
 	CampaignFilters as CampaignFiltersType,
 } from "@/types/campaign";
 import { campaignService, type CampaignResponse } from "@/services/campaign.service";
+import { getAccessToken, decodeToken } from "@/lib/jwt";
 
 /**
  * Transform API response to component-compatible format
@@ -137,6 +138,44 @@ export default function CampaignsPage(): ReactNode {
 		navigate(`/dashboard/campaigns/${campaign.id}?edit=true`);
 	};
 
+	const handleDelete = async (campaign: Campaign) => {
+		try {
+			await campaignService.deleteCampaign(campaign.id);
+			setCampaigns((prev) => prev.filter((c) => c.id !== campaign.id));
+		} catch {
+			setError("Failed to delete campaign");
+		}
+	};
+
+	// Check user authorities from JWT token
+	const token = getAccessToken();
+	const decodedToken = token ? decodeToken(token) : null;
+	const authorities = decodedToken?.authorities ?? [];
+
+	// Debug: Log authorities to understand the format
+	console.log("JWT authorities:", authorities);
+
+	// Check if authorities are strings in format "resource:permission"
+	// Note: JWT uses plural "campaigns:update" not "campaign:update"
+	const canEdit = authorities.some((auth: unknown) => {
+		if (typeof auth === "string") {
+			return auth === "campaigns:update";
+		}
+		if (auth && typeof auth === "object" && "authority" in auth) {
+			return (auth as { authority: string }).authority === "campaigns:update";
+		}
+		return false;
+	});
+	const canDelete = authorities.some((auth: unknown) => {
+		if (typeof auth === "string") {
+			return auth === "campaigns:delete";
+		}
+		if (auth && typeof auth === "object" && "authority" in auth) {
+			return (auth as { authority: string }).authority === "campaigns:delete";
+		}
+		return false;
+	});
+
 	return (
 		<div className="flex flex-col gap-6 p-6">
 			{/* Header */}
@@ -184,8 +223,11 @@ export default function CampaignsPage(): ReactNode {
 							campaign={campaign}
 							pledgeSummary={pledgeSummaries[campaign.id]}
 							showActions
+							canEdit={canEdit}
+							canDelete={canDelete}
 							onViewDetails={handleViewDetails}
 							onEdit={handleEdit}
+							onDelete={handleDelete}
 						/>
 					))}
 				</div>

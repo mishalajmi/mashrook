@@ -6,7 +6,7 @@
  */
 
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ArrowRight, Megaphone } from "lucide-react";
 
 import { Badge, Button } from "@/components/ui";
@@ -33,7 +33,12 @@ function FeaturedCampaigns({
 	campaigns,
 	pledgeSummaries,
 }: FeaturedCampaignsProps): ReactNode {
+	const navigate = useNavigate();
 	const isEmpty = campaigns.length === 0;
+
+	const handleViewDetails = (campaign: Campaign) => {
+		navigate(`/campaigns/${campaign.id}`);
+	};
 
 	return (
 		<section
@@ -96,6 +101,7 @@ function FeaturedCampaigns({
 									<CampaignCard
 										campaign={campaign}
 										pledgeSummary={pledgeSummaries[campaign.id]}
+										onViewDetails={handleViewDetails}
 									/>
 								</div>
 							))}
