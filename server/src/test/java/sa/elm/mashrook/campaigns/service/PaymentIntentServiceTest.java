@@ -281,15 +281,15 @@ class PaymentIntentServiceTest {
         }
 
         @Test
-        @DisplayName("should throw InvalidPaymentStatusTransitionException for invalid transition from PENDING to SUCCEEDED")
-        void shouldThrowInvalidPaymentStatusTransitionExceptionForInvalidTransitionFromPendingToSucceeded() {
+        @DisplayName("should throw InvalidPaymentStatusTransitionException for invalid transition from PENDING to FAILED_RETRY_1")
+        void shouldThrowInvalidPaymentStatusTransitionExceptionForInvalidTransitionFromPendingToFailedRetry1() {
             UUID paymentIntentId = UuidGeneratorUtil.generateUuidV7();
             PaymentIntentEntity paymentIntent = createPaymentIntent(paymentIntentId, PaymentIntentStatus.PENDING);
 
             when(paymentIntentRepository.findById(paymentIntentId)).thenReturn(Optional.of(paymentIntent));
 
             assertThatThrownBy(() -> paymentIntentService.updatePaymentStatus(
-                    paymentIntentId, PaymentIntentStatus.SUCCEEDED))
+                    paymentIntentId, PaymentIntentStatus.FAILED_RETRY_1))
                     .isInstanceOf(InvalidPaymentStatusTransitionException.class);
         }
 
@@ -458,7 +458,7 @@ class PaymentIntentServiceTest {
             PaymentIntentEntity intent1 = createPaymentIntent(UuidGeneratorUtil.generateUuidV7(), PaymentIntentStatus.PENDING);
             PaymentIntentEntity intent2 = createPaymentIntent(UuidGeneratorUtil.generateUuidV7(), PaymentIntentStatus.PENDING);
 
-            when(paymentIntentRepository.findAllByCampaignIdAndStatus(campaignId, PaymentIntentStatus.PENDING))
+            when(paymentIntentRepository.findAllByCampaign_IdAndStatus(campaignId, PaymentIntentStatus.PENDING))
                     .thenReturn(List.of(intent1, intent2));
 
             List<PaymentIntentEntity> result = paymentIntentService.getPaymentIntentsByStatus(
@@ -473,7 +473,7 @@ class PaymentIntentServiceTest {
         void shouldReturnEmptyListWhenNoPaymentIntentsMatchStatus() {
             UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
-            when(paymentIntentRepository.findAllByCampaignIdAndStatus(campaignId, PaymentIntentStatus.SUCCEEDED))
+            when(paymentIntentRepository.findAllByCampaign_IdAndStatus(campaignId, PaymentIntentStatus.SUCCEEDED))
                     .thenReturn(Collections.emptyList());
 
             List<PaymentIntentEntity> result = paymentIntentService.getPaymentIntentsByStatus(
@@ -664,10 +664,13 @@ class PaymentIntentServiceTest {
         OrganizationEntity org = new OrganizationEntity();
         org.setId(UuidGeneratorUtil.generateUuidV7());
 
+        PledgeEntity pledge = new PledgeEntity();
+        pledge.setId(UuidGeneratorUtil.generateUuidV7());
+
         PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
         paymentIntent.setId(id);
         paymentIntent.setCampaign(campaign);
-        paymentIntent.setPledgeId(UuidGeneratorUtil.generateUuidV7());
+        paymentIntent.setPledge(pledge);
         paymentIntent.setBuyerOrg(org);
         paymentIntent.setAmount(new BigDecimal("100.00"));
         paymentIntent.setStatus(status);

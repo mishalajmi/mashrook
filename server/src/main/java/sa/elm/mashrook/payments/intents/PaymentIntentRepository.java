@@ -10,13 +10,15 @@ import java.util.UUID;
 
 public interface PaymentIntentRepository extends JpaRepository<PaymentIntentEntity, UUID> {
 
-    Optional<PaymentIntentEntity> findByPledgeId(UUID pledgeId);
+    Optional<PaymentIntentEntity> findByPledge_Id(UUID pledgeId);
 
-    List<PaymentIntentEntity> findAllByCampaignId(UUID campaignId);
+    List<PaymentIntentEntity> findAllByCampaign_Id(UUID campaignId);
 
-    List<PaymentIntentEntity> findAllByBuyerOrgId(UUID buyerOrgId);
+    List<PaymentIntentEntity> findAllByBuyerOrg_Id(UUID buyerOrgId);
 
-    List<PaymentIntentEntity> findAllByCampaignIdAndStatus(UUID campaignId, PaymentIntentStatus status);
+    List<PaymentIntentEntity> findAllByCampaign_IdAndStatus(UUID campaignId, PaymentIntentStatus status);
 
     List<PaymentIntentEntity> findAllByStatus(PaymentIntentStatus status);
+
+    List<PaymentIntentEntity> findAllByStatusAndRetryCountLessThan(PaymentIntentStatus status, int maxRetryCount);
 }

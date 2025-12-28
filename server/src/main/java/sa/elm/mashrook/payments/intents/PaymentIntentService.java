@@ -35,7 +35,8 @@ public class PaymentIntentService {
     private static final int MAX_RETRIES = 3;
 
     private static final Map<PaymentIntentStatus, Set<PaymentIntentStatus>> VALID_TRANSITIONS = Map.of(
-            PaymentIntentStatus.PENDING, Set.of(PaymentIntentStatus.PROCESSING),
+            // PENDING can go to PROCESSING (auto) or SUCCEEDED (manual invoice payment)
+            PaymentIntentStatus.PENDING, Set.of(PaymentIntentStatus.PROCESSING, PaymentIntentStatus.SUCCEEDED),
             PaymentIntentStatus.PROCESSING, Set.of(
                     PaymentIntentStatus.SUCCEEDED,
                     PaymentIntentStatus.FAILED_RETRY_1,
@@ -116,7 +117,7 @@ public class PaymentIntentService {
     }
 
     public List<PaymentIntentEntity> getPaymentIntentsByStatus(UUID campaignId, PaymentIntentStatus status) {
-        return paymentIntentRepository.findAllByCampaignIdAndStatus(campaignId, status);
+        return paymentIntentRepository.findAllByCampaign_IdAndStatus(campaignId, status);
     }
 
     @Transactional
@@ -142,7 +143,7 @@ public class PaymentIntentService {
     private PaymentIntentEntity createPaymentIntent(PledgeEntity pledge, DiscountBracketEntity finalBracket) {
         PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
         paymentIntent.setCampaign(pledge.getCampaign());
-        paymentIntent.setPledgeId(pledge.getId());
+        paymentIntent.setPledge(pledge);
         paymentIntent.setBuyerOrg(pledge.getOrganization());
         paymentIntent.setAmount(calculatePaymentAmount(pledge, finalBracket));
         paymentIntent.setStatus(PaymentIntentStatus.PENDING);
@@ -176,6 +177,10 @@ public class PaymentIntentService {
     }
 
     public List<PaymentIntentEntity> findAllByCampaignId(UUID campaignId) {
-        return paymentIntentRepository.findAllByCampaignId(campaignId);
+        return paymentIntentRepository.findAllByCampaign_Id(campaignId);
+    }
+
+    public java.util.Optional<PaymentIntentEntity> findByPledgeId(UUID pledgeId) {
+        return paymentIntentRepository.findByPledge_Id(pledgeId);
     }
 }

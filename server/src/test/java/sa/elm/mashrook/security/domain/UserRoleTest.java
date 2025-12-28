@@ -31,6 +31,7 @@ class UserRoleTest {
                     UserRole.USER,
                     UserRole.ADMIN,
                     UserRole.SUPER_ADMIN,
+                    UserRole.BUYER_OWNER,
                     UserRole.SUPPLIER_OWNER
             );
         }
@@ -111,8 +112,8 @@ class UserRoleTest {
         }
 
         @Test
-        @DisplayName("ORGANIZATION_OWNER should have user management permissions")
-        void organizationOwnerShouldHaveUserManagementPermissions() {
+        @DisplayName("ORGANIZATION_OWNER should have team management permissions")
+        void organizationOwnerShouldHaveTeamManagementPermissions() {
             // Arrange
             UserRole role = UserRole.SUPPLIER_OWNER;
 
@@ -121,9 +122,9 @@ class UserRoleTest {
 
             // Assert
             assertThat(permissions).contains(
-                    ResourcePermission.of(Resource.USER_MANAGEMENT, Permission.READ),
-                    ResourcePermission.of(Resource.USER_MANAGEMENT, Permission.WRITE),
-                    ResourcePermission.of(Resource.USER_MANAGEMENT, Permission.UPDATE)
+                    ResourcePermission.of(Resource.TEAM, Permission.READ),
+                    ResourcePermission.of(Resource.TEAM, Permission.WRITE),
+                    ResourcePermission.of(Resource.TEAM, Permission.UPDATE)
             );
         }
 
@@ -260,7 +261,7 @@ class UserRoleTest {
             // Assert
             assertThat(permissionStrings).contains(
                     "dashboard:read",
-                    "campaign:read"
+                    "campaigns:read"
             );
         }
 

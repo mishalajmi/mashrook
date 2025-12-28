@@ -83,6 +83,7 @@ public enum UserRole {
             ResourcePermission.of(Resource.ORDERS, Permission.UPDATE),
             // Analytics
             ResourcePermission.of(Resource.ANALYTICS, Permission.READ),
+            ResourcePermission.of(Resource.CAMPAIGNS, Permission.READ),
             // Settings
             ResourcePermission.of(Resource.SETTINGS, Permission.READ),
             ResourcePermission.of(Resource.SETTINGS, Permission.UPDATE)
@@ -120,6 +121,7 @@ public enum UserRole {
             ResourcePermission.of(Resource.ORDERS, Permission.UPDATE),
             // Analytics
             ResourcePermission.of(Resource.ANALYTICS, Permission.READ),
+            ResourcePermission.of(Resource.PLEDGES, Permission.READ),
             // Settings
             ResourcePermission.of(Resource.SETTINGS, Permission.READ),
             ResourcePermission.of(Resource.SETTINGS, Permission.UPDATE)

@@ -21,6 +21,7 @@ import sa.elm.mashrook.pledges.dto.PledgeResponse;
 import sa.elm.mashrook.pledges.dto.PledgeUpdateRequest;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -34,7 +35,7 @@ public class PledgeService {
     public PledgeResponse createPledge(CampaignEntity campaign,
                                        OrganizationEntity buyerOrg,
                                        PledgeCreateRequest request) {
-        validateCampaignIsActive(campaign);
+        validateCampaignAcceptsPledges(campaign);
         validateNoDuplicatePledge(campaign.getId(), buyerOrg.getId());
 
         PledgeEntity pledge = new PledgeEntity();
@@ -52,7 +53,7 @@ public class PledgeService {
         PledgeEntity pledge = findPledgeOrThrow(pledgeId);
         validatePledgeOwnership(pledge, buyerOrgId);
 
-        validateCampaignIsActive(pledge.getCampaign());
+        validateCampaignAcceptsPledges(pledge.getCampaign());
 
         pledge.setQuantity(request.quantity());
         PledgeEntity saved = pledgeRepository.save(pledge);
@@ -65,7 +66,7 @@ public class PledgeService {
         validatePledgeOwnership(pledge, buyerOrgId);
 
 
-        validateCampaignIsActive(pledge.getCampaign());
+        validateCampaignAcceptsPledges(pledge.getCampaign());
 
         pledge.setStatus(PledgeStatus.WITHDRAWN);
         pledgeRepository.save(pledge);
@@ -103,10 +104,11 @@ public class PledgeService {
                         String.format("Pledge with id %s not found", pledgeId)));
     }
 
-    private void validateCampaignIsActive(CampaignEntity campaign) {
-        if (campaign.getStatus() != CampaignStatus.ACTIVE) {
+    private void validateCampaignAcceptsPledges(CampaignEntity campaign) {
+        Set<CampaignStatus> pledgeAllowedStatuses = Set.of(CampaignStatus.ACTIVE, CampaignStatus.GRACE_PERIOD);
+        if (!pledgeAllowedStatuses.contains(campaign.getStatus())) {
             throw new InvalidCampaignStateException(
-                    String.format("Campaign %s is not active. Current status: %s",
+                    String.format("Campaign %s is not accepting pledges. Current status: %s",
                             campaign.getId(), campaign.getStatus()));
         }
     }
