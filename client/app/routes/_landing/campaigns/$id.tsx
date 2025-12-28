@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useParams, useNavigate } from "react-router";
 import type { MetaDescriptor } from "react-router";
-import { ArrowLeft, Calendar, Package, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Package, Loader2, Clock, Info } from "lucide-react";
 import { toast } from "sonner";
 
 import { Header } from "@/components/landing/header";
@@ -62,6 +62,21 @@ function formatDate(dateString: string): string {
 		month: "long",
 		day: "numeric",
 		year: "numeric",
+	});
+}
+
+/**
+ * Format date with time for display (used for lock date)
+ */
+function formatDateWithTime(dateString: string): string {
+	return new Date(dateString).toLocaleDateString("en-US", {
+		weekday: "long",
+		month: "long",
+		day: "numeric",
+		year: "numeric",
+		hour: "numeric",
+		minute: "2-digit",
+		hour12: true,
 	});
 }
 
@@ -355,6 +370,14 @@ export default function PublicCampaignDetailPage(): ReactNode {
 	// Convert API brackets to UI type
 	const brackets: DiscountBracket[] = campaign.brackets.map(toBracket);
 
+	// Determine if campaign is in grace period
+	const isGracePeriod = campaign.status === "GRACE_PERIOD";
+
+	// For grace period, use gracePeriodEndDate for countdown
+	const countdownEndDate = isGracePeriod && campaign.gracePeriodEndDate
+		? campaign.gracePeriodEndDate
+		: campaign.endDate;
+
 	// Calculate pledge summary (use bracket progress for public data, fall back to pledges for authenticated)
 	const pledgeSummary: CampaignPledgeSummary = bracketProgress
 		? {
@@ -371,6 +394,9 @@ export default function PublicCampaignDetailPage(): ReactNode {
 		  }
 		: calculatePledgeSummary(campaign.id, brackets, pledges);
 	const currentPrice = pledgeSummary.currentBracket?.unitPrice ?? brackets[0]?.unitPrice ?? "0";
+
+	// Check if pledging is allowed (ACTIVE or GRACE_PERIOD)
+	const canPledge = campaign.status === "ACTIVE" || campaign.status === "GRACE_PERIOD";
 
 	return (
 		<div
@@ -391,6 +417,33 @@ export default function PublicCampaignDetailPage(): ReactNode {
 					</Link>
 				</div>
 			</div>
+
+			{/* Grace Period Banner */}
+			{isGracePeriod && (
+				<div
+					data-testid="grace-period-banner"
+					className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800"
+				>
+					<div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+						<div className="flex items-center gap-3">
+							<Clock className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+							<div className="flex-1">
+								<p className="font-medium text-amber-800 dark:text-amber-200">
+									Final Commitment Window - Campaign locks soon
+								</p>
+								<p className="text-sm text-amber-700 dark:text-amber-300">
+									The pledge period has ended. New commitments accepted until final lock.
+								</p>
+								{campaign.gracePeriodEndDate && (
+									<p className="text-sm font-semibold text-amber-800 dark:text-amber-200 mt-1">
+										Locks on: {formatDateWithTime(campaign.gracePeriodEndDate)}
+									</p>
+								)}
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 
 			{/* Main Content */}
 			<div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -413,14 +466,41 @@ export default function PublicCampaignDetailPage(): ReactNode {
 						</div>
 
 						{/* Countdown Timer */}
-						<Card>
+						<Card className={isGracePeriod ? "border-amber-400 dark:border-amber-500" : ""}>
 							<CardHeader>
-								<CardTitle className="text-lg">Time Remaining</CardTitle>
+								<CardTitle className="text-lg">
+									{isGracePeriod ? "Grace Period Ends In" : "Time Remaining"}
+								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<CountdownTimer endDate={campaign.endDate} />
+								<CountdownTimer
+									endDate={countdownEndDate}
+									isGracePeriod={isGracePeriod}
+								/>
 							</CardContent>
 						</Card>
+
+						{/* What happens when locked - shown only during grace period */}
+						{isGracePeriod && (
+							<Card data-testid="lock-info-box" className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+								<CardContent className="pt-6">
+									<div className="flex gap-3">
+										<Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+										<div className="space-y-2">
+											<p className="font-medium text-blue-900 dark:text-blue-100">
+												What happens when the campaign locks?
+											</p>
+											<ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+												<li>Final pricing is confirmed based on total pledged quantity</li>
+												<li>Invoices are generated for all committed participants</li>
+												<li>Payment collection begins for confirmed orders</li>
+												<li>No new pledges can be accepted after lock</li>
+											</ul>
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						)}
 
 						{/* Product Details */}
 						<Card>
@@ -516,65 +596,73 @@ export default function PublicCampaignDetailPage(): ReactNode {
 							<CardContent className="pt-6">
 								{!isAuthLoading && (
 									<>
-										{isAuthenticated ? (
-											<div className="space-y-4">
-												{userPledge ? (
-													<>
-														<div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-															<p className="text-sm text-center text-muted-foreground">
-																You have pledged{" "}
-																<span className="font-semibold text-foreground">
-																	{userPledge.quantity} units
-																</span>
-															</p>
-														</div>
+										{canPledge ? (
+											isAuthenticated ? (
+												<div className="space-y-4">
+													{userPledge ? (
+														<>
+															<div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+																<p className="text-sm text-center text-muted-foreground">
+																	You have pledged{" "}
+																	<span className="font-semibold text-foreground">
+																		{userPledge.quantity} units
+																	</span>
+																</p>
+															</div>
+															<PledgeForm
+																unitPrice={currentPrice}
+																minQuantity={1}
+																maxQuantity={campaign.targetQuantity}
+																initialQuantity={userPledge.quantity}
+																isSubmitting={isSubmittingPledge}
+																submitButtonText="Update Pledge"
+																onSubmit={handlePledgeSubmit}
+															/>
+															<Button
+																variant="outline"
+																className="w-full text-destructive hover:text-destructive"
+																onClick={handleCancelPledge}
+																disabled={isSubmittingPledge}
+															>
+																{isSubmittingPledge ? (
+																	<>
+																		<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+																		Cancelling...
+																	</>
+																) : (
+																	"Cancel Pledge"
+																)}
+															</Button>
+														</>
+													) : (
 														<PledgeForm
 															unitPrice={currentPrice}
 															minQuantity={1}
 															maxQuantity={campaign.targetQuantity}
-															initialQuantity={userPledge.quantity}
 															isSubmitting={isSubmittingPledge}
-															submitButtonText="Update Pledge"
 															onSubmit={handlePledgeSubmit}
 														/>
-														<Button
-															variant="outline"
-															className="w-full text-destructive hover:text-destructive"
-															onClick={handleCancelPledge}
-															disabled={isSubmittingPledge}
-														>
-															{isSubmittingPledge ? (
-																<>
-																	<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-																	Cancelling...
-																</>
-															) : (
-																"Cancel Pledge"
-															)}
-														</Button>
-													</>
-												) : (
-													<PledgeForm
-														unitPrice={currentPrice}
-														minQuantity={1}
-														maxQuantity={campaign.targetQuantity}
-														isSubmitting={isSubmittingPledge}
-														onSubmit={handlePledgeSubmit}
-													/>
-												)}
-											</div>
+													)}
+												</div>
+											) : (
+												<div className="space-y-4">
+													<p className="text-center text-muted-foreground">
+														Sign in to join this campaign
+													</p>
+													<Button
+														className="w-full bg-[#0F766E] hover:bg-[#0D6660]"
+														size="lg"
+														onClick={handleSignInClick}
+													>
+														Join Campaign - Sign In
+													</Button>
+												</div>
+											)
 										) : (
 											<div className="space-y-4">
 												<p className="text-center text-muted-foreground">
-													Sign in to join this campaign
+													This campaign is no longer accepting pledges.
 												</p>
-												<Button
-													className="w-full bg-[#0F766E] hover:bg-[#0D6660]"
-													size="lg"
-													onClick={handleSignInClick}
-												>
-													Join Campaign - Sign In
-												</Button>
 											</div>
 										)}
 									</>

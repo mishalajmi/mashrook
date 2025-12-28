@@ -176,7 +176,7 @@ describe("CampaignCard", () => {
 			expect(handleViewDetails).toHaveBeenCalledWith(mockCampaign);
 		});
 
-		it("should show Edit action for DRAFT campaigns when showActions is true", () => {
+		it("should show Edit action for DRAFT campaigns when showActions and canEdit are true", () => {
 			const draftCampaign = { ...mockCampaign, status: "DRAFT" as const };
 
 			render(
@@ -184,6 +184,7 @@ describe("CampaignCard", () => {
 					campaign={draftCampaign}
 					pledgeSummary={mockPledgeSummary}
 					showActions
+					canEdit
 				/>
 			);
 
@@ -200,6 +201,7 @@ describe("CampaignCard", () => {
 					campaign={draftCampaign}
 					pledgeSummary={mockPledgeSummary}
 					showActions
+					canEdit
 					onEdit={handleEdit}
 				/>
 			);
@@ -241,6 +243,51 @@ describe("CampaignCard", () => {
 
 			const card = screen.getByTestId("campaign-card");
 			expect(card).toHaveClass("custom-class");
+		});
+	});
+
+	describe("Grace Period Status", () => {
+		it("should show GRACE_PERIOD status badge", () => {
+			const gracePeriodCampaign = { ...mockCampaign, status: "GRACE_PERIOD" as const };
+			render(<CampaignCard campaign={gracePeriodCampaign} pledgeSummary={mockPledgeSummary} />);
+
+			const badge = screen.getByTestId("campaign-status-badge");
+			expect(badge).toHaveAttribute("data-status", "GRACE_PERIOD");
+		});
+
+		it("should show urgency message for GRACE_PERIOD campaigns", () => {
+			const gracePeriodCampaign = { ...mockCampaign, status: "GRACE_PERIOD" as const };
+			render(<CampaignCard campaign={gracePeriodCampaign} pledgeSummary={mockPledgeSummary} />);
+
+			expect(screen.getByText("Final commitment window - pledge now")).toBeInTheDocument();
+		});
+
+		it("should have urgent styling border for GRACE_PERIOD campaigns", () => {
+			const gracePeriodCampaign = { ...mockCampaign, status: "GRACE_PERIOD" as const };
+			render(<CampaignCard campaign={gracePeriodCampaign} pledgeSummary={mockPledgeSummary} />);
+
+			const card = screen.getByTestId("campaign-card");
+			expect(card).toHaveClass("border-amber-400");
+		});
+
+		it("should show days remaining until grace period end when gracePeriodEndDate is provided", () => {
+			const futureGraceEnd = new Date();
+			futureGraceEnd.setDate(futureGraceEnd.getDate() + 3);
+			const gracePeriodCampaign = {
+				...mockCampaign,
+				status: "GRACE_PERIOD" as const,
+				gracePeriodEndDate: futureGraceEnd.toISOString(),
+			};
+
+			render(<CampaignCard campaign={gracePeriodCampaign} pledgeSummary={mockPledgeSummary} />);
+
+			expect(screen.getByTestId("days-remaining")).toHaveTextContent("3");
+		});
+
+		it("should not show urgency message for non-grace period campaigns", () => {
+			render(<CampaignCard campaign={mockCampaign} pledgeSummary={mockPledgeSummary} />);
+
+			expect(screen.queryByText("Final commitment window - pledge now")).not.toBeInTheDocument();
 		});
 	});
 });

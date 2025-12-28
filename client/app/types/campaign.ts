@@ -8,7 +8,7 @@
 /**
  * Possible states of a campaign
  */
-export type CampaignStatus = "DRAFT" | "ACTIVE" | "LOCKED" | "CANCELLED" | "DONE";
+export type CampaignStatus = "DRAFT" | "ACTIVE" | "GRACE_PERIOD" | "LOCKED" | "CANCELLED" | "DONE";
 
 /**
  * Campaign entity representing a group buying campaign
@@ -21,6 +21,7 @@ export interface Campaign {
 	targetQuantity: number;
 	startDate: string;
 	endDate: string;
+	gracePeriodEndDate?: string;
 	status: CampaignStatus;
 	supplierId: string;
 	createdAt: string;

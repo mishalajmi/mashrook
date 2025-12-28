@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import sa.elm.mashrook.brackets.DiscountBracketService;
 import sa.elm.mashrook.brackets.domain.DiscountBracketEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
@@ -19,6 +20,7 @@ import sa.elm.mashrook.exceptions.InvalidCampaignStateTransitionException;
 import sa.elm.mashrook.fulfillments.CampaignFulfillmentService;
 import sa.elm.mashrook.fulfillments.domain.CampaignFulfillmentEntity;
 import sa.elm.mashrook.fulfillments.domain.DeliveryStatus;
+import sa.elm.mashrook.invoices.service.InvoiceService;
 import sa.elm.mashrook.payments.intents.PaymentIntentService;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
@@ -37,7 +39,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,6 +61,9 @@ class CampaignLifecycleServiceTest {
     @Mock
     private CampaignFulfillmentService campaignFulfillmentService;
 
+    @Mock
+    private InvoiceService invoiceService;
+
     private CampaignLifecycleService campaignLifecycleService;
 
     private UUID campaignId;
@@ -72,8 +76,10 @@ class CampaignLifecycleServiceTest {
                 discountBracketService,
                 pledgeService,
                 paymentIntentService,
-                campaignFulfillmentService
+                campaignFulfillmentService,
+                invoiceService
         );
+        ReflectionTestUtils.setField(campaignLifecycleService, "gracePeriodDays", 3);
         campaignId = UuidGeneratorUtil.generateUuidV7();
         campaign = createCampaign(campaignId, CampaignStatus.DRAFT);
     }
@@ -215,15 +221,32 @@ class CampaignLifecycleServiceTest {
     class StartGracePeriod {
 
         @Test
-        @DisplayName("should not change status when grace period starts")
-        void shouldNotChangeStatusOnGracePeriod() {
+        @DisplayName("should transition campaign from ACTIVE to GRACE_PERIOD")
+        void shouldTransitionFromActiveToGracePeriod() {
             campaign.setStatus(CampaignStatus.ACTIVE);
+            campaign.setEndDate(LocalDate.now().minusDays(1));
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
 
-            campaignLifecycleService.startGracePeriod(campaignId);
+            CampaignEntity result = campaignLifecycleService.startGracePeriod(campaignId);
 
-            assertThat(campaign.getStatus()).isEqualTo(CampaignStatus.ACTIVE);
-            verify(campaignRepository, never()).save(any());
+            assertThat(result.getStatus()).isEqualTo(CampaignStatus.GRACE_PERIOD);
+            verify(campaignRepository).save(campaign);
+        }
+
+        @Test
+        @DisplayName("should set gracePeriodEndDate to endDate plus configured days")
+        void shouldSetGracePeriodEndDate() {
+            campaign.setStatus(CampaignStatus.ACTIVE);
+            LocalDate endDate = LocalDate.now().minusDays(1);
+            campaign.setEndDate(endDate);
+            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+            CampaignEntity result = campaignLifecycleService.startGracePeriod(campaignId);
+
+            // Default grace period is 3 days
+            assertThat(result.getGracePeriodEndDate()).isEqualTo(endDate.plusDays(3));
         }
 
         @Test
@@ -253,23 +276,27 @@ class CampaignLifecycleServiceTest {
         @Test
         @DisplayName("should lock campaign when total pledged meets minimum bracket quantity")
         void shouldLockWhenMinimumMet() {
-            campaign.setStatus(CampaignStatus.ACTIVE);
+            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
+            DiscountBracketEntity bracket = createBracket(campaignId, 10, 50, new BigDecimal("100.00"), 0);
 
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(12);
             when(discountBracketService.findFirstBracketMinQuantity(campaignId)).thenReturn(10);
+            when(discountBracketService.getCurrentBracket(campaignId, 12)).thenReturn(Optional.of(bracket));
             when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
 
             CampaignEntity result = campaignLifecycleService.evaluateCampaign(campaignId);
 
             assertThat(result.getStatus()).isEqualTo(CampaignStatus.LOCKED);
             verify(campaignRepository).save(campaign);
+            verify(paymentIntentService).generatePaymentIntents(campaignId, bracket);
+            verify(invoiceService).generateInvoicesForCampaign(campaignId, bracket);
         }
 
         @Test
         @DisplayName("should cancel campaign when total pledged is below minimum bracket quantity")
         void shouldCancelWhenMinimumNotMet() {
-            campaign.setStatus(CampaignStatus.ACTIVE);
+            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
 
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(8);
@@ -292,9 +319,19 @@ class CampaignLifecycleServiceTest {
         }
 
         @Test
-        @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is not ACTIVE")
-        void shouldThrowWhenNotActive() {
+        @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is not GRACE_PERIOD")
+        void shouldThrowWhenNotGracePeriod() {
             campaign.setStatus(CampaignStatus.DRAFT);
+            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+
+            assertThatThrownBy(() -> campaignLifecycleService.evaluateCampaign(campaignId))
+                    .isInstanceOf(InvalidCampaignStateTransitionException.class);
+        }
+
+        @Test
+        @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is ACTIVE")
+        void shouldThrowWhenActive() {
+            campaign.setStatus(CampaignStatus.ACTIVE);
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
 
             assertThatThrownBy(() -> campaignLifecycleService.evaluateCampaign(campaignId))
@@ -304,7 +341,7 @@ class CampaignLifecycleServiceTest {
         @Test
         @DisplayName("should only count COMMITTED pledges")
         void shouldOnlyCountCommittedPledges() {
-            campaign.setStatus(CampaignStatus.ACTIVE);
+            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
 
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(3);
@@ -325,16 +362,40 @@ class CampaignLifecycleServiceTest {
         @DisplayName("should transition campaign from ACTIVE to LOCKED when minimum pledges met")
         void shouldTransitionFromActiveToLocked() {
             campaign.setStatus(CampaignStatus.ACTIVE);
+            DiscountBracketEntity bracket = createBracket(campaignId, 10, 50, new BigDecimal("100.00"), 0);
 
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(15);
             when(discountBracketService.findFirstBracketMinQuantity(campaignId)).thenReturn(10);
+            when(discountBracketService.getCurrentBracket(campaignId, 15)).thenReturn(Optional.of(bracket));
             when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
 
             CampaignEntity result = campaignLifecycleService.lockCampaign(campaignId);
 
             assertThat(result.getStatus()).isEqualTo(CampaignStatus.LOCKED);
             verify(campaignRepository).save(campaign);
+            verify(paymentIntentService).generatePaymentIntents(campaignId, bracket);
+            verify(invoiceService).generateInvoicesForCampaign(campaignId, bracket);
+        }
+
+        @Test
+        @DisplayName("should transition campaign from GRACE_PERIOD to LOCKED when minimum pledges met")
+        void shouldTransitionFromGracePeriodToLocked() {
+            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
+            DiscountBracketEntity bracket = createBracket(campaignId, 10, 50, new BigDecimal("100.00"), 0);
+
+            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+            when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(15);
+            when(discountBracketService.findFirstBracketMinQuantity(campaignId)).thenReturn(10);
+            when(discountBracketService.getCurrentBracket(campaignId, 15)).thenReturn(Optional.of(bracket));
+            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+            CampaignEntity result = campaignLifecycleService.lockCampaign(campaignId);
+
+            assertThat(result.getStatus()).isEqualTo(CampaignStatus.LOCKED);
+            verify(campaignRepository).save(campaign);
+            verify(paymentIntentService).generatePaymentIntents(campaignId, bracket);
+            verify(invoiceService).generateInvoicesForCampaign(campaignId, bracket);
         }
 
         @Test
@@ -347,8 +408,8 @@ class CampaignLifecycleServiceTest {
         }
 
         @Test
-        @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is not ACTIVE")
-        void shouldThrowWhenNotActive() {
+        @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is not ACTIVE or GRACE_PERIOD")
+        void shouldThrowWhenNotActiveOrGracePeriod() {
             campaign.setStatus(CampaignStatus.DRAFT);
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
 
@@ -392,6 +453,18 @@ class CampaignLifecycleServiceTest {
         @DisplayName("should allow cancellation from DRAFT state")
         void shouldAllowCancelFromDraft() {
             campaign.setStatus(CampaignStatus.DRAFT);
+            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+            CampaignEntity result = campaignLifecycleService.cancelCampaign(campaignId);
+
+            assertThat(result.getStatus()).isEqualTo(CampaignStatus.CANCELLED);
+        }
+
+        @Test
+        @DisplayName("should allow cancellation from GRACE_PERIOD state")
+        void shouldAllowCancelFromGracePeriod() {
+            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -456,7 +529,7 @@ class CampaignLifecycleServiceTest {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
             paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
             paymentIntent.setCampaign(campaign);
-            paymentIntent.setPledgeId(pledgeId);
+            paymentIntent.setPledge(pledge);
             paymentIntent.setStatus(PaymentIntentStatus.SUCCEEDED);
 
             CampaignFulfillmentEntity fulfillment = new CampaignFulfillmentEntity();
@@ -511,7 +584,7 @@ class CampaignLifecycleServiceTest {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
             paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
             paymentIntent.setCampaign(campaign);
-            paymentIntent.setPledgeId(pledgeId);
+            paymentIntent.setPledge(pledge);
             paymentIntent.setStatus(PaymentIntentStatus.PENDING);
 
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
@@ -537,7 +610,7 @@ class CampaignLifecycleServiceTest {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
             paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
             paymentIntent.setCampaign(campaign);
-            paymentIntent.setPledgeId(pledgeId);
+            paymentIntent.setPledge(pledge);
             paymentIntent.setStatus(PaymentIntentStatus.SUCCEEDED);
 
             CampaignFulfillmentEntity fulfillment = new CampaignFulfillmentEntity();
@@ -573,12 +646,12 @@ class CampaignLifecycleServiceTest {
 
             PaymentIntentEntity payment1 = new PaymentIntentEntity();
             payment1.setCampaign(campaign);
-            payment1.setPledgeId(pledgeId1);
+            payment1.setPledge(pledge1);
             payment1.setStatus(PaymentIntentStatus.SUCCEEDED);
 
             PaymentIntentEntity payment2 = new PaymentIntentEntity();
             payment2.setCampaign(campaign);
-            payment2.setPledgeId(pledgeId2);
+            payment2.setPledge(pledge2);
             payment2.setStatus(PaymentIntentStatus.COLLECTED_VIA_AR);
 
             CampaignFulfillmentEntity fulfillment1 = new CampaignFulfillmentEntity();

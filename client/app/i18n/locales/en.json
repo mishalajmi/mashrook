@@ -25,9 +25,9 @@
     "logout": "Logout"
   },
   "hero": {
-    "badge": "First-of-its-kind B2B Group Buy Platform",
+    "badge": "First-of-its-kind B2B Cooperative Procurement Platform",
     "titleLine1": "Unlock Enterprise Pricing",
-    "titleLine2": "Through Group Buying Power",
+    "titleLine2": "Through Cooperative procurement Power",
     "subtitle": "The B2B procurement platform that aggregates purchase orders to deliver volume discounts to businesses of all sizes. Save 20-40% on every order.",
     "ctaPrimary": "Join Campaigns and Save",
     "ctaSecondary": "See How It Works",
@@ -49,7 +49,7 @@
   },
   "features": {
     "title": "Built for B2B Procurement Excellence",
-    "subtitle": "A win-win marketplace connecting buyers and suppliers through group buying campaigns. Better prices for buyers, predictable orders for suppliers.",
+    "subtitle": "A win-win marketplace connecting buyers and suppliers through Cooperative Procurementing campaigns. Better prices for buyers, predictable orders for suppliers.",
     "ariaLabel": "Product features",
     "items": {
       "volumeDiscounts": {
@@ -79,14 +79,14 @@
     }
   },
   "howItWorks": {
-    "title": "How Group Buying Works",
+    "title": "How Cooperative Procurement Works",
     "subtitle": "A simple, transparent process that delivers volume discounts to businesses of all sizes through collective purchasing power.",
     "ariaLabel": "Steps to get started",
     "steps": {
       "step1": {
         "number": "01",
         "title": "Suppliers Launch Campaigns",
-        "description": "Suppliers create group buying campaigns with tiered pricing. The more organizations join, the bigger the discount for everyone."
+        "description": "Suppliers create campaigns with tiered pricing. The more organizations join, the bigger the discount for everyone."
       },
       "step2": {
         "number": "02",
@@ -148,7 +148,7 @@
         "period": "to launch",
         "buttonText": "Launch Campaign",
         "features": [
-          "Create group buying campaigns",
+          "Create cooperative ing campaigns",
           "Set tiered pricing brackets",
           "Consolidated purchase orders",
           "Predictable sales pipeline",
@@ -160,7 +160,7 @@
   },
   "testimonials": {
     "title": "Trusted by Buyers and Suppliers",
-    "subtitle": "See how businesses are saving on procurement and suppliers are growing their volume through group buying campaigns.",
+    "subtitle": "See how businesses are saving on procurement and suppliers are growing their volume through cooperative procurementing campaigns.",
     "ariaLabel": "Customer testimonials",
     "ratingLabel": "{{rating}} out of 5 stars",
     "items": {
@@ -186,12 +186,12 @@
   },
   "cta": {
     "title": "Ready to Unlock Volume Discounts?",
-    "subtitle": "Join the B2B group buying revolution. Whether you're looking to save on procurement or grow your sales volume, Mashrook connects you with the right partners.",
+    "subtitle": "Join the B2B cooperative procurement revolution. Whether you're looking to save on procurement or grow your sales volume, Mashrook connects you with the right partners.",
     "buyerButton": "Join as Buyer",
     "supplierButton": "Launch as Supplier"
   },
   "footer": {
-    "description": "The B2B group buying platform that delivers volume discounts to businesses of all sizes through collective purchasing power.",
+    "description": "The B2B cooperative procurement platform that delivers volume discounts to businesses of all sizes through collective purchasing power.",
     "copyright": "{{year}} Mashrook. All rights reserved.",
     "privacy": "Privacy",
     "terms": "Terms",

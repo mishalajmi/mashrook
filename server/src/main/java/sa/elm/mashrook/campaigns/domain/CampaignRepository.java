@@ -16,4 +16,8 @@ public interface CampaignRepository extends JpaRepository<CampaignEntity, UUID> 
     List<CampaignEntity> findAllByEndDateLessThanEqual(LocalDate endDate);
     List<CampaignEntity> findAllByStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
             CampaignStatus status, LocalDate startDate, LocalDate endDate);
+
+    List<CampaignEntity> findAllByStatusAndEndDateBefore(CampaignStatus status, LocalDate endDate);
+
+    List<CampaignEntity> findAllByStatusAndGracePeriodEndDateBefore(CampaignStatus status, LocalDate date);
 }

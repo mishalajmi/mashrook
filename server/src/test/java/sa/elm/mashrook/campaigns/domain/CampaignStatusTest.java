@@ -53,9 +53,16 @@ class CampaignStatusTest {
         }
 
         @Test
-        @DisplayName("should have exactly 5 status values")
-        void shouldHaveExactlyFiveStatusValues() {
-            assertThat(CampaignStatus.values()).hasSize(5);
+        @DisplayName("should have GRACE_PERIOD status")
+        void shouldHaveGracePeriodStatus() {
+            assertThat(CampaignStatus.GRACE_PERIOD).isNotNull();
+            assertThat(CampaignStatus.GRACE_PERIOD.getValue()).isEqualTo("grace_period");
+        }
+
+        @Test
+        @DisplayName("should have exactly 6 status values")
+        void shouldHaveExactlySixStatusValues() {
+            assertThat(CampaignStatus.values()).hasSize(6);
         }
     }
 
@@ -96,6 +103,13 @@ class CampaignStatusTest {
         @DisplayName("should find DONE status case-insensitively")
         void shouldFindDoneStatusCaseInsensitively(String value) {
             assertThat(CampaignStatus.getStatus(value)).isEqualTo(CampaignStatus.DONE);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"grace_period", "GRACE_PERIOD", "Grace_Period"})
+        @DisplayName("should find GRACE_PERIOD status case-insensitively")
+        void shouldFindGracePeriodStatusCaseInsensitively(String value) {
+            assertThat(CampaignStatus.getStatus(value)).isEqualTo(CampaignStatus.GRACE_PERIOD);
         }
 
         @Test

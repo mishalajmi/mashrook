@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -21,6 +22,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
+import sa.elm.mashrook.pledges.domain.PledgeEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -40,8 +42,9 @@ public class PaymentIntentEntity {
     @JoinColumn(nullable = false, name = "campaign_id")
     private CampaignEntity campaign;
 
-    @Column(nullable = false, name = "pledge_id")
-    private UUID pledgeId;
+    @OneToOne
+    @JoinColumn(nullable = false, referencedColumnName = "id")
+    private PledgeEntity pledge;
 
     @ManyToOne
     @JoinColumn(nullable = false, name = "buyer_org_id")

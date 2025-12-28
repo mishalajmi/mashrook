@@ -83,6 +83,16 @@ vi.mock("@/contexts/AuthContext", () => ({
 	})),
 }));
 
+// Mock language context
+vi.mock("@/i18n/language-context", () => ({
+	useLanguage: () => ({
+		language: "en",
+		isRtl: false,
+		changeLanguage: vi.fn(),
+		toggleLanguage: vi.fn(),
+	}),
+}));
+
 describe("PublicCampaignDetailPage", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -222,5 +232,66 @@ describe("PublicCampaignDetailPage - Authenticated User", () => {
 
 		// Note: Since we can't easily dynamically mock in vitest, this test documents expected behavior
 		// The actual behavior depends on the useAuth mock at test runtime
+	});
+});
+
+describe("PublicCampaignDetailPage - Grace Period", () => {
+	const gracePeriodCampaign: PublicCampaignResponse = {
+		...mockCampaign,
+		status: "GRACE_PERIOD",
+		gracePeriodEndDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+	};
+
+	beforeEach(async () => {
+		vi.clearAllMocks();
+		// Override the mock for grace period tests
+		const { campaignService } = await import("@/services/campaign.service");
+		vi.mocked(campaignService.getPublicCampaign).mockResolvedValue(gracePeriodCampaign);
+	});
+
+	const renderWithRouter = (ui: React.ReactNode, initialEntry = "/campaigns/campaign-1") => {
+		return render(
+			<MemoryRouter initialEntries={[initialEntry]}>
+				<Routes>
+					<Route path="/campaigns/:id" element={ui} />
+				</Routes>
+			</MemoryRouter>
+		);
+	};
+
+	it("should display grace period banner when campaign is in GRACE_PERIOD status", async () => {
+		renderWithRouter(<PublicCampaignDetailPage />);
+
+		await waitFor(() => {
+			expect(screen.getByTestId("grace-period-banner")).toBeInTheDocument();
+		});
+	});
+
+	it("should display grace period explanatory message", async () => {
+		renderWithRouter(<PublicCampaignDetailPage />);
+
+		await waitFor(() => {
+			const banner = screen.getByTestId("grace-period-banner");
+			expect(banner).toHaveTextContent(/Final Commitment Window/i);
+			expect(banner).toHaveTextContent(/New commitments accepted until final lock/i);
+		});
+	});
+
+	it("should show countdown timer with grace period styling", async () => {
+		renderWithRouter(<PublicCampaignDetailPage />);
+
+		await waitFor(() => {
+			const timer = screen.getByTestId("countdown-timer");
+			expect(timer).toHaveAttribute("data-grace-period", "true");
+		});
+	});
+
+	it("should display the GRACE_PERIOD status badge", async () => {
+		renderWithRouter(<PublicCampaignDetailPage />);
+
+		await waitFor(() => {
+			const badge = screen.getByTestId("campaign-status-badge");
+			expect(badge).toHaveAttribute("data-status", "GRACE_PERIOD");
+		});
 	});
 });

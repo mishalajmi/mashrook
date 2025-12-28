@@ -251,22 +251,30 @@ describe("CountdownTimer", () => {
 			expect(screen.getByText("Hours")).toBeInTheDocument();
 		});
 
-		it("should display 'Minutes' label", () => {
+		it("should display 'Min' label", () => {
 			const now = new Date("2024-01-15T12:00:00Z");
 			vi.setSystemTime(now);
 			const futureDate = new Date("2024-01-16T12:00:00Z");
 			render(<CountdownTimer endDate={futureDate.toISOString()} />);
 
-			expect(screen.getByText("Minutes")).toBeInTheDocument();
+			act(() => {
+				vi.advanceTimersByTime(0);
+			});
+
+			expect(screen.getByText("Min")).toBeInTheDocument();
 		});
 
-		it("should display 'Seconds' label", () => {
+		it("should display 'Sec' label", () => {
 			const now = new Date("2024-01-15T12:00:00Z");
 			vi.setSystemTime(now);
 			const futureDate = new Date("2024-01-16T12:00:00Z");
 			render(<CountdownTimer endDate={futureDate.toISOString()} />);
 
-			expect(screen.getByText("Seconds")).toBeInTheDocument();
+			act(() => {
+				vi.advanceTimersByTime(0);
+			});
+
+			expect(screen.getByText("Sec")).toBeInTheDocument();
 		});
 	});
 
@@ -328,6 +336,96 @@ describe("CountdownTimer", () => {
 			});
 
 			expect(screen.getByTestId("countdown-seconds")).toHaveTextContent("05");
+		});
+	});
+
+	describe("Grace Period Mode", () => {
+		it("should render with urgent styling when isGracePeriod is true", () => {
+			const now = new Date("2024-01-15T12:00:00Z");
+			vi.setSystemTime(now);
+			const futureDate = new Date("2024-01-16T12:00:00Z");
+
+			render(
+				<CountdownTimer
+					endDate={futureDate.toISOString()}
+					isGracePeriod={true}
+				/>
+			);
+
+			act(() => {
+				vi.advanceTimersByTime(0);
+			});
+
+			const timer = screen.getByTestId("countdown-timer");
+			expect(timer).toHaveAttribute("data-grace-period", "true");
+		});
+
+		it("should show urgent label when in grace period", () => {
+			const now = new Date("2024-01-15T12:00:00Z");
+			vi.setSystemTime(now);
+			const futureDate = new Date("2024-01-16T12:00:00Z");
+
+			render(
+				<CountdownTimer
+					endDate={futureDate.toISOString()}
+					isGracePeriod={true}
+				/>
+			);
+
+			act(() => {
+				vi.advanceTimersByTime(0);
+			});
+
+			expect(screen.getByText("Final commitment window")).toBeInTheDocument();
+		});
+
+		it("should use amber colors for values in grace period mode", () => {
+			const now = new Date("2024-01-15T12:00:00Z");
+			vi.setSystemTime(now);
+			const futureDate = new Date("2024-01-15T15:00:00Z"); // 3 hours later
+
+			render(
+				<CountdownTimer
+					endDate={futureDate.toISOString()}
+					isGracePeriod={true}
+				/>
+			);
+
+			act(() => {
+				vi.advanceTimersByTime(0);
+			});
+
+			const hours = screen.getByTestId("countdown-hours");
+			expect(hours).toHaveClass("text-amber-600");
+		});
+
+		it("should not show urgent label when not in grace period", () => {
+			const now = new Date("2024-01-15T12:00:00Z");
+			vi.setSystemTime(now);
+			const futureDate = new Date("2024-01-16T12:00:00Z");
+
+			render(<CountdownTimer endDate={futureDate.toISOString()} />);
+
+			act(() => {
+				vi.advanceTimersByTime(0);
+			});
+
+			expect(screen.queryByText("Final commitment window")).not.toBeInTheDocument();
+		});
+
+		it("should default isGracePeriod to false", () => {
+			const now = new Date("2024-01-15T12:00:00Z");
+			vi.setSystemTime(now);
+			const futureDate = new Date("2024-01-16T12:00:00Z");
+
+			render(<CountdownTimer endDate={futureDate.toISOString()} />);
+
+			act(() => {
+				vi.advanceTimersByTime(0);
+			});
+
+			const timer = screen.getByTestId("countdown-timer");
+			expect(timer).not.toHaveAttribute("data-grace-period", "true");
 		});
 	});
 });

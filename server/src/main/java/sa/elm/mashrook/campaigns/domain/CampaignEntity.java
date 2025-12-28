@@ -60,6 +60,9 @@ public class CampaignEntity {
     @Column(nullable = false, name = "status")
     private CampaignStatus status = CampaignStatus.DRAFT;
 
+    @Column(name = "grace_period_end_date")
+    private LocalDate gracePeriodEndDate;
+
     @CreatedDate
     @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;

@@ -77,6 +77,7 @@ export interface CampaignResponse {
 	targetQuantity: number;
 	startDate: string;
 	endDate: string;
+	gracePeriodEndDate?: string;
 	status: CampaignStatus;
 	supplierId: string;
 	createdAt: string;
@@ -146,6 +147,7 @@ export interface PublicCampaignResponse {
 	targetQuantity: number;
 	startDate: string;
 	endDate: string;
+	gracePeriodEndDate?: string;
 	status: CampaignStatus;
 	brackets: BracketResponse[];
 }

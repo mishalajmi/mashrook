@@ -59,12 +59,12 @@ function formatPrice(price: string): string {
 }
 
 /**
- * Calculate days remaining until campaign end
+ * Calculate days remaining until a target date
  */
-function calculateDaysRemaining(endDate: string): number {
-	const end = new Date(endDate);
+function calculateDaysRemaining(targetDate: string): number {
+	const target = new Date(targetDate);
 	const now = new Date();
-	const diffTime = end.getTime() - now.getTime();
+	const diffTime = target.getTime() - now.getTime();
 	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 	return Math.max(0, diffDays);
 }
@@ -91,7 +91,14 @@ export function CampaignCard({
 	className,
 }: CampaignCardProps): ReactNode {
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-	const daysRemaining = calculateDaysRemaining(campaign.endDate);
+
+	// For grace period campaigns, show days until grace period ends
+	const isGracePeriod = campaign.status === "GRACE_PERIOD";
+	const targetDate = isGracePeriod && campaign.gracePeriodEndDate
+		? campaign.gracePeriodEndDate
+		: campaign.endDate;
+	const daysRemaining = calculateDaysRemaining(targetDate);
+
 	const totalPledges = pledgeSummary?.totalPledges ?? 0;
 	const currentPrice = pledgeSummary?.currentBracket?.unitPrice;
 	const isDraft = campaign.status === "DRAFT";
@@ -104,8 +111,21 @@ export function CampaignCard({
 	return (
 		<Card
 			data-testid="campaign-card"
-			className={cn("flex flex-col", className)}
+			className={cn(
+				"flex flex-col relative",
+				isGracePeriod && "border-amber-400 dark:border-amber-500 shadow-[0_0_15px_rgba(251,191,36,0.3)] dark:shadow-[0_0_15px_rgba(251,191,36,0.2)]",
+				className
+			)}
 		>
+			{/* Ending Soon Badge */}
+			{isGracePeriod && (
+				<div
+					data-testid="ending-soon-badge"
+					className="absolute -top-2 -right-2 px-2 py-1 bg-amber-500 text-white text-xs font-bold uppercase tracking-wide rounded-full shadow-md animate-pulse z-10"
+				>
+					Ending Soon
+				</div>
+			)}
 			<CardHeader className="space-y-3">
 				<div className="flex items-start justify-between gap-2">
 					<h3 className="font-semibold text-lg leading-tight line-clamp-1">
@@ -119,6 +139,12 @@ export function CampaignCard({
 				>
 					{campaign.description}
 				</p>
+				{/* Grace Period Urgency Message */}
+				{isGracePeriod && (
+					<p className="text-sm font-medium text-amber-600 dark:text-amber-500">
+						Final commitment window - pledge now
+					</p>
+				)}
 			</CardHeader>
 
 			<CardContent className="flex-1 space-y-4">

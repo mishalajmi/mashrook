@@ -12,6 +12,7 @@ import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
+import sa.elm.mashrook.pledges.domain.PledgeEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -59,14 +60,15 @@ class PaymentIntentEntityTest {
         }
 
         @Test
-        @DisplayName("should store pledgeId as UUID reference to pledges")
-        void shouldStorePledgeIdAsUuid() {
+        @DisplayName("should store pledge as PledgeEntity reference")
+        void shouldStorePledgeAsEntity() {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
+            PledgeEntity pledge = new PledgeEntity();
+            pledge.setId(UuidGeneratorUtil.generateUuidV7());
 
-            paymentIntent.setPledgeId(pledgeId);
+            paymentIntent.setPledge(pledge);
 
-            assertThat(paymentIntent.getPledgeId()).isEqualTo(pledgeId);
+            assertThat(paymentIntent.getPledge()).isEqualTo(pledge);
         }
 
         @Test
@@ -302,7 +304,8 @@ class PaymentIntentEntityTest {
             UUID id = UuidGeneratorUtil.generateUuidV7();
             CampaignEntity campaign = new CampaignEntity();
             campaign.setId(UuidGeneratorUtil.generateUuidV7());
-            UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
+            PledgeEntity pledge = new PledgeEntity();
+            pledge.setId(UuidGeneratorUtil.generateUuidV7());
             OrganizationEntity org = new OrganizationEntity();
             org.setId(UuidGeneratorUtil.generateUuidV7());
             BigDecimal amount = new BigDecimal("9999.9999");
@@ -313,7 +316,7 @@ class PaymentIntentEntityTest {
             PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
             paymentIntent.setId(id);
             paymentIntent.setCampaign(campaign);
-            paymentIntent.setPledgeId(pledgeId);
+            paymentIntent.setPledge(pledge);
             paymentIntent.setBuyerOrg(org);
             paymentIntent.setAmount(amount);
             paymentIntent.setStatus(status);
@@ -322,7 +325,7 @@ class PaymentIntentEntityTest {
 
             assertThat(paymentIntent.getId()).isEqualTo(id);
             assertThat(paymentIntent.getCampaign()).isEqualTo(campaign);
-            assertThat(paymentIntent.getPledgeId()).isEqualTo(pledgeId);
+            assertThat(paymentIntent.getPledge()).isEqualTo(pledge);
             assertThat(paymentIntent.getBuyerOrg()).isEqualTo(org);
             assertThat(paymentIntent.getAmount()).isEqualTo(amount);
             assertThat(paymentIntent.getStatus()).isEqualTo(status);
@@ -424,9 +427,12 @@ class PaymentIntentEntityTest {
         OrganizationEntity org = new OrganizationEntity();
         org.setId(UuidGeneratorUtil.generateUuidV7());
 
+        PledgeEntity pledge = new PledgeEntity();
+        pledge.setId(UuidGeneratorUtil.generateUuidV7());
+
         PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
         paymentIntent.setCampaign(campaign);
-        paymentIntent.setPledgeId(UuidGeneratorUtil.generateUuidV7());
+        paymentIntent.setPledge(pledge);
         paymentIntent.setBuyerOrg(org);
         paymentIntent.setAmount(new BigDecimal("100.00"));
         paymentIntent.setRetryCount(0);

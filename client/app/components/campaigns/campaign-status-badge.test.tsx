@@ -73,6 +73,18 @@ describe("CampaignStatusBadge", () => {
 			expect(badge).toHaveTextContent("Done");
 			expect(badge).toHaveAttribute("data-status", "DONE");
 		});
+
+		it("should render GRACE_PERIOD status with amber styling and animated dot", () => {
+			render(<CampaignStatusBadge status="GRACE_PERIOD" />);
+
+			const badge = screen.getByTestId("campaign-status-badge");
+			expect(badge).toHaveTextContent("Final Window");
+			expect(badge).toHaveAttribute("data-status", "GRACE_PERIOD");
+
+			const dot = screen.getByTestId("status-dot");
+			expect(dot).toHaveClass("animate-pulse");
+			expect(dot).toHaveClass("bg-amber-500");
+		});
 	});
 
 	describe("Dot Indicator", () => {

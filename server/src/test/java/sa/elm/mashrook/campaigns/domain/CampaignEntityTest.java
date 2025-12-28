@@ -179,6 +179,33 @@ class CampaignEntityTest {
             // Assert
             assertThat(campaign.getStatus()).isEqualTo(CampaignStatus.ACTIVE);
         }
+
+        @Test
+        @DisplayName("should store gracePeriodEndDate as nullable LocalDate")
+        void shouldStoreGracePeriodEndDateAsNullableLocalDate() {
+            // Arrange
+            CampaignEntity campaign = new CampaignEntity();
+            LocalDate gracePeriodEndDate = LocalDate.of(2025, 2, 17);
+
+            // Act
+            campaign.setGracePeriodEndDate(gracePeriodEndDate);
+
+            // Assert
+            assertThat(campaign.getGracePeriodEndDate()).isEqualTo(gracePeriodEndDate);
+        }
+
+        @Test
+        @DisplayName("should allow null gracePeriodEndDate")
+        void shouldAllowNullGracePeriodEndDate() {
+            // Arrange
+            CampaignEntity campaign = new CampaignEntity();
+
+            // Act
+            campaign.setGracePeriodEndDate(null);
+
+            // Assert
+            assertThat(campaign.getGracePeriodEndDate()).isNull();
+        }
     }
 
     @Nested
@@ -331,6 +358,34 @@ class CampaignEntityTest {
 
             // Assert
             assertThat(campaign.getStatus()).isEqualTo(CampaignStatus.ACTIVE);
+        }
+
+        @Test
+        @DisplayName("should allow transition from ACTIVE to GRACE_PERIOD")
+        void shouldAllowTransitionFromActiveToGracePeriod() {
+            // Arrange
+            CampaignEntity campaign = new CampaignEntity();
+            campaign.setStatus(CampaignStatus.ACTIVE);
+
+            // Act
+            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
+
+            // Assert
+            assertThat(campaign.getStatus()).isEqualTo(CampaignStatus.GRACE_PERIOD);
+        }
+
+        @Test
+        @DisplayName("should allow transition from GRACE_PERIOD to LOCKED")
+        void shouldAllowTransitionFromGracePeriodToLocked() {
+            // Arrange
+            CampaignEntity campaign = new CampaignEntity();
+            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
+
+            // Act
+            campaign.setStatus(CampaignStatus.LOCKED);
+
+            // Assert
+            assertThat(campaign.getStatus()).isEqualTo(CampaignStatus.LOCKED);
         }
 
         @Test

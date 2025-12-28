@@ -2,6 +2,7 @@ package sa.elm.mashrook.campaigns.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sa.elm.mashrook.brackets.DiscountBracketService;
@@ -13,6 +14,7 @@ import sa.elm.mashrook.exceptions.InvalidCampaignStateTransitionException;
 import sa.elm.mashrook.fulfillments.CampaignFulfillmentService;
 import sa.elm.mashrook.fulfillments.domain.CampaignFulfillmentEntity;
 import sa.elm.mashrook.fulfillments.domain.DeliveryStatus;
+import sa.elm.mashrook.invoices.service.InvoiceService;
 import sa.elm.mashrook.payments.intents.PaymentIntentService;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
 import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
@@ -36,6 +38,10 @@ public class CampaignLifecycleService {
     private final PledgeService pledgeService;
     private final PaymentIntentService paymentIntentService;
     private final CampaignFulfillmentService campaignFulfillmentService;
+    private final InvoiceService invoiceService;
+
+    @Value("${mashrook.campaign.grace-period-days:3}")
+    private int gracePeriodDays;
 
     private static final Set<PaymentIntentStatus> SUCCESSFUL_PAYMENT_STATUSES = Set.of(
             PaymentIntentStatus.SUCCEEDED,
@@ -54,74 +60,107 @@ public class CampaignLifecycleService {
         return campaignRepository.save(campaign);
     }
 
-    public void startGracePeriod(UUID campaignId) {
+    @Transactional
+    public CampaignEntity startGracePeriod(UUID campaignId) {
         CampaignEntity campaign = findCampaignOrThrow(campaignId);
-        
+
         if (campaign.getStatus() != CampaignStatus.ACTIVE) {
             throw new InvalidCampaignStateTransitionException(
                     "Cannot start grace period for campaign not in ACTIVE state"
             );
         }
-        
-        log.info("Grace period started for campaign {}", campaignId);
+
+        campaign.setStatus(CampaignStatus.GRACE_PERIOD);
+        campaign.setGracePeriodEndDate(campaign.getEndDate().plusDays(gracePeriodDays));
+
+        log.info("Grace period started for campaign {} - ends on {}",
+                campaignId, campaign.getGracePeriodEndDate());
+        return campaignRepository.save(campaign);
     }
 
     @Transactional
     public CampaignEntity evaluateCampaign(UUID campaignId) {
         CampaignEntity campaign = findCampaignOrThrow(campaignId);
-        
-        if (campaign.getStatus() != CampaignStatus.ACTIVE) {
+
+        if (campaign.getStatus() != CampaignStatus.GRACE_PERIOD) {
             throw new InvalidCampaignStateTransitionException(
                     campaign.getStatus(), CampaignStatus.LOCKED
             );
         }
-        
+
         int totalPledged = calculateTotalCommittedPledges(campaignId);
         int minimumRequired = getMinimumBracketQuantity(campaignId);
-        
+
         if (totalPledged >= minimumRequired) {
             campaign.setStatus(CampaignStatus.LOCKED);
-            log.info("Campaign {} locked - minimum met ({} >= {})", campaignId, totalPledged, minimumRequired);
+            CampaignEntity savedCampaign = campaignRepository.save(campaign);
+
+            // Generate payment intents and invoices
+            DiscountBracketEntity finalBracket = discountBracketService
+                    .getCurrentBracket(campaignId, totalPledged)
+                    .orElseThrow(() -> new CampaignValidationException("No applicable bracket found"));
+
+            paymentIntentService.generatePaymentIntents(campaignId, finalBracket);
+            invoiceService.generateInvoicesForCampaign(campaignId, finalBracket);
+
+            log.info("Campaign {} locked - minimum met ({} >= {}), invoices generated",
+                    campaignId, totalPledged, minimumRequired);
+            return savedCampaign;
         } else {
             campaign.setStatus(CampaignStatus.CANCELLED);
             log.info("Campaign {} cancelled - minimum not met ({} < {})", campaignId, totalPledged, minimumRequired);
+            return campaignRepository.save(campaign);
         }
-        
-        return campaignRepository.save(campaign);
     }
 
     @Transactional
     public CampaignEntity lockCampaign(UUID campaignId) {
         CampaignEntity campaign = findCampaignOrThrow(campaignId);
-        
-        validateStateTransition(campaign.getStatus(), CampaignStatus.LOCKED, CampaignStatus.ACTIVE);
-        
+
+        Set<CampaignStatus> allowedFromStates = Set.of(CampaignStatus.ACTIVE, CampaignStatus.GRACE_PERIOD);
+        if (!allowedFromStates.contains(campaign.getStatus())) {
+            throw new InvalidCampaignStateTransitionException(
+                    campaign.getStatus(), CampaignStatus.LOCKED
+            );
+        }
+
         int totalPledged = calculateTotalCommittedPledges(campaignId);
         int minimumRequired = getMinimumBracketQuantity(campaignId);
-        
+
         if (totalPledged < minimumRequired) {
             throw new CampaignValidationException(
-                    String.format("Cannot lock campaign: minimum pledges not met (%d < %d)", 
+                    String.format("Cannot lock campaign: minimum pledges not met (%d < %d)",
                             totalPledged, minimumRequired)
             );
         }
-        
+
         campaign.setStatus(CampaignStatus.LOCKED);
-        log.info("Locked campaign {} (total pledged: {})", campaignId, totalPledged);
-        return campaignRepository.save(campaign);
+        CampaignEntity savedCampaign = campaignRepository.save(campaign);
+
+        // Generate payment intents and invoices
+        DiscountBracketEntity finalBracket = discountBracketService
+                .getCurrentBracket(campaignId, totalPledged)
+                .orElseThrow(() -> new CampaignValidationException("No applicable bracket found"));
+
+        paymentIntentService.generatePaymentIntents(campaignId, finalBracket);
+        invoiceService.generateInvoicesForCampaign(campaignId, finalBracket);
+
+        log.info("Locked campaign {} (total pledged: {}), invoices generated", campaignId, totalPledged);
+        return savedCampaign;
     }
 
     @Transactional
     public CampaignEntity cancelCampaign(UUID campaignId) {
         CampaignEntity campaign = findCampaignOrThrow(campaignId);
-        
-        Set<CampaignStatus> allowedFromStates = Set.of(CampaignStatus.DRAFT, CampaignStatus.ACTIVE);
+
+        Set<CampaignStatus> allowedFromStates = Set.of(
+                CampaignStatus.DRAFT, CampaignStatus.ACTIVE, CampaignStatus.GRACE_PERIOD);
         if (!allowedFromStates.contains(campaign.getStatus())) {
             throw new InvalidCampaignStateTransitionException(
                     campaign.getStatus(), CampaignStatus.CANCELLED
             );
         }
-        
+
         campaign.setStatus(CampaignStatus.CANCELLED);
         log.info("Cancelled campaign {}", campaignId);
         return campaignRepository.save(campaign);
@@ -181,7 +220,7 @@ public class CampaignLifecycleService {
         List<PaymentIntentEntity> payments = paymentIntentService.findAllByCampaignId(campaignId);
         boolean allPaymentsCollected = pledgeIds.stream()
                 .allMatch(pledgeId -> payments.stream()
-                        .filter(p -> p.getPledgeId().equals(pledgeId))
+                        .filter(p -> p.getPledge().getId().equals(pledgeId))
                         .anyMatch(p -> SUCCESSFUL_PAYMENT_STATUSES.contains(p.getStatus())));
         
         if (!allPaymentsCollected) {
