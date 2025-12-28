@@ -406,6 +406,33 @@
       "organizationNameRequired": "Organization name is required",
       "organizationNameMinLength": "Organization name must be at least 2 characters",
       "organizationTypeRequired": "Please select an organization type"
+    },
+    "activate": {
+      "loading": {
+        "title": "Activating your account...",
+        "message": "Please wait while we verify your activation token."
+      },
+      "success": {
+        "title": "Account Activated!",
+        "message": "Your account and organization have been activated successfully. You can now sign in.",
+        "redirectingIn": "Redirecting to login in",
+        "seconds": "seconds...",
+        "loginNow": "Go to Login Now"
+      },
+      "error": {
+        "title": "Activation Failed",
+        "message": "The activation link is invalid or has expired.",
+        "missingToken": "No activation token was provided.",
+        "resendTitle": "Resend Activation Email",
+        "email": "Email Address",
+        "resendButton": "Resend Activation Email",
+        "sending": "Sending..."
+      },
+      "resent": {
+        "title": "Email Sent!",
+        "message": "A new activation email has been sent. Please check your inbox.",
+        "backToLogin": "Back to Login"
+      }
     }
   }
 }

@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import sa.elm.mashrook.notifications.EmailNotification;
 import sa.elm.mashrook.notifications.email.dto.AccountActivationEmail;
 import sa.elm.mashrook.notifications.email.dto.CampaignLockedEmail;
 import sa.elm.mashrook.notifications.email.dto.EmailRequest;
@@ -18,7 +17,7 @@ import sa.elm.mashrook.notifications.email.dto.WelcomeEmail;
 
 /**
  * Service for rendering email templates using Thymeleaf.
- * Transforms EmailNotification objects into rendered EmailRequest objects
+ * Transforms email DTO objects into rendered EmailRequest objects
  * with HTML and text content.
  */
 @Slf4j
@@ -32,13 +31,15 @@ public class EmailTemplateService {
     private final TemplateEngine templateEngine;
 
     /**
-     * Renders an email from EmailNotification content.
+     * Renders an email from an email DTO object.
      *
-     * @param notification the notification containing email data
+     * @param notification the email DTO containing email data
      * @return the rendered email request ready for sending
+     * @throws IllegalArgumentException if the notification type is not supported
      */
-    public EmailRequest renderEmail(EmailNotification notification) {
-        EmailType emailType = notification.getEmailType();
+    public EmailRequest renderEmail(Object notification) {
+        EmailType emailType = getEmailType(notification);
+        String recipientEmail = getRecipientEmail(notification);
         String templateName = emailType.getTemplateName();
 
         Context context = createContextFromNotification(notification);
@@ -54,10 +55,10 @@ public class EmailTemplateService {
         );
 
         log.debug("Rendered email template {} for recipient {}",
-                templateName, notification.recipientEmail());
+                templateName, recipientEmail);
 
         return new EmailRequest(
-                notification.recipientEmail(),
+                recipientEmail,
                 emailType.getSubject(),
                 htmlContent,
                 textContent,
@@ -65,15 +66,43 @@ public class EmailTemplateService {
         );
     }
 
-    private Context createContextFromNotification(EmailNotification notification) {
-        Context context = new Context();
+    private EmailType getEmailType(Object notification) {
+        return switch (notification) {
+            case InvoiceGeneratedEmail email -> email.getEmailType();
+            case PaymentReminderEmail email -> email.getEmailType();
+            case PaymentReceivedEmail email -> email.getEmailType();
+            case CampaignLockedEmail email -> email.getEmailType();
+            case AccountActivationEmail email -> email.getEmailType();
+            case PasswordResetEmail email -> email.getEmailType();
+            case WelcomeEmail email -> email.getEmailType();
+            default -> throw new IllegalArgumentException(
+                    "Unsupported email notification type: " + notification.getClass().getName()
+            );
+        };
+    }
 
-        // Common fields
-        context.setVariable("recipientName", notification.recipientName());
+    private String getRecipientEmail(Object notification) {
+        return switch (notification) {
+            case InvoiceGeneratedEmail email -> email.recipientEmail();
+            case PaymentReminderEmail email -> email.recipientEmail();
+            case PaymentReceivedEmail email -> email.recipientEmail();
+            case CampaignLockedEmail email -> email.recipientEmail();
+            case AccountActivationEmail email -> email.recipientEmail();
+            case PasswordResetEmail email -> email.recipientEmail();
+            case WelcomeEmail email -> email.recipientEmail();
+            default -> throw new IllegalArgumentException(
+                    "Unsupported email notification type: " + notification.getClass().getName()
+            );
+        };
+    }
+
+    private Context createContextFromNotification(Object notification) {
+        Context context = new Context();
 
         // Type-specific fields using pattern matching
         switch (notification) {
             case InvoiceGeneratedEmail invoice -> {
+                context.setVariable("recipientName", invoice.recipientName());
                 context.setVariable("organizationName", invoice.organizationName());
                 context.setVariable("campaignTitle", invoice.campaignTitle());
                 context.setVariable("invoiceNumber", invoice.invoiceNumber());
@@ -83,6 +112,7 @@ public class EmailTemplateService {
                 context.setVariable("quantity", invoice.quantity());
             }
             case PaymentReminderEmail reminder -> {
+                context.setVariable("recipientName", reminder.recipientName());
                 context.setVariable("organizationName", reminder.organizationName());
                 context.setVariable("campaignTitle", reminder.campaignTitle());
                 context.setVariable("invoiceNumber", reminder.invoiceNumber());
@@ -92,6 +122,7 @@ public class EmailTemplateService {
                 context.setVariable("daysUntilDue", reminder.daysUntilDue());
             }
             case PaymentReceivedEmail received -> {
+                context.setVariable("recipientName", received.recipientName());
                 context.setVariable("organizationName", received.organizationName());
                 context.setVariable("campaignTitle", received.campaignTitle());
                 context.setVariable("invoiceNumber", received.invoiceNumber());
@@ -101,6 +132,7 @@ public class EmailTemplateService {
                 context.setVariable("paymentMethod", received.paymentMethod());
             }
             case CampaignLockedEmail locked -> {
+                context.setVariable("recipientName", locked.recipientName());
                 context.setVariable("organizationName", locked.organizationName());
                 context.setVariable("campaignTitle", locked.campaignTitle());
                 context.setVariable("campaignId", locked.campaignId());
@@ -110,14 +142,17 @@ public class EmailTemplateService {
                 context.setVariable("discountPercentage", locked.discountPercentage());
             }
             case AccountActivationEmail activation -> {
+                context.setVariable("recipientName", activation.recipientName());
                 context.setVariable("activationLink", activation.activationLink());
                 context.setVariable("expirationHours", activation.expirationHours());
             }
             case PasswordResetEmail reset -> {
+                context.setVariable("recipientName", reset.recipientName());
                 context.setVariable("resetLink", reset.resetLink());
                 context.setVariable("expirationHours", reset.expirationHours());
             }
             case WelcomeEmail welcome -> {
+                context.setVariable("recipientName", welcome.recipientName());
                 context.setVariable("organizationName", welcome.organizationName());
                 context.setVariable("loginUrl", welcome.loginUrl());
             }

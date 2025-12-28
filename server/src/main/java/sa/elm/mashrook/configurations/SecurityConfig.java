@@ -85,6 +85,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/activate/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/auth/resend-activation").permitAll()
                         // Public campaign discovery endpoints
                         .requestMatchers(HttpMethod.GET, "/v1/campaigns/public/**").permitAll()
                         .anyRequest().authenticated())

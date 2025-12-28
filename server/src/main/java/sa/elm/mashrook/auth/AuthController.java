@@ -33,6 +33,7 @@ import sa.elm.mashrook.auth.dto.AuthResult;
 import sa.elm.mashrook.auth.dto.AuthenticationResponse;
 import sa.elm.mashrook.auth.dto.LoginRequest;
 import sa.elm.mashrook.auth.dto.RegistrationRequest;
+import sa.elm.mashrook.auth.dto.ResendActivationRequest;
 import sa.elm.mashrook.auth.dto.UserResponse;
 import sa.elm.mashrook.configurations.AuthenticationConfigurationProperties;
 import sa.elm.mashrook.exceptions.AuthenticationException;
@@ -343,6 +344,67 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "success", success,
                 "message", "Account and organization activated successfully"
+        ));
+    }
+
+    /**
+     * Resends the account activation email for users with expired tokens.
+     *
+     * @param request the resend activation request containing the email
+     * @return success status and message
+     */
+    @Operation(
+            summary = "Resend activation email",
+            description = """
+                    Resends the account activation email to a user whose activation token has expired.
+                    The user must be in INACTIVE (pending) status. This endpoint generates a new
+                    activation token and sends a fresh activation email.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Activation email sent successfully",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "Success",
+                                    value = """
+                                            {
+                                              "success": true,
+                                              "message": "Activation email sent successfully"
+                                            }
+                                            """
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid request or account already activated",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "No pending account found with this email",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            )
+    })
+    @PostMapping("/resend-activation")
+    public ResponseEntity<Map<String, Object>> resendActivation(
+            @Valid @RequestBody ResendActivationRequest request) {
+        log.debug("Resend activation requested for email: {}", request.email());
+
+        authenticationService.resendActivationEmail(request.email());
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Activation email sent successfully"
         ));
     }
 

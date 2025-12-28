@@ -7,7 +7,15 @@ import com.resend.services.emails.model.CreateEmailResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import sa.elm.mashrook.notifications.email.dto.AccountActivationEmail;
+import sa.elm.mashrook.notifications.email.dto.CampaignLockedEmail;
 import sa.elm.mashrook.notifications.email.dto.EmailRequest;
+import sa.elm.mashrook.notifications.email.dto.EmailType;
+import sa.elm.mashrook.notifications.email.dto.InvoiceGeneratedEmail;
+import sa.elm.mashrook.notifications.email.dto.PasswordResetEmail;
+import sa.elm.mashrook.notifications.email.dto.PaymentReceivedEmail;
+import sa.elm.mashrook.notifications.email.dto.PaymentReminderEmail;
+import sa.elm.mashrook.notifications.email.dto.WelcomeEmail;
 import sa.elm.mashrook.notifications.email.service.EmailSendResult;
 import sa.elm.mashrook.notifications.email.service.EmailTemplateService;
 
@@ -19,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 @Service
-public class EmailNotificationService implements NotificationProvider<EmailNotification> {
+public class EmailNotificationService implements NotificationProvider<Object> {
 
     private final EmailTemplateService templateService;
     private final NotificationConfigProperties config;
@@ -49,34 +57,58 @@ public class EmailNotificationService implements NotificationProvider<EmailNotif
 
     @Async
     @Override
-    public CompletableFuture<Void> send(EmailNotification notification) {
+    public CompletableFuture<Void> send(Object notification) {
         return CompletableFuture.runAsync(() -> sendEmailInternal(notification));
     }
 
-    /**
-     * Sends an email synchronously and returns the result.
-     * Useful for cases where you need the send result immediately.
-     */
-    public EmailSendResult sendSync(EmailNotification notification) {
-        return sendEmailInternal(notification);
-    }
+    private void sendEmailInternal(Object notification) {
+        EmailType emailType = getEmailType(notification);
+        String recipientEmail = getRecipientEmail(notification);
 
-    private EmailSendResult sendEmailInternal(EmailNotification notification) {
-        log.info("Sending {} email to {}",
-                notification.getEmailType(), notification.recipientEmail());
+        log.info("Sending {} email to {}", emailType, recipientEmail);
 
         try {
             // Render the email template
             EmailRequest request = templateService.renderEmail(notification);
 
             // Send via Resend
-            return sendViaResend(request);
+            sendViaResend(request);
 
         } catch (Exception e) {
             log.error("Unexpected error sending email to {}: {}",
-                    notification.recipientEmail(), e.getMessage(), e);
-            return EmailSendResult.failure(e.getMessage());
+                    recipientEmail, e.getMessage(), e);
+            EmailSendResult.failure(e.getMessage());
         }
+    }
+
+    private EmailType getEmailType(Object notification) {
+        return switch (notification) {
+            case InvoiceGeneratedEmail email -> email.getEmailType();
+            case PaymentReminderEmail email -> email.getEmailType();
+            case PaymentReceivedEmail email -> email.getEmailType();
+            case CampaignLockedEmail email -> email.getEmailType();
+            case AccountActivationEmail email -> email.getEmailType();
+            case PasswordResetEmail email -> email.getEmailType();
+            case WelcomeEmail email -> email.getEmailType();
+            default -> throw new IllegalArgumentException(
+                    "Unsupported email notification type: " + notification.getClass().getName()
+            );
+        };
+    }
+
+    private String getRecipientEmail(Object notification) {
+        return switch (notification) {
+            case InvoiceGeneratedEmail email -> email.recipientEmail();
+            case PaymentReminderEmail email -> email.recipientEmail();
+            case PaymentReceivedEmail email -> email.recipientEmail();
+            case CampaignLockedEmail email -> email.recipientEmail();
+            case AccountActivationEmail email -> email.recipientEmail();
+            case PasswordResetEmail email -> email.recipientEmail();
+            case WelcomeEmail email -> email.recipientEmail();
+            default -> throw new IllegalArgumentException(
+                    "Unsupported email notification type: " + notification.getClass().getName()
+            );
+        };
     }
 
     private EmailSendResult sendViaResend(EmailRequest request) {

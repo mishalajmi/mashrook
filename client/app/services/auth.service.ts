@@ -301,5 +301,32 @@ export const authService = {
      */
     async checkEmailAvailability(email: string): Promise<boolean> {
         return apiClient.get<boolean>(`/v1/auth/check-email?email=${encodeURIComponent(email)}`);
+    },
+
+    /**
+     * Activate an account using the activation token from email
+     *
+     * @param token - Activation token from the activation email
+     * @returns Success response with message
+     * @throws Error if token is invalid or expired
+     */
+    async activateAccount(token: string): Promise<{ success: boolean; message: string }> {
+        return apiClient.post<{ success: boolean; message: string }>(
+            `/v1/auth/activate?token=${encodeURIComponent(token)}`
+        );
+    },
+
+    /**
+     * Resend activation email to the specified email address
+     *
+     * @param email - Email address to send activation link to
+     * @returns Success response with message
+     * @throws Error if no pending account found or account already activated
+     */
+    async resendActivationEmail(email: string): Promise<{ success: boolean; message: string }> {
+        return apiClient.post<{ success: boolean; message: string }>(
+            '/v1/auth/resend-activation',
+            { email }
+        );
     }
 };

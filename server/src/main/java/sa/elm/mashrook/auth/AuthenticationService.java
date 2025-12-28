@@ -13,7 +13,9 @@ import sa.elm.mashrook.auth.domain.RefreshToken;
 import sa.elm.mashrook.auth.dto.AuthResult;
 import sa.elm.mashrook.auth.dto.RegistrationRequest;
 import sa.elm.mashrook.configurations.AuthenticationConfigurationProperties;
+import sa.elm.mashrook.exceptions.AccountValidationException;
 import sa.elm.mashrook.exceptions.AuthenticationException;
+import sa.elm.mashrook.exceptions.UserNotFoundException;
 import sa.elm.mashrook.notifications.NotificationService;
 import sa.elm.mashrook.notifications.email.dto.AccountActivationEmail;
 import sa.elm.mashrook.notifications.email.dto.WelcomeEmail;
@@ -26,6 +28,7 @@ import sa.elm.mashrook.security.services.JwtService;
 import sa.elm.mashrook.security.details.MashrookUserDetails;
 import sa.elm.mashrook.users.UserService;
 import sa.elm.mashrook.users.domain.UserEntity;
+import sa.elm.mashrook.users.domain.UserStatus;
 import sa.elm.mashrook.users.dto.UserCreateRequest;
 import sa.elm.mashrook.verification.VerificationTokenService;
 import sa.elm.mashrook.verification.domain.VerificationTokenEntity;
@@ -145,6 +148,49 @@ public class AuthenticationService {
                 user.getEmail(), user.getOrganization().getId());
 
         return true;
+    }
+
+    /**
+     * Resends the account activation email to a user with INACTIVE status.
+     * <p>
+     * This method is used when a user's activation token has expired and they need
+     * a new one. It validates the user exists and is still in INACTIVE status,
+     * generates a new activation token (invalidating any existing unused tokens),
+     * and sends a new activation email.
+     * </p>
+     *
+     * @param email the email address of the user requesting activation email resend
+     * @throws UserNotFoundException      if no user is found with the given email
+     * @throws AccountValidationException if the user is already activated or in an invalid state
+     */
+    @Transactional
+    public void resendActivationEmail(String email) {
+        // Find user by email
+        UserEntity user = userService.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("No pending account found with this email"));
+
+        // Check if user is in INACTIVE status (pending activation)
+        if (user.getStatus() != UserStatus.INACTIVE) {
+            throw new AccountValidationException("Account is already activated or in invalid state");
+        }
+
+        // Generate new activation token (this invalidates any existing unused tokens)
+        VerificationTokenEntity activationToken = verificationTokenService.generateToken(
+                user.getId(),
+                VerificationTokenType.ACCOUNT_ACTIVATION
+        );
+
+        // Send activation email using new notification system
+        String activationLink = buildActivationLink(activationToken.getToken());
+        AccountActivationEmail activationEmail = new AccountActivationEmail(
+                user.getEmail(),
+                user.getFirstName(),
+                activationLink,
+                "48"
+        );
+        notificationService.send(activationEmail);
+
+        log.info("Resent activation email to: {}", email);
     }
 
     /**

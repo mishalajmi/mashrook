@@ -18,6 +18,8 @@ import sa.elm.mashrook.auth.RefreshTokenService;
 import sa.elm.mashrook.auth.domain.RefreshToken;
 import sa.elm.mashrook.auth.dto.AuthenticationResponse;
 import sa.elm.mashrook.auth.dto.LoginRequest;
+import sa.elm.mashrook.auth.dto.ResendActivationRequest;
+import sa.elm.mashrook.users.domain.UserStatus;
 import sa.elm.mashrook.configurations.RedisConfig;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationType;
@@ -652,6 +654,110 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.role").value("ADMIN"));
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /v1/auth/resend-activation Tests")
+    class ResendActivationTests {
+
+        @Test
+        @DisplayName("should return success when resending activation email for INACTIVE user")
+        void shouldResendActivationEmailForInactiveUser() throws Exception {
+            // Arrange - Clean up and create inactive user
+            userRepository.deleteAll();
+            organizationRepository.deleteAll();
+
+            OrganizationEntity org = organizationRepository.save(createTestOrganization());
+            UserEntity inactiveUser = createTestUser(org, passwordEncoder.encode(TEST_PASSWORD));
+            inactiveUser.setStatus(UserStatus.INACTIVE);
+            userRepository.save(inactiveUser);
+
+            ResendActivationRequest request = new ResendActivationRequest(TEST_EMAIL);
+
+            // Act & Assert
+            mockMvc.perform(post("/v1/auth/resend-activation")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.message").value("Activation email sent successfully"));
+        }
+
+        @Test
+        @DisplayName("should return 404 when user not found by email")
+        void shouldReturnNotFoundWhenUserNotFound() throws Exception {
+            // Arrange
+            ResendActivationRequest request = new ResendActivationRequest("nonexistent@example.com");
+
+            // Act & Assert
+            mockMvc.perform(post("/v1/auth/resend-activation")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.detail").value("No pending account found with this email"));
+        }
+
+        @Test
+        @DisplayName("should return 400 when user is already activated (ACTIVE status)")
+        void shouldReturnBadRequestWhenUserAlreadyActivated() throws Exception {
+            // Arrange - User is ACTIVE by default from setUp
+            ResendActivationRequest request = new ResendActivationRequest(TEST_EMAIL);
+
+            // Act & Assert
+            mockMvc.perform(post("/v1/auth/resend-activation")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.detail").value("Account is already activated or in invalid state"));
+        }
+
+        @Test
+        @DisplayName("should return 400 when email is missing")
+        void shouldReturnBadRequestWhenEmailMissing() throws Exception {
+            // Arrange - Empty email
+            String requestBody = "{\"email\": \"\"}";
+
+            // Act & Assert
+            mockMvc.perform(post("/v1/auth/resend-activation")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("should return 400 when email format is invalid")
+        void shouldReturnBadRequestWhenEmailInvalid() throws Exception {
+            // Arrange - Invalid email format
+            String requestBody = "{\"email\": \"invalid-email\"}";
+
+            // Act & Assert
+            mockMvc.perform(post("/v1/auth/resend-activation")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("should return 400 when user is DISABLED")
+        void shouldReturnBadRequestWhenUserIsDisabled() throws Exception {
+            // Arrange - Clean up and create disabled user
+            userRepository.deleteAll();
+            organizationRepository.deleteAll();
+
+            OrganizationEntity org = organizationRepository.save(createTestOrganization());
+            UserEntity disabledUser = createTestUser(org, passwordEncoder.encode(TEST_PASSWORD));
+            disabledUser.setStatus(UserStatus.DISABLED);
+            userRepository.save(disabledUser);
+
+            ResendActivationRequest request = new ResendActivationRequest(TEST_EMAIL);
+
+            // Act & Assert
+            mockMvc.perform(post("/v1/auth/resend-activation")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.detail").value("Account is already activated or in invalid state"));
         }
     }
 }

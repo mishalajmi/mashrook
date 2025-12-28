@@ -5,6 +5,7 @@ export default [
 	index("routes/home.tsx"),
 	route("login", "routes/login.tsx"),
 	route("register", "routes/register.tsx"),
+	route("activate", "routes/activate.tsx"),
 
 	// Public campaign routes - no authentication required
 	route("campaigns", "routes/_landing/campaigns/index.tsx"),
