@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
+import sa.elm.mashrook.notifications.NotificationService;
 import sa.elm.mashrook.notifications.email.dto.PaymentReminderEmail;
-import sa.elm.mashrook.notifications.email.service.MashrookEmailService;
 import sa.elm.mashrook.invoices.domain.InvoiceEntity;
 import sa.elm.mashrook.invoices.domain.InvoiceRepository;
 import sa.elm.mashrook.invoices.domain.InvoiceStatus;
@@ -37,20 +37,20 @@ public class PaymentReminderJob {
     private final CampaignRepository campaignRepository;
     private final InvoiceRepository invoiceRepository;
     private final UserRepository userRepository;
-    private final MashrookEmailService emailService;
+    private final NotificationService notificationService;
     private final int reminderDaysBeforeDue;
 
     public PaymentReminderJob(
             CampaignRepository campaignRepository,
             InvoiceRepository invoiceRepository,
             UserRepository userRepository,
-            MashrookEmailService emailService,
+            NotificationService notificationService,
             @Value("${mashrook.scheduling.payment-reminder.days-before-due:7}") int reminderDaysBeforeDue
     ) {
         this.campaignRepository = campaignRepository;
         this.invoiceRepository = invoiceRepository;
         this.userRepository = userRepository;
-        this.emailService = emailService;
+        this.notificationService = notificationService;
         this.reminderDaysBeforeDue = reminderDaysBeforeDue;
     }
 
@@ -132,7 +132,7 @@ public class PaymentReminderJob {
                 )
                 .map(user -> {
                     PaymentReminderEmail email = buildReminderEmail(invoice, campaign, user);
-                    emailService.sendPaymentReminderEmail(email);
+                    notificationService.send(email);
 
                     log.info("Sent payment reminder - Invoice: {}, Org: {}, Due: {}, Days until due: {}",
                             invoice.getInvoiceNumber(),

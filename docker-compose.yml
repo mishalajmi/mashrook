@@ -38,6 +38,26 @@ services:
       retries: 5
     command: redis-server --appendonly yes
 
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio_data:/data
+    networks:
+      - mashrook-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   server:
     build:
       context: ./server
@@ -76,6 +96,8 @@ volumes:
     name: ${APP_NAME:-mashrook-app}_postgres_data
   redis_data:
     name: ${APP_NAME:-mashrook-app}_redis_data
+  minio_data:
+    name: ${APP_NAME:-mashrook-app}_minio_data
 
 networks:
   mashrook-network:

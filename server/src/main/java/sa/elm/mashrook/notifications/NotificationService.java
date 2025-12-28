@@ -1,161 +1,88 @@
 package sa.elm.mashrook.notifications;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import sa.elm.mashrook.configurations.AuthenticationConfigurationProperties;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Service for sending email notifications.
- * Uses template-based approach for different notification types.
+ * Central notification service that routes notifications to the appropriate provider.
+ * Acts as a facade for all notification types (email, SMS, push).
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class NotificationService {
 
-    private final JavaMailSender mailSender;
-    private final AuthenticationConfigurationProperties authConfig;
+    private final NotificationProvider<EmailNotification> emailProvider;
+    private final NotificationProvider<SmsNotification> smsProvider;
+    private final NotificationProvider<PushNotification> pushProvider;
 
-    /**
-     * Sends an account activation email with a verification link.
-     *
-     * @param email     the recipient email address
-     * @param firstName the user's first name
-     * @param token     the verification token
-     */
-    @Async
-    public void sendActivationEmail(String email, String firstName, String token) {
-        String activationLink = buildActivationLink(token);
-
-        String subject = "Activate Your Mashrook Account";
-        String body = buildActivationEmailBody(firstName, activationLink);
-
-        sendEmail(email, subject, body);
-        log.info("Sent activation email to {}", email);
+    public NotificationService(
+            NotificationProvider<EmailNotification> emailProvider,
+            NotificationProvider<SmsNotification> smsProvider,
+            NotificationProvider<PushNotification> pushProvider
+    ) {
+        this.emailProvider = emailProvider;
+        this.smsProvider = smsProvider;
+        this.pushProvider = pushProvider;
     }
 
     /**
-     * Sends a password reset email with a reset link.
+     * Sends a notification through the appropriate provider based on the notification type.
      *
-     * @param email     the recipient email address
-     * @param firstName the user's first name
-     * @param token     the password reset token
+     * @param notification the notification to send
+     * @return a CompletableFuture that completes when the notification is sent
+     * @throws IllegalArgumentException if the notification type is not supported
      */
-    @Async
-    public void sendPasswordResetEmail(String email, String firstName, String token) {
-        String resetLink = buildPasswordResetLink(token);
-
-        String subject = "Reset Your Mashrook Password";
-        String body = buildPasswordResetEmailBody(firstName, resetLink);
-
-        sendEmail(email, subject, body);
-        log.info("Sent password reset email to {}", email);
+    public CompletableFuture<Void> send(Object notification) {
+        return switch (notification) {
+            case EmailNotification email -> {
+                log.debug("Routing email notification to EmailNotificationService");
+                yield emailProvider.send(email);
+            }
+            case SmsNotification sms -> {
+                log.debug("Routing SMS notification to SmsNotificationService");
+                yield smsProvider.send(sms);
+            }
+            case PushNotification push -> {
+                log.debug("Routing push notification to PushNotificationService");
+                yield pushProvider.send(push);
+            }
+            default -> throw new IllegalArgumentException(
+                    "Unsupported notification type: " + notification.getClass().getName()
+            );
+        };
     }
 
     /**
-     * Sends a welcome email after successful account activation.
+     * Sends an email notification.
      *
-     * @param email           the recipient email address
-     * @param firstName       the user's first name
-     * @param organizationName the organization name
+     * @param notification the email notification to send
+     * @return a CompletableFuture that completes when the email is sent
      */
-    @Async
-    public void sendWelcomeEmail(String email, String firstName, String organizationName) {
-        String subject = "Welcome to Mashrook!";
-        String body = buildWelcomeEmailBody(firstName, organizationName);
-
-        sendEmail(email, subject, body);
-        log.info("Sent welcome email to {}", email);
+    public CompletableFuture<Void> sendEmail(EmailNotification notification) {
+        return emailProvider.send(notification);
     }
 
-    private void sendEmail(String to, String subject, String body) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(body);
-            message.setFrom("noreply@mashrook.sa");
-
-            mailSender.send(message);
-        } catch (Exception e) {
-            log.error("Failed to send email to {}: {}", to, e.getMessage());
-            // In production, you might want to queue failed emails for retry
-        }
+    /**
+     * Sends an SMS notification.
+     *
+     * @param notification the SMS notification to send
+     * @return a CompletableFuture that completes when the SMS is sent
+     * @throws UnsupportedOperationException SMS is not yet implemented
+     */
+    public CompletableFuture<Void> sendSms(SmsNotification notification) {
+        return smsProvider.send(notification);
     }
 
-    private String buildActivationLink(String token) {
-        String baseUrl = authConfig.verification() != null
-                ? authConfig.verification().frontendBaseUrl()
-                : "http://localhost:5173";
-        return baseUrl + "/activate?token=" + token;
-    }
-
-    private String buildPasswordResetLink(String token) {
-        String baseUrl = authConfig.verification() != null
-                ? authConfig.verification().frontendBaseUrl()
-                : "http://localhost:5173";
-        return baseUrl + "/reset-password?token=" + token;
-    }
-
-    private String buildActivationEmailBody(String firstName, String activationLink) {
-        return String.format("""
-            Hello %s,
-
-            Welcome to Mashrook! Please click the link below to activate your account and organization:
-
-            %s
-
-            This link will expire in 48 hours.
-
-            If you did not create an account, please ignore this email.
-
-            Best regards,
-            The Mashrook Team
-            """, firstName, activationLink);
-    }
-
-    private String buildPasswordResetEmailBody(String firstName, String resetLink) {
-        return String.format("""
-            Hello %s,
-
-            We received a request to reset your password. Click the link below to set a new password:
-
-            %s
-
-            This link will expire in 1 hour.
-
-            If you did not request a password reset, please ignore this email or contact support if you have concerns.
-
-            Best regards,
-            The Mashrook Team
-            """, firstName, resetLink);
-    }
-
-    private String buildWelcomeEmailBody(String firstName, String organizationName) {
-        return String.format("""
-            Hello %s,
-
-            Congratulations! Your account and organization "%s" have been successfully activated.
-
-            You can now:
-            - Browse and join group buying campaigns
-            - Access volume-based discounts
-            - Manage your organization's orders
-
-            Log in to get started: https://mashrook.sa/login
-
-            Best regards,
-            The Mashrook Team
-            """, firstName, organizationName);
-    }
-
-    @Deprecated
-    public void send() {
-        // Legacy method - kept for backward compatibility
-        log.warn("Deprecated send() method called - use specific notification methods instead");
+    /**
+     * Sends a push notification.
+     *
+     * @param notification the push notification to send
+     * @return a CompletableFuture that completes when the push notification is sent
+     * @throws UnsupportedOperationException Push is not yet implemented
+     */
+    public CompletableFuture<Void> sendPush(PushNotification notification) {
+        return pushProvider.send(notification);
     }
 }

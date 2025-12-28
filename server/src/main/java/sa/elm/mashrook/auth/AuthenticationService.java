@@ -15,6 +15,8 @@ import sa.elm.mashrook.auth.dto.RegistrationRequest;
 import sa.elm.mashrook.configurations.AuthenticationConfigurationProperties;
 import sa.elm.mashrook.exceptions.AuthenticationException;
 import sa.elm.mashrook.notifications.NotificationService;
+import sa.elm.mashrook.notifications.email.dto.AccountActivationEmail;
+import sa.elm.mashrook.notifications.email.dto.WelcomeEmail;
 import sa.elm.mashrook.organizations.OrganizationService;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationType;
@@ -89,12 +91,15 @@ public class AuthenticationService {
                 VerificationTokenType.ACCOUNT_ACTIVATION
         );
 
-        // Send activation email
-        notificationService.sendActivationEmail(
+        // Send activation email using new notification system
+        String activationLink = buildActivationLink(activationToken.getToken());
+        AccountActivationEmail email = new AccountActivationEmail(
                 owner.getEmail(),
                 owner.getFirstName(),
-                activationToken.getToken()
+                activationLink,
+                "48" // hours
         );
+        notificationService.send(email);
 
         log.info("Registered new user {} with organization {}", owner.getEmail(), organization.getId());
 
@@ -126,12 +131,15 @@ public class AuthenticationService {
         // Activate organization
         organizationService.activateOrganization(user.getOrganization().getId());
 
-        // Send welcome email
-        notificationService.sendWelcomeEmail(
+        // Send welcome email using new notification system
+        String loginUrl = buildLoginUrl();
+        WelcomeEmail welcomeEmail = new WelcomeEmail(
                 user.getEmail(),
                 user.getFirstName(),
-                user.getOrganization().getNameEn()
+                user.getOrganization().getNameEn(),
+                loginUrl
         );
+        notificationService.send(welcomeEmail);
 
         log.info("Activated account for user {} and organization {}",
                 user.getEmail(), user.getOrganization().getId());
@@ -290,5 +298,25 @@ public class AuthenticationService {
     public UserEntity getCurrentUser(UUID userId) {
         return userService.findByUserId(userId)
                 .orElseThrow(() -> new AuthenticationException("User not found"));
+    }
+
+    /**
+     * Builds the activation link URL for account activation emails.
+     */
+    private String buildActivationLink(String token) {
+        String baseUrl = authConfig.verification() != null
+                ? authConfig.verification().frontendBaseUrl()
+                : "http://localhost:5173";
+        return baseUrl + "/activate?token=" + token;
+    }
+
+    /**
+     * Builds the login URL for welcome emails.
+     */
+    private String buildLoginUrl() {
+        String baseUrl = authConfig.verification() != null
+                ? authConfig.verification().frontendBaseUrl()
+                : "http://localhost:5173";
+        return baseUrl + "/login";
     }
 }
