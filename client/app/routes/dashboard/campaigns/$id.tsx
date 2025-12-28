@@ -27,7 +27,6 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-	EmptyState,
 	LoadingState,
 	Dialog,
 	DialogContent,
@@ -38,6 +37,7 @@ import {
 	Input,
 	Label,
 } from "@/components/ui";
+import { EmptyState } from "@/components/ui/empty-state";
 import { CampaignStatusBadge, BracketProgressIndicator, DiscountBracketEditor, MediaUploader } from "@/components/campaigns";
 import { campaignService, type CampaignResponse, type BracketRequest, type CampaignMediaResponse } from "@/services/campaign.service";
 import { pledgeService, type PledgeResponse } from "@/services/pledge.service";

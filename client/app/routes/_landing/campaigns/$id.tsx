@@ -21,8 +21,8 @@ import {
 	CardHeader,
 	CardTitle,
 	LoadingState,
-	EmptyState,
 } from "@/components/ui";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
 	CampaignStatusBadge,
 	BracketProgressVisualization,

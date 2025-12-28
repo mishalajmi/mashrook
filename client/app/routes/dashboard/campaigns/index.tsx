@@ -8,7 +8,8 @@ import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { Plus, Megaphone } from "lucide-react";
 
-import { Button, EmptyState, LoadingState } from "@/components/ui";
+import { Button, LoadingState } from "@/components/ui";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
 	CampaignCard,
 	CampaignFilters,
