@@ -129,18 +129,11 @@
             <version>2.29.51</version>
         </dependency>
 
-        <!-- AWS SES SDK v2 for Email Sending -->
+        <!-- Resend SDK for Email Sending -->
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>ses</artifactId>
-            <version>2.29.51</version>
-        </dependency>
-
-        <!-- AWS SNS SDK v2 for Event Publishing -->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sns</artifactId>
-            <version>2.29.51</version>
+            <groupId>com.resend</groupId>
+            <artifactId>resend-java</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
         <!-- Thymeleaf for HTML Email Templates -->

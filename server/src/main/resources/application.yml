@@ -26,22 +26,6 @@ spring:
       timeout: 5000ms
       username: ${REDIS_USERNAME:default}
       password: ${REDIS_PASSWORD:}
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-    default-encoding: UTF-8
 
 server:
   servlet:
@@ -82,7 +66,7 @@ mashrook:
   auth:
     jwt:
       secret: ${JWT_SECRET_KEY}
-      issuer: mashrook.sa
+      issuer: mashrook.io
       accessTokenExpirationMs: ${JWT_ACCESS_EXPIRATION_IN_MS}
       refreshTokenExpirationMs: ${JWT_REFRESH_EXPIRATION_IN_MS}
     cookie:
@@ -102,46 +86,33 @@ mashrook:
     campaign-evaluation:
       # Runs daily at 2:00 AM - evaluates campaigns after grace period ends
       cron: ${CAMPAIGN_EVALUATION_CRON:0 0 2 * * *}
-      # Number of days after campaign end date before evaluation
       grace-period-days: ${CAMPAIGN_GRACE_PERIOD_DAYS:3}
     payment-reminder:
       # Runs daily at 9:00 AM - sends reminders for pending payments
       cron: ${PAYMENT_REMINDER_CRON:0 0 9 * * *}
-      # Number of days before due date to send reminders
       days-before-due: ${PAYMENT_REMINDER_DAYS_BEFORE_DUE:7}
     payment-retry:
       # Runs every 4 hours - retries failed payments
       cron: ${PAYMENT_RETRY_CRON:0 0 */4 * * *}
-      # Maximum number of retry attempts
       max-retries: ${PAYMENT_MAX_RETRIES:3}
   campaign:
-    # Number of days for grace period
     grace-period-days: ${CAMPAIGN_GRACE_PERIOD_DAYS:3}
   invoice:
-    # Saudi Arabia VAT rate (15%)
     vat-rate: ${INVOICE_VAT_RATE:0.15}
-    # Number of days until invoice is due
     due-days: ${INVOICE_DUE_DAYS:30}
-    # Prefix for invoice numbers
     number-prefix: ${INVOICE_NUMBER_PREFIX:INV}
   bank-account:
     bank-name: ${BANK_NAME:Saudi National Bank}
     iban: ${BANK_IBAN:SA0000000000000000000000}
     swift-code: ${BANK_SWIFT:NCBKSAJE}
     account-name: ${BANK_ACCOUNT_NAME:Mashrook Trading LLC}
-  email:
-    ses:
-      # AWS SES Configuration for sending transactional emails
-      enabled: ${SES_ENABLED:false}
-      region: ${SES_REGION:me-south-1}
-      sender-email: ${SES_SENDER_EMAIL:noreply@mashrook.sa}
-      sender-name: ${SES_SENDER_NAME:Mashrook}
-      access-key-id: ${SES_ACCESS_KEY_ID:}
-      secret-access-key: ${SES_SECRET_ACCESS_KEY:}
-    sns:
-      # AWS SNS Configuration for email event publishing/analytics
-      enabled: ${SNS_ENABLED:false}
-      region: ${SNS_REGION:me-south-1}
-      topic-arn: ${SNS_EMAIL_EVENTS_TOPIC_ARN:}
-      access-key-id: ${SNS_ACCESS_KEY_ID:}
-      secret-access-key: ${SNS_SECRET_ACCESS_KEY:}
+  notifications:
+    email:
+      from-address: ${EMAIL_FROM_ADDRESS:noreply@mashrook.io}
+      from-name: ${EMAIL_FROM_NAME:Mashrook}
+      resend:
+        api-key: ${RESEND_API_KEY:}
+    sms:
+      enabled: ${SMS_ENABLED:false}
+    push:
+      enabled: ${PUSH_ENABLED:false}

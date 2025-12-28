@@ -13,8 +13,8 @@ import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
 import sa.elm.mashrook.common.util.UuidGeneratorUtil;
+import sa.elm.mashrook.notifications.NotificationService;
 import sa.elm.mashrook.notifications.email.dto.PaymentReminderEmail;
-import sa.elm.mashrook.notifications.email.service.MashrookEmailService;
 import sa.elm.mashrook.invoices.domain.InvoiceEntity;
 import sa.elm.mashrook.invoices.domain.InvoiceRepository;
 import sa.elm.mashrook.invoices.domain.InvoiceStatus;
@@ -53,7 +53,7 @@ class PaymentReminderJobTest {
     private UserRepository userRepository;
 
     @Mock
-    private MashrookEmailService emailService;
+    private NotificationService notificationService;
 
     @Captor
     private ArgumentCaptor<PaymentReminderEmail> emailCaptor;
@@ -68,7 +68,7 @@ class PaymentReminderJobTest {
                 campaignRepository,
                 invoiceRepository,
                 userRepository,
-                emailService,
+                notificationService,
                 REMINDER_DAYS_BEFORE_DUE
         );
     }
@@ -157,7 +157,7 @@ class PaymentReminderJobTest {
 
             paymentReminderJob.sendPaymentReminders();
 
-            verify(emailService).sendPaymentReminderEmail(emailCaptor.capture());
+            verify(notificationService).send(emailCaptor.capture());
 
             PaymentReminderEmail sentEmail = emailCaptor.getValue();
             assertThat(sentEmail.recipientEmail()).isEqualTo("buyer@company.com");
@@ -193,7 +193,7 @@ class PaymentReminderJobTest {
 
             paymentReminderJob.sendPaymentReminders();
 
-            verify(emailService).sendPaymentReminderEmail(emailCaptor.capture());
+            verify(notificationService).send(emailCaptor.capture());
             assertThat(emailCaptor.getValue().daysUntilDue()).isEqualTo(3);
         }
 
@@ -224,7 +224,7 @@ class PaymentReminderJobTest {
 
             paymentReminderJob.sendPaymentReminders();
 
-            verify(emailService, times(2)).sendPaymentReminderEmail(any(PaymentReminderEmail.class));
+            verify(notificationService, times(2)).send(any(PaymentReminderEmail.class));
         }
 
         @Test
@@ -248,7 +248,7 @@ class PaymentReminderJobTest {
 
             paymentReminderJob.sendPaymentReminders();
 
-            verify(emailService, never()).sendPaymentReminderEmail(any());
+            verify(notificationService, never()).send(any());
         }
 
         @Test
@@ -260,7 +260,7 @@ class PaymentReminderJobTest {
             paymentReminderJob.sendPaymentReminders();
 
             verify(campaignRepository).findAllByStatus(CampaignStatus.LOCKED);
-            verify(emailService, never()).sendPaymentReminderEmail(any());
+            verify(notificationService, never()).send(any());
         }
 
         @Test
@@ -277,7 +277,7 @@ class PaymentReminderJobTest {
 
             paymentReminderJob.sendPaymentReminders();
 
-            verify(emailService, never()).sendPaymentReminderEmail(any());
+            verify(notificationService, never()).send(any());
         }
 
         @Test
@@ -302,7 +302,7 @@ class PaymentReminderJobTest {
             paymentReminderJob.sendPaymentReminders();
 
             // Should still process the second campaign
-            verify(emailService).sendPaymentReminderEmail(any(PaymentReminderEmail.class));
+            verify(notificationService).send(any(PaymentReminderEmail.class));
         }
     }
 }
