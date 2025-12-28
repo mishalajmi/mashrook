@@ -129,6 +129,26 @@
             <version>2.29.51</version>
         </dependency>
 
+        <!-- AWS SES SDK v2 for Email Sending -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ses</artifactId>
+            <version>2.29.51</version>
+        </dependency>
+
+        <!-- AWS SNS SDK v2 for Event Publishing -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sns</artifactId>
+            <version>2.29.51</version>
+        </dependency>
+
+        <!-- Thymeleaf for HTML Email Templates -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
         <!--  Test Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

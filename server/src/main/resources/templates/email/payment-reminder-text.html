@@ -1,0 +1,22 @@
+Payment Reminder - Mashrook
+
+Hello [[${recipientName}]],
+
+This is a friendly reminder that your invoice for the campaign "[[${campaignTitle}]]" is due soon.
+
+*** [[${daysUntilDue}]] DAYS UNTIL PAYMENT IS DUE ***
+
+Invoice Details:
+-----------------
+Invoice Number: [[${invoiceNumber}]]
+Organization: [[${organizationName}]]
+Due Date: [[${#temporals.format(dueDate, 'MMMM d, yyyy')}]]
+Amount Due: SAR [[${#numbers.formatDecimal(totalAmount, 1, 2)}]]
+
+To avoid any disruption to your order, please ensure payment is made before the due date.
+
+If you have already made a payment, please disregard this reminder. It may take 1-2 business days for payments to be reflected in our system.
+
+---
+This email was sent by Mashrook - B2B Cooperative Procurement Platform
+(c) 2025 Mashrook. All rights reserved.

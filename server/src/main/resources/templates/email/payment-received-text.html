@@ -1,0 +1,26 @@
+Payment Confirmation - Mashrook
+
+Hello [[${recipientName}]],
+
+We have received your payment for the campaign "[[${campaignTitle}]]". Thank you for your prompt payment!
+
+Payment Details:
+-----------------
+Invoice Number: [[${invoiceNumber}]]
+Organization: [[${organizationName}]]
+Payment Date: [[${#temporals.format(paymentDate, 'MMMM d, yyyy')}]]
+Payment Method: [[${paymentMethod}]]
+Amount Paid: SAR [[${#numbers.formatDecimal(amountPaid, 1, 2)}]]
+
+What Happens Next?
+------------------
+- Your order is now being processed
+- The supplier will prepare your items for delivery
+- You will receive a shipping notification once your order is dispatched
+- You can track your order status in your Mashrook dashboard
+
+If you have any questions about your order, please don't hesitate to contact our support team.
+
+---
+This email was sent by Mashrook - B2B Cooperative Procurement Platform
+(c) 2025 Mashrook. All rights reserved.

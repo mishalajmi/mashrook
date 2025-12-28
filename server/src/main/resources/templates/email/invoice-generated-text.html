@@ -1,0 +1,21 @@
+Your Invoice from Mashrook
+
+Hello [[${recipientName}]],
+
+Your invoice for the campaign "[[${campaignTitle}]]" has been generated and is ready for payment.
+
+Invoice Details:
+-----------------
+Invoice Number: [[${invoiceNumber}]]
+Organization: [[${organizationName}]]
+Quantity: [[${quantity}]]
+Due Date: [[${#temporals.format(dueDate, 'MMMM d, yyyy')}]]
+Total Amount: SAR [[${#numbers.formatDecimal(totalAmount, 1, 2)}]]
+
+IMPORTANT: Please ensure payment is made by [[${#temporals.format(dueDate, 'MMMM d, yyyy')}]] to avoid any delays in order fulfillment.
+
+If you have any questions about this invoice, please contact our support team.
+
+---
+This email was sent by Mashrook - B2B Cooperative Procurement Platform
+(c) 2025 Mashrook. All rights reserved.
