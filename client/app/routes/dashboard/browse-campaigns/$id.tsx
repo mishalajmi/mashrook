@@ -314,16 +314,18 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 	const pledgeSummary: CampaignPledgeSummary = bracketProgress
 		? {
 				campaignId: campaign.id,
-				totalPledges: bracketProgress.totalPledges,
-				totalQuantity: bracketProgress.totalQuantity,
-				currentBracket: bracketProgress.currentBracketOrder
-					? (brackets.find((b) => b.bracketOrder === bracketProgress.currentBracketOrder) ?? null)
+				totalPledges: 0,
+				totalQuantity: bracketProgress.totalPledged,
+				// Find matching bracket from brackets array by bracketOrder to preserve ID
+				currentBracket: bracketProgress.currentBracket
+					? brackets.find((b) => b.bracketOrder === bracketProgress.currentBracket?.bracketOrder) ?? null
 					: null,
-				nextBracket: bracketProgress.currentBracketOrder
-					? (brackets.find((b) => b.bracketOrder === (bracketProgress.currentBracketOrder ?? 0) + 1) ??
-					  null)
-					: (brackets[0] ?? null),
-				unitsToNextBracket: bracketProgress.unitsToNextBracket,
+				nextBracket: bracketProgress.nextBracket
+					? brackets.find((b) => b.bracketOrder === bracketProgress.nextBracket?.bracketOrder) ?? null
+					: null,
+				unitsToNextBracket: bracketProgress.nextBracket
+					? bracketProgress.nextBracket.minQuantity - bracketProgress.totalPledged
+					: null,
 		  }
 		: calculatePledgeSummary(campaign.id, brackets, pledges);
 
