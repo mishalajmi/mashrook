@@ -38,7 +38,7 @@ logging:
     sa:
       elm:
         mashrook:
-          auth: debug
+          auth: info
 
 springdoc:
   api-docs:
