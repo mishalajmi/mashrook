@@ -217,16 +217,50 @@ const sidebarItems: NavItem[] = [
 
 
 /**
+ * Check if user has specific action on a resource
+ */
+function hasAuthorityAction(
+    authorities: Array<UserAuthority> | undefined,
+    resource: string,
+    action: string
+): boolean {
+    if (!authorities) return false;
+    return authorities.some(
+        (auth) => auth.resource === resource && auth.action === action
+    );
+}
+
+/**
  * Get navigation items based on user authorities
  * Matches authority resources to NavItem IDs and sorts by priority
+ *
+ * Special handling for campaigns:
+ * - Suppliers (with campaigns:update) see supplier campaigns page
+ * - Buyers (campaigns:read only) see browse-campaigns page
  */
 function getNavItemsByAuthorities(authorities: Array<UserAuthority> | undefined): Array<NavItem> {
     if (!authorities) return [];
     const items: NavItem[] = [];
+    const processedResources = new Set<string>();
+
     for (const authority of authorities) {
-        const navItem = sidebarItems.find(item => {
-            return authority?.resource === item.id;
-        });
+        const resource = authority?.resource;
+        if (!resource || processedResources.has(resource)) continue;
+        processedResources.add(resource);
+
+        // Special handling for campaigns resource
+        if (resource === "campaigns") {
+            const canUpdate = hasAuthorityAction(authorities, "campaigns", "update");
+            // Buyers (no update) get browse-campaigns, suppliers get campaigns
+            const targetId = canUpdate ? "campaigns" : "browse-campaigns";
+            const navItem = sidebarItems.find(item => item.id === targetId);
+            if (navItem && !items.includes(navItem)) {
+                items.push(navItem);
+            }
+            continue;
+        }
+
+        const navItem = sidebarItems.find(item => item.id === resource);
         if (navItem && !items.includes(navItem)) {
             items.push(navItem);
         }

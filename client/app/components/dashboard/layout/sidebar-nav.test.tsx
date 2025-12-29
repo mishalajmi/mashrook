@@ -64,10 +64,11 @@ function renderWithRouter(
 	);
 }
 
-// Helper to create authority
+// Helper to create authority with full permissions
 function createAuthority(resource: string): UserAuthority {
 	return {
 		resource,
+		action: "read",
 		read: true,
 		write: true,
 		update: true,
@@ -75,8 +76,20 @@ function createAuthority(resource: string): UserAuthority {
 	};
 }
 
+// Helper to create authority with specific action
+function createAuthorityWithAction(resource: string, action: string): UserAuthority {
+	return {
+		resource,
+		action,
+		read: action === "read",
+		write: action === "write",
+		update: action === "update",
+		delete: action === "delete",
+	};
+}
+
 // Mock user objects with proper authorities
-// Supplier authorities: dashboard, products, orders, campaigns, analytics, buyers, messages, settings
+// Supplier authorities: dashboard, products, orders, campaigns (with update), analytics, buyers, messages, settings
 const mockSupplierUser: User = {
 	id: "user-1",
 	firstName: "Supplier",
@@ -87,7 +100,8 @@ const mockSupplierUser: User = {
 		createAuthority("dashboard"),
 		createAuthority("products"),
 		createAuthority("orders"),
-		createAuthority("campaigns"),
+		createAuthorityWithAction("campaigns", "read"),
+		createAuthorityWithAction("campaigns", "update"), // Suppliers can update campaigns
 		createAuthority("analytics"),
 		createAuthority("buyers"),
 		createAuthority("messages"),
@@ -98,7 +112,7 @@ const mockSupplierUser: User = {
 	organizationName: "Supplier Corp",
 };
 
-// Buyer authorities: dashboard, procurement, campaigns, suppliers, orders, analytics, team, messages, settings, pledges
+// Buyer authorities: dashboard, procurement, campaigns (read only), suppliers, orders, analytics, team, messages, settings, pledges
 const mockBuyerUser: User = {
 	id: "user-2",
 	firstName: "Buyer",
@@ -108,7 +122,7 @@ const mockBuyerUser: User = {
 	authorities: [
 		createAuthority("dashboard"),
 		createAuthority("procurement"),
-		createAuthority("campaigns"),
+		createAuthorityWithAction("campaigns", "read"), // Buyers can only read campaigns (browse)
 		createAuthority("pledges"),
 		createAuthority("suppliers"),
 		createAuthority("orders"),
@@ -122,7 +136,7 @@ const mockBuyerUser: User = {
 	organizationName: "Buyer Corp",
 };
 
-// Admin authorities: dashboard, user-management, organizations, campaigns, system-settings, reports, moderation, communications, configuration
+// Admin authorities: dashboard, user-management, organizations, campaigns (with update), system-settings, reports, moderation, communications, configuration
 const mockAdminUser: User = {
 	id: "user-3",
 	firstName: "Admin",
@@ -133,7 +147,8 @@ const mockAdminUser: User = {
 		createAuthority("dashboard"),
 		createAuthority("user-management"),
 		createAuthority("organizations"),
-		createAuthority("campaigns"),
+		createAuthorityWithAction("campaigns", "read"),
+		createAuthorityWithAction("campaigns", "update"), // Admins can manage campaigns
 		createAuthority("system-settings"),
 		createAuthority("reports"),
 		createAuthority("moderation"),
@@ -240,9 +255,17 @@ describe("SidebarNav", () => {
 			expect(screen.getByTestId("nav-item-procurement")).toBeInTheDocument();
 		});
 
-		it("should render Campaigns nav item", () => {
+		it("should render Browse Campaigns nav item (not supplier campaigns)", () => {
 			renderWithRouter(<SidebarNav isExpanded={true} />);
-			expect(screen.getByTestId("nav-item-campaigns")).toBeInTheDocument();
+			// Buyers should see browse-campaigns, not the supplier campaigns page
+			expect(screen.getByTestId("nav-item-browse-campaigns")).toBeInTheDocument();
+			expect(screen.queryByTestId("nav-item-campaigns")).not.toBeInTheDocument();
+		});
+
+		it("should link Browse Campaigns to /dashboard/browse-campaigns", () => {
+			renderWithRouter(<SidebarNav isExpanded={true} />);
+			const browseCampaignsNavItem = screen.getByTestId("nav-item-browse-campaigns");
+			expect(browseCampaignsNavItem).toHaveAttribute("href", "/dashboard/browse-campaigns");
 		});
 
 		it("should render Pledges nav item", () => {

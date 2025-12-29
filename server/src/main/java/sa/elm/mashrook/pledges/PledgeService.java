@@ -75,26 +75,6 @@ public class PledgeService {
         pledgeRepository.save(pledge);
     }
 
-    /**
-     * Commits a pledge during the campaign's grace period.
-     *
-     * <p>This operation:
-     * <ul>
-     *   <li>Validates the campaign is in GRACE_PERIOD status</li>
-     *   <li>Validates the pledge is in PENDING status</li>
-     *   <li>Validates the buyer owns the pledge</li>
-     *   <li>Sets pledge status to COMMITTED</li>
-     *   <li>Sets committedAt timestamp</li>
-     * </ul>
-     *
-     * @param pledgeId the ID of the pledge to commit
-     * @param buyerOrgId the ID of the buyer organization
-     * @return the updated pledge response
-     * @throws PledgeNotFoundException if the pledge does not exist
-     * @throws PledgeAccessDeniedException if the buyer does not own the pledge
-     * @throws InvalidCampaignStateException if the campaign is not in GRACE_PERIOD
-     * @throws InvalidPledgeStateException if the pledge is not in PENDING status
-     */
     @Transactional
     public PledgeResponse commitPledge(UUID pledgeId, UUID buyerOrgId) {
         PledgeEntity pledge = findPledgeOrThrow(pledgeId);
@@ -187,6 +167,20 @@ public class PledgeService {
     public int calculateTotalCommitedPledges(UUID campaignId) {
         return findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED)
                 .stream()
+                .mapToInt(PledgeEntity::getQuantity)
+                .sum();
+    }
+
+    /**
+     * Calculates the total pledged quantity for a campaign, including both PENDING and COMMITTED pledges.
+     * This is used for displaying current pricing to buyers.
+     *
+     * @param campaignId the ID of the campaign
+     * @return the total quantity of all non-withdrawn pledges
+     */
+    public int calculateTotalActivePledges(UUID campaignId) {
+        return pledgeRepository.findAllByCampaignId(campaignId).stream()
+                .filter(pledge -> pledge.getStatus() != PledgeStatus.WITHDRAWN)
                 .mapToInt(PledgeEntity::getQuantity)
                 .sum();
     }

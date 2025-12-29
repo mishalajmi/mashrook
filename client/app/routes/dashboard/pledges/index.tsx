@@ -40,8 +40,6 @@ interface PledgeWithCampaign extends PledgeResponse {
 		currentPrice?: string;
 		bestPrice?: string;
 	};
-	unitPrice?: string;
-	totalAmount?: string;
 }
 
 // Status badge configurations with required colors
@@ -139,7 +137,7 @@ export default function PledgesPage(): ReactNode {
 	const pendingInGracePeriod = pledges.filter(
 		(pledge) =>
 			pledge.status === "PENDING" &&
-			pledge.campaign?.status === "grace_period" &&
+			pledge.campaignStatus === "grace_period" &&
 			pledge.campaign?.gracePeriodEndDate
 	);
 
@@ -155,7 +153,7 @@ export default function PledgesPage(): ReactNode {
 
 	// Handlers
 	const handleViewCampaign = (campaignId: string) => {
-		navigate(`/dashboard/campaigns/${campaignId}`);
+		navigate(`/dashboard/browse-campaigns/${campaignId}`);
 	};
 
 	const handleConfirmCommitment = (pledge: PledgeWithCampaign) => {
@@ -288,12 +286,12 @@ export default function PledgesPage(): ReactNode {
 										const statusConfig = pledgeStatusConfig[pledge.status];
 										const canConfirm =
 											pledge.status === "PENDING" &&
-											pledge.campaign?.status === "grace_period";
+											pledge.campaignStatus === "grace_period";
 
 										return (
 											<TableRow key={pledge.id}>
 												<TableCell className="font-medium">
-													{pledge.campaign?.title || "Unknown Campaign"}
+													{pledge.campaignTitle}
 												</TableCell>
 												<TableCell>{pledge.quantity} units</TableCell>
 												<TableCell className="font-medium">
@@ -365,7 +363,7 @@ export default function PledgesPage(): ReactNode {
 			</Tabs>
 
 			{/* Commitment Modal */}
-			{selectedPledge && selectedPledge.campaign && (
+			{selectedPledge && (
 				<PledgeCommitmentModal
 					open={isCommitModalOpen}
 					onOpenChange={setIsCommitModalOpen}
@@ -376,9 +374,9 @@ export default function PledgesPage(): ReactNode {
 						status: selectedPledge.status,
 					}}
 					campaign={{
-						title: selectedPledge.campaign.title,
-						currentPrice: selectedPledge.campaign.currentPrice || selectedPledge.unitPrice || "0.00",
-						bestPrice: selectedPledge.campaign.bestPrice || selectedPledge.unitPrice || "0.00",
+						title: selectedPledge.campaignTitle,
+						currentPrice: selectedPledge.campaign?.currentPrice || selectedPledge.unitPrice || "0.00",
+						bestPrice: selectedPledge.campaign?.bestPrice || selectedPledge.unitPrice || "0.00",
 					}}
 					onConfirm={handleCommitPledge}
 					isConfirming={isCommitting}

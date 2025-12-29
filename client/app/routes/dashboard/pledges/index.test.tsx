@@ -43,6 +43,8 @@ describe("PledgesPage", () => {
 		{
 			id: "pledge-1",
 			campaignId: "campaign-1",
+			campaignTitle: "Organic Coffee Beans",
+			campaignStatus: "grace_period",
 			buyerOrgId: "buyer-1",
 			quantity: 10,
 			status: "PENDING" as const,
@@ -63,6 +65,8 @@ describe("PledgesPage", () => {
 		{
 			id: "pledge-2",
 			campaignId: "campaign-2",
+			campaignTitle: "Artisan Olive Oil",
+			campaignStatus: "locked",
 			buyerOrgId: "buyer-1",
 			quantity: 5,
 			status: "COMMITTED" as const,
@@ -82,6 +86,8 @@ describe("PledgesPage", () => {
 		{
 			id: "pledge-3",
 			campaignId: "campaign-3",
+			campaignTitle: "Specialty Tea Bundle",
+			campaignStatus: "done",
 			buyerOrgId: "buyer-1",
 			quantity: 8,
 			status: "WITHDRAWN" as const,

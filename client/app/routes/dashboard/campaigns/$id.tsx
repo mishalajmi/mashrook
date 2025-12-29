@@ -399,7 +399,7 @@ export default function CampaignDetailPage(): ReactNode {
 						<p className="text-muted-foreground max-w-2xl">{campaign.description}</p>
 					</div>
 
-					{isDraft && (
+					{isDraft && canUpdate && (
 						<Button onClick={handlePublish} disabled={isPublishing}>
 							{isPublishing ? (
 								<>
@@ -514,23 +514,50 @@ export default function CampaignDetailPage(): ReactNode {
 							</CardContent>
 						</Card>
 
-						{/* Media */}
+						{/* Media - Only show upload UI for users with update permission */}
 						<Card className="lg:col-span-2">
 							<CardHeader>
 								<CardTitle>Campaign Media</CardTitle>
 								<CardDescription>
-									{isDraft
+									{isDraft && canUpdate
 										? "Upload images and videos for your campaign"
 										: "Images and videos for this campaign"}
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<MediaUploader
-									media={media}
-									onUpload={handleMediaUpload}
-									onDelete={handleMediaDelete}
-									disabled={!isDraft}
-								/>
+								{canUpdate ? (
+									<MediaUploader
+										media={media}
+										onUpload={handleMediaUpload}
+										onDelete={handleMediaDelete}
+										disabled={!isDraft}
+									/>
+								) : (
+									// Read-only media display for users without update permission
+									<div className="space-y-4">
+										{media.length > 0 ? (
+											<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+												{media.map((item) => (
+													<div key={item.id} className="relative aspect-video rounded-lg overflow-hidden border bg-muted">
+														{item.mediaType === "IMAGE" && item.presignedUrl ? (
+															<img
+																src={item.presignedUrl}
+																alt={item.originalFilename}
+																className="w-full h-full object-cover"
+															/>
+														) : (
+															<div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+																{item.originalFilename}
+															</div>
+														)}
+													</div>
+												))}
+											</div>
+										) : (
+											<p className="text-sm text-muted-foreground">No media available</p>
+										)}
+									</div>
+								)}
 							</CardContent>
 						</Card>
 
@@ -543,7 +570,7 @@ export default function CampaignDetailPage(): ReactNode {
 										Price decreases as more units are pledged
 									</CardDescription>
 								</div>
-								{isDraft && (
+								{isDraft && canUpdate && (
 									<Button
 										variant="outline"
 										size="sm"

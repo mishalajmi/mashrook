@@ -228,7 +228,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 
 			if (userPledge) {
 				// Update existing pledge
-				const updated = await pledgeService.updatePledge(id, userPledge.id, {
+				const updated = await pledgeService.updatePledge(userPledge.id, {
 					quantity: data.quantity,
 				});
 				setUserPledge(updated);

@@ -97,7 +97,10 @@ const mockCampaignResponse = {
 	title: "Organic Coffee Beans",
 	description:
 		"Premium organic coffee beans sourced from sustainable farms. Join our group buying campaign for amazing discounts on freshly roasted beans.",
-	productDetails: "1kg bag of premium arabica beans",
+	productDetails: JSON.stringify([
+		{ key: "Package", value: "1kg bag of premium arabica beans" },
+		{ key: "Origin", value: "Colombia" }
+	]),
 	targetQuantity: 100,
 	startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
 	endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import sa.elm.mashrook.brackets.DiscountBracketService;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.service.CampaignService;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
@@ -29,8 +30,11 @@ import sa.elm.mashrook.pledges.dto.PledgeResponse;
 import sa.elm.mashrook.pledges.dto.PledgeUpdateRequest;
 import sa.elm.mashrook.security.domain.JwtPrincipal;
 
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/v1/pledges")
@@ -40,6 +44,7 @@ public class PledgeController {
     private final PledgeService pledgeService;
     private final OrganizationService organizationService;
     private final CampaignService campaignService;
+    private final DiscountBracketService discountBracketService;
 
     @PostMapping("/campaigns/{id}")
     @ResponseStatus(HttpStatus.CREATED)
@@ -81,7 +86,61 @@ public class PledgeController {
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal JwtPrincipal principal) {
         Pageable pageable = PageRequest.of(page, size);
-        return pledgeService.getBuyerPledges(principal.getOrganizationId(), status, pageable);
+        PledgeListResponse response = pledgeService.getBuyerPledges(principal.getOrganizationId(), status, pageable);
+
+        // Enrich pledges with pricing information
+        List<PledgeResponse> enrichedContent = enrichPledgesWithPricing(response.content());
+
+        return PledgeListResponse.builder()
+                .content(enrichedContent)
+                .page(response.page())
+                .size(response.size())
+                .totalElements(response.totalElements())
+                .totalPages(response.totalPages())
+                .build();
+    }
+
+    /**
+     * Enriches pledges with unit price and total amount based on campaign's current bracket.
+     * Caches campaign totals to avoid redundant calculations for pledges from the same campaign.
+     */
+    private List<PledgeResponse> enrichPledgesWithPricing(List<PledgeResponse> pledges) {
+        // Cache campaign total pledges to avoid redundant calculations
+        Map<UUID, Integer> campaignTotals = pledges.stream()
+                .map(PledgeResponse::campaignId)
+                .distinct()
+                .collect(Collectors.toMap(
+                        campaignId -> campaignId,
+                        pledgeService::calculateTotalActivePledges
+                ));
+
+        return pledges.stream()
+                .map(pledge -> {
+                    int totalPledged = campaignTotals.get(pledge.campaignId());
+                    BigDecimal unitPrice = discountBracketService
+                            .getUnitPriceForQuantity(pledge.campaignId(), totalPledged)
+                            .orElse(null);
+
+                    BigDecimal totalAmount = unitPrice != null
+                            ? unitPrice.multiply(BigDecimal.valueOf(pledge.quantity()))
+                            : null;
+
+                    return PledgeResponse.builder()
+                            .id(pledge.id())
+                            .campaignId(pledge.campaignId())
+                            .campaignTitle(pledge.campaignTitle())
+                            .campaignStatus(pledge.campaignStatus())
+                            .buyerOrgId(pledge.buyerOrgId())
+                            .quantity(pledge.quantity())
+                            .status(pledge.status())
+                            .committedAt(pledge.committedAt())
+                            .createdAt(pledge.createdAt())
+                            .updatedAt(pledge.updatedAt())
+                            .unitPrice(unitPrice)
+                            .totalAmount(totalAmount)
+                            .build();
+                })
+                .toList();
     }
 
     @GetMapping("/campaigns/{id}")

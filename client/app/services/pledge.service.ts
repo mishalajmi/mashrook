@@ -28,12 +28,16 @@ export interface PledgeUpdateRequest {
 export interface PledgeResponse {
 	id: string;
 	campaignId: string;
+	campaignTitle: string;
+	campaignStatus: string;
 	buyerOrgId: string;
 	quantity: number;
 	status: PledgeStatus;
 	committedAt: string | null;
 	createdAt: string;
 	updatedAt: string;
+	unitPrice: string | null;
+	totalAmount: string | null;
 }
 
 /**
@@ -116,19 +120,17 @@ export const pledgeService = {
 	/**
 	 * Update an existing pledge
 	 *
-	 * @param campaignId - Campaign ID
 	 * @param pledgeId - Pledge ID
 	 * @param data - Updated pledge data with quantity
 	 * @returns Updated pledge response
 	 * @throws Error if pledge not found or not authorized
 	 */
 	async updatePledge(
-		campaignId: string,
 		pledgeId: string,
 		data: PledgeUpdateRequest
 	): Promise<PledgeResponse> {
 		return apiClient.put<PledgeResponse>(
-			`/v1/campaigns/${campaignId}/pledges/${pledgeId}`,
+			`/v1/pledges/${pledgeId}`,
 			data
 		);
 	},
