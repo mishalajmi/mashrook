@@ -525,7 +525,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 											<PledgeForm
 												unitPrice={currentPrice}
 												minQuantity={1}
-												maxQuantity={campaign.targetQuantity}
+												maxQuantity={campaign.targetQty}
 												initialQuantity={userPledge.quantity}
 												isSubmitting={isSubmittingPledge}
 												submitButtonText="Update Pledge"
@@ -551,7 +551,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 										<PledgeForm
 											unitPrice={currentPrice}
 											minQuantity={1}
-											maxQuantity={campaign.targetQuantity}
+											maxQuantity={campaign.targetQty}
 											isSubmitting={isSubmittingPledge}
 											onSubmit={handlePledgeSubmit}
 										/>

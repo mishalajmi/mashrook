@@ -144,7 +144,10 @@ export interface PublicCampaignResponse {
 	title: string;
 	description: string;
 	productDetails: string;
-	targetQuantity: number;
+	supplierId: string;
+	supplierName: string;
+	targetQty: number;
+	totalPledged: number;
 	startDate: string;
 	endDate: string;
 	gracePeriodEndDate?: string;

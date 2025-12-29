@@ -102,24 +102,13 @@ function buildCampaignPledgesQueryString(options: GetCampaignPledgesOptions): st
 	return params.length > 0 ? `?${params.join("&")}` : "";
 }
 
-/**
- * Pledge service object providing pledge-related operations
- */
 export const pledgeService = {
-	/**
-	 * Create a new pledge on a campaign
-	 *
-	 * @param campaignId - Campaign ID
-	 * @param data - Pledge creation data with quantity
-	 * @returns Created pledge response
-	 * @throws Error if campaign not found, already pledged, or validation fails
-	 */
 	async createPledge(
 		campaignId: string,
 		data: PledgeCreateRequest
 	): Promise<PledgeResponse> {
 		return apiClient.post<PledgeResponse>(
-			`/v1/campaigns/${campaignId}/pledges`,
+			`/v1/pledges/campaigns/${campaignId}`,
 			data
 		);
 	},
