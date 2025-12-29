@@ -8,7 +8,7 @@
 /**
  * Possible states of a campaign
  */
-export type CampaignStatus = "DRAFT" | "ACTIVE" | "GRACE_PERIOD" | "LOCKED" | "CANCELLED" | "DONE";
+export type CampaignStatus = "draft" | "active" | "grace_period" | "locked" | "cancelled" | "done";
 
 /**
  * Campaign entity representing a group buying campaign

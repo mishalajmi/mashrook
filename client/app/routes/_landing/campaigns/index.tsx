@@ -49,7 +49,7 @@ function transformApiResponse(
 		targetQuantity: c.targetQty,
 		startDate: c.startDate,
 		endDate: c.endDate,
-		status: "ACTIVE" as const, // Public endpoint only returns active campaigns
+		status: "active" as const, // Public endpoint only returns active campaigns
 		supplierId: c.supplierId,
 		createdAt: "",
 		updatedAt: "",
@@ -116,7 +116,7 @@ export default function PublicCampaignsPage(): ReactNode {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [filters, setFilters] = useState<CampaignFiltersType>({
-		status: "ACTIVE",
+		status: "active",
 		search: "",
 	});
 	const [isDark, setIsDark] = useState(false);

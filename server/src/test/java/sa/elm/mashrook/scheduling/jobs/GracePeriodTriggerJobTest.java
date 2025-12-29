@@ -15,10 +15,13 @@ import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.exceptions.InvalidCampaignStateTransitionException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,15 +62,16 @@ class GracePeriodTriggerJobTest {
     class TriggerGracePeriods {
 
         @Test
-        @DisplayName("should find ACTIVE campaigns where endDate has passed and call startGracePeriod for each")
-        void shouldTriggerGracePeriodForActiveCampaignsWithPassedEndDate() {
+        @DisplayName("should find ACTIVE campaigns within 48 hours of end date and call startGracePeriod for each")
+        void shouldTriggerGracePeriodForActiveCampaignsWithin48Hours() {
             UUID campaignId1 = UuidGeneratorUtil.generateUuidV7();
             UUID campaignId2 = UuidGeneratorUtil.generateUuidV7();
 
-            CampaignEntity campaign1 = createCampaign(campaignId1, CampaignStatus.ACTIVE, LocalDate.now().minusDays(1));
-            CampaignEntity campaign2 = createCampaign(campaignId2, CampaignStatus.ACTIVE, LocalDate.now().minusDays(2));
+            // Campaigns ending within 48 hours
+            CampaignEntity campaign1 = createCampaign(campaignId1, CampaignStatus.ACTIVE, LocalDate.now().plusDays(1));
+            CampaignEntity campaign2 = createCampaign(campaignId2, CampaignStatus.ACTIVE, LocalDate.now().plusDays(2));
 
-            when(campaignRepository.findAllByStatusAndEndDateBefore(CampaignStatus.ACTIVE, LocalDate.now()))
+            when(campaignRepository.findAllByStatusAndEndDateOnOrBefore(eq(CampaignStatus.ACTIVE), any(LocalDate.class)))
                     .thenReturn(List.of(campaign1, campaign2));
             when(campaignLifecycleService.startGracePeriod(campaignId1)).thenReturn(campaign1);
             when(campaignLifecycleService.startGracePeriod(campaignId2)).thenReturn(campaign2);
@@ -79,14 +83,14 @@ class GracePeriodTriggerJobTest {
         }
 
         @Test
-        @DisplayName("should not call startGracePeriod when no campaigns have passed end date")
-        void shouldNotTriggerWhenNoCampaignsHavePassedEndDate() {
-            when(campaignRepository.findAllByStatusAndEndDateBefore(CampaignStatus.ACTIVE, LocalDate.now()))
+        @DisplayName("should not call startGracePeriod when no campaigns are within 48 hours of end date")
+        void shouldNotTriggerWhenNoCampaignsWithin48Hours() {
+            when(campaignRepository.findAllByStatusAndEndDateOnOrBefore(eq(CampaignStatus.ACTIVE), any(LocalDate.class)))
                     .thenReturn(Collections.emptyList());
 
             gracePeriodTriggerJob.triggerGracePeriods();
 
-            verify(campaignLifecycleService, never()).startGracePeriod(org.mockito.ArgumentMatchers.any());
+            verify(campaignLifecycleService, never()).startGracePeriod(any());
         }
 
         @Test
@@ -96,11 +100,11 @@ class GracePeriodTriggerJobTest {
             UUID campaignId2 = UuidGeneratorUtil.generateUuidV7();
             UUID campaignId3 = UuidGeneratorUtil.generateUuidV7();
 
-            CampaignEntity campaign1 = createCampaign(campaignId1, CampaignStatus.ACTIVE, LocalDate.now().minusDays(1));
-            CampaignEntity campaign2 = createCampaign(campaignId2, CampaignStatus.ACTIVE, LocalDate.now().minusDays(2));
-            CampaignEntity campaign3 = createCampaign(campaignId3, CampaignStatus.ACTIVE, LocalDate.now().minusDays(3));
+            CampaignEntity campaign1 = createCampaign(campaignId1, CampaignStatus.ACTIVE, LocalDate.now().plusDays(1));
+            CampaignEntity campaign2 = createCampaign(campaignId2, CampaignStatus.ACTIVE, LocalDate.now().plusDays(1));
+            CampaignEntity campaign3 = createCampaign(campaignId3, CampaignStatus.ACTIVE, LocalDate.now().plusDays(2));
 
-            when(campaignRepository.findAllByStatusAndEndDateBefore(CampaignStatus.ACTIVE, LocalDate.now()))
+            when(campaignRepository.findAllByStatusAndEndDateOnOrBefore(eq(CampaignStatus.ACTIVE), any(LocalDate.class)))
                     .thenReturn(List.of(campaign1, campaign2, campaign3));
             when(campaignLifecycleService.startGracePeriod(campaignId1)).thenReturn(campaign1);
             when(campaignLifecycleService.startGracePeriod(campaignId2))
@@ -115,14 +119,18 @@ class GracePeriodTriggerJobTest {
         }
 
         @Test
-        @DisplayName("should only query for ACTIVE status campaigns")
-        void shouldOnlyQueryForActiveCampaigns() {
-            when(campaignRepository.findAllByStatusAndEndDateBefore(CampaignStatus.ACTIVE, LocalDate.now()))
+        @DisplayName("should query for ACTIVE campaigns with end date on or before 48 hours from now")
+        void shouldQueryForCampaignsWithin48Hours() {
+            when(campaignRepository.findAllByStatusAndEndDateOnOrBefore(eq(CampaignStatus.ACTIVE), any(LocalDate.class)))
                     .thenReturn(Collections.emptyList());
 
             gracePeriodTriggerJob.triggerGracePeriods();
 
-            verify(campaignRepository).findAllByStatusAndEndDateBefore(CampaignStatus.ACTIVE, LocalDate.now());
+            // Verify it queries for campaigns ending within 48 hours (today + 2 days)
+            verify(campaignRepository).findAllByStatusAndEndDateOnOrBefore(
+                    eq(CampaignStatus.ACTIVE),
+                    any(LocalDate.class)
+            );
         }
     }
 }

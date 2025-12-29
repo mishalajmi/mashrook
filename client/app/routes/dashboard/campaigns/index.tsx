@@ -20,7 +20,7 @@ import type {
 	CampaignFilters as CampaignFiltersType,
 } from "@/types/campaign";
 import { campaignService, type CampaignResponse } from "@/services/campaign.service";
-import { getAccessToken, decodeToken } from "@/lib/jwt";
+import { useResourceAuthorities } from "@/hooks/use-authority";
 
 /**
  * Transform API response to component-compatible format
@@ -148,34 +148,8 @@ export default function CampaignsPage(): ReactNode {
 		}
 	};
 
-	// Check user authorities from JWT token
-	const token = getAccessToken();
-	const decodedToken = token ? decodeToken(token) : null;
-	const authorities = decodedToken?.authorities ?? [];
-
-	// Debug: Log authorities to understand the format
-	console.log("JWT authorities:", authorities);
-
-	// Check if authorities are strings in format "resource:permission"
-	// Note: JWT uses plural "campaigns:update" not "campaign:update"
-	const canEdit = authorities.some((auth: unknown) => {
-		if (typeof auth === "string") {
-			return auth === "campaigns:update";
-		}
-		if (auth && typeof auth === "object" && "authority" in auth) {
-			return (auth as { authority: string }).authority === "campaigns:update";
-		}
-		return false;
-	});
-	const canDelete = authorities.some((auth: unknown) => {
-		if (typeof auth === "string") {
-			return auth === "campaigns:delete";
-		}
-		if (auth && typeof auth === "object" && "authority" in auth) {
-			return (auth as { authority: string }).authority === "campaigns:delete";
-		}
-		return false;
-	});
+	// Get user authorities for campaigns resource
+	const { canWrite, canUpdate, canDelete } = useResourceAuthorities("campaigns");
 
 	return (
 		<div className="flex flex-col gap-6 p-6">
@@ -187,12 +161,14 @@ export default function CampaignsPage(): ReactNode {
 						Manage your cooperative procurement campaigns
 					</p>
 				</div>
-				<Button asChild>
-					<Link to="/dashboard/campaigns/new">
-						<Plus className="h-4 w-4 mr-2" />
-						Create Campaign
-					</Link>
-				</Button>
+				{canWrite && (
+					<Button asChild>
+						<Link to="/dashboard/campaigns/new">
+							<Plus className="h-4 w-4 mr-2" />
+							Create Campaign
+						</Link>
+					</Button>
+				)}
 			</div>
 
 			{/* Filters */}
@@ -224,7 +200,7 @@ export default function CampaignsPage(): ReactNode {
 							campaign={campaign}
 							pledgeSummary={pledgeSummaries[campaign.id]}
 							showActions
-							canEdit={canEdit}
+							canEdit={canUpdate}
 							canDelete={canDelete}
 							onViewDetails={handleViewDetails}
 							onEdit={handleEdit}
@@ -239,11 +215,13 @@ export default function CampaignsPage(): ReactNode {
 					description={
 						filters.search || filters.status !== "ALL"
 							? "Try adjusting your filters or search term"
-							: "Create your first campaign to start group buying"
+							: canWrite
+								? "Create your first campaign to start group buying"
+								: "No campaigns are available at this time"
 					}
-					actionLabel={!filters.search && filters.status === "ALL" ? "Create Campaign" : undefined}
+					actionLabel={!filters.search && filters.status === "ALL" && canWrite ? "Create Campaign" : undefined}
 					onAction={
-						!filters.search && filters.status === "ALL"
+						!filters.search && filters.status === "ALL" && canWrite
 							? () => navigate("/dashboard/campaigns/new")
 							: undefined
 					}

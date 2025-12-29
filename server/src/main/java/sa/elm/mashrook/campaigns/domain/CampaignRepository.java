@@ -19,5 +19,18 @@ public interface CampaignRepository extends JpaRepository<CampaignEntity, UUID> 
 
     List<CampaignEntity> findAllByStatusAndEndDateBefore(CampaignStatus status, LocalDate endDate);
 
+    /**
+     * Finds campaigns with the given status where endDate is on or before the specified date.
+     * Used to find campaigns entering their grace period (48 hours before end date).
+     */
+    List<CampaignEntity> findAllByStatusAndEndDateLessThanEqual(CampaignStatus status, LocalDate endDate);
+
+    /**
+     * Alias for findAllByStatusAndEndDateLessThanEqual with clearer naming.
+     */
+    default List<CampaignEntity> findAllByStatusAndEndDateOnOrBefore(CampaignStatus status, LocalDate endDate) {
+        return findAllByStatusAndEndDateLessThanEqual(status, endDate);
+    }
+
     List<CampaignEntity> findAllByStatusAndGracePeriodEndDateBefore(CampaignStatus status, LocalDate date);
 }

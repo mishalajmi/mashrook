@@ -17,7 +17,9 @@ public record CampaignPublicResponse(
         String supplierName,
         LocalDate startDate,
         LocalDate endDate,
+        LocalDate gracePeriodEndDate,
         Integer targetQty,
         Integer totalPledged,
+        String status,
         List<DiscountBracketDto> brackets
 ) {}

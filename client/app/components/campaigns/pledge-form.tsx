@@ -2,11 +2,11 @@
  * PledgeForm Component
  *
  * Form for joining campaigns with quantity selection.
- * Includes quantity controls, price calculation, and validation.
+ * Includes quantity controls, price calculation, price range display, and validation.
  */
 
 import { useState, type ReactNode, type FormEvent } from "react";
-import { Plus, Minus, Loader2 } from "lucide-react";
+import { Plus, Minus, Loader2, Info, TrendingDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button, Input } from "@/components/ui";
@@ -25,6 +25,10 @@ interface PledgeFormProps {
 	isSubmitting?: boolean;
 	/** Custom submit button text */
 	submitButtonText?: string;
+	/** Best case price (highest bracket) */
+	bestCasePrice?: string;
+	/** Current price (based on current quantity) */
+	currentPrice?: string;
 	/** Callback when form is submitted */
 	onSubmit: (data: PledgeFormData) => void;
 	/** Additional class names */
@@ -42,12 +46,20 @@ function formatPrice(price: number): string {
 }
 
 /**
+ * Format price string with currency symbol
+ */
+function formatPriceString(price: string): string {
+	return formatPrice(parseFloat(price));
+}
+
+/**
  * PledgeForm - Form for joining campaigns
  *
  * Features:
  * - Quantity input with +/- buttons
  * - Total cost calculation
  * - Unit price display
+ * - Price range display (best case and current price)
  * - Validation (min/max quantity)
  * - Submit button with loading state
  */
@@ -58,6 +70,8 @@ export function PledgeForm({
 	initialQuantity = 1,
 	isSubmitting = false,
 	submitButtonText = "Join Campaign",
+	bestCasePrice,
+	currentPrice,
 	onSubmit,
 	className,
 }: PledgeFormProps): ReactNode {
@@ -68,6 +82,9 @@ export function PledgeForm({
 
 	const canDecrement = quantity > minQuantity && !isSubmitting;
 	const canIncrement = quantity < maxQuantity && !isSubmitting;
+
+	// Show price range if at least one price is provided
+	const showPriceRange = bestCasePrice || currentPrice;
 
 	const handleIncrement = () => {
 		if (canIncrement) {
@@ -100,6 +117,49 @@ export function PledgeForm({
 			onSubmit={handleSubmit}
 			className={cn("space-y-6", className)}
 		>
+			{/* Price Range Display */}
+			{showPriceRange && (
+				<div
+					data-testid="price-range-section"
+					className="rounded-lg border bg-muted/30 p-4 space-y-3"
+				>
+					<div className="flex items-center gap-2 text-sm font-medium">
+						<TrendingDown className="h-4 w-4 text-green-600" />
+						<span>Price Range</span>
+					</div>
+
+					<div className="grid grid-cols-2 gap-4">
+						{currentPrice && (
+							<div>
+								<p className="text-xs text-muted-foreground">Current Price</p>
+								<p
+									data-testid="current-price"
+									className="text-base font-semibold"
+								>
+									{formatPriceString(currentPrice)}
+								</p>
+							</div>
+						)}
+						{bestCasePrice && (
+							<div>
+								<p className="text-xs text-muted-foreground">Best Case Price</p>
+								<p
+									data-testid="best-case-price"
+									className="text-base font-semibold text-green-600 dark:text-green-400"
+								>
+									{formatPriceString(bestCasePrice)}
+								</p>
+							</div>
+						)}
+					</div>
+
+					<div className="flex items-start gap-2 text-xs text-muted-foreground">
+						<Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+						<span>Price decreases as more buyers join the campaign</span>
+					</div>
+				</div>
+			)}
+
 			{/* Quantity Control */}
 			<div className="space-y-2">
 				<label className="text-sm font-medium text-foreground">Quantity</label>

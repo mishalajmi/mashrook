@@ -59,7 +59,7 @@ describe("CampaignFilters", () => {
 		});
 
 		it("should highlight selected status tab", () => {
-			render(<CampaignFilters filters={{ status: "ACTIVE" }} onFiltersChange={vi.fn()} />);
+			render(<CampaignFilters filters={{ status: "active" }} onFiltersChange={vi.fn()} />);
 
 			const activeTab = screen.getByRole("tab", { name: /active/i });
 			expect(activeTab).toHaveAttribute("data-state", "active");
@@ -74,7 +74,7 @@ describe("CampaignFilters", () => {
 			await user.click(screen.getByRole("tab", { name: /active/i }));
 
 			expect(handleChange).toHaveBeenCalledWith(
-				expect.objectContaining({ status: "ACTIVE" })
+				expect.objectContaining({ status: "active" })
 			);
 		});
 	});

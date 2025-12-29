@@ -13,14 +13,14 @@ import { CampaignStatusBadge } from "./campaign-status-badge";
 describe("CampaignStatusBadge", () => {
 	describe("Basic Rendering", () => {
 		it("should render the badge with status label", () => {
-			render(<CampaignStatusBadge status="ACTIVE" />);
+			render(<CampaignStatusBadge status="active" />);
 
 			expect(screen.getByTestId("campaign-status-badge")).toBeInTheDocument();
 			expect(screen.getByText("Active")).toBeInTheDocument();
 		});
 
 		it("should have appropriate aria-label for accessibility", () => {
-			render(<CampaignStatusBadge status="ACTIVE" />);
+			render(<CampaignStatusBadge status="active" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveAttribute("aria-label", "Campaign status: Active");
@@ -28,58 +28,58 @@ describe("CampaignStatusBadge", () => {
 	});
 
 	describe("Status Variants", () => {
-		it("should render DRAFT status with gray styling", () => {
-			render(<CampaignStatusBadge status="DRAFT" />);
+		it("should render draft status with gray styling", () => {
+			render(<CampaignStatusBadge status="draft" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveTextContent("Draft");
-			expect(badge).toHaveAttribute("data-status", "DRAFT");
+			expect(badge).toHaveAttribute("data-status", "draft");
 		});
 
-		it("should render ACTIVE status with green styling and animated dot", () => {
-			render(<CampaignStatusBadge status="ACTIVE" />);
+		it("should render active status with green styling and animated dot", () => {
+			render(<CampaignStatusBadge status="active" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveTextContent("Active");
-			expect(badge).toHaveAttribute("data-status", "ACTIVE");
+			expect(badge).toHaveAttribute("data-status", "active");
 
 			const dot = screen.getByTestId("status-dot");
 			expect(dot).toHaveClass("animate-pulse");
 		});
 
-		it("should render LOCKED status with blue styling and dot", () => {
-			render(<CampaignStatusBadge status="LOCKED" />);
+		it("should render locked status with blue styling and dot", () => {
+			render(<CampaignStatusBadge status="locked" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveTextContent("Locked");
-			expect(badge).toHaveAttribute("data-status", "LOCKED");
+			expect(badge).toHaveAttribute("data-status", "locked");
 
 			const dot = screen.getByTestId("status-dot");
 			expect(dot).toBeInTheDocument();
 		});
 
-		it("should render CANCELLED status with red styling", () => {
-			render(<CampaignStatusBadge status="CANCELLED" />);
+		it("should render cancelled status with red styling", () => {
+			render(<CampaignStatusBadge status="cancelled" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveTextContent("Cancelled");
-			expect(badge).toHaveAttribute("data-status", "CANCELLED");
+			expect(badge).toHaveAttribute("data-status", "cancelled");
 		});
 
-		it("should render DONE status with green styling", () => {
-			render(<CampaignStatusBadge status="DONE" />);
+		it("should render done status with green styling", () => {
+			render(<CampaignStatusBadge status="done" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveTextContent("Done");
-			expect(badge).toHaveAttribute("data-status", "DONE");
+			expect(badge).toHaveAttribute("data-status", "done");
 		});
 
-		it("should render GRACE_PERIOD status with amber styling and animated dot", () => {
-			render(<CampaignStatusBadge status="GRACE_PERIOD" />);
+		it("should render grace_period status with amber styling and animated dot", () => {
+			render(<CampaignStatusBadge status="grace_period" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveTextContent("Final Window");
-			expect(badge).toHaveAttribute("data-status", "GRACE_PERIOD");
+			expect(badge).toHaveAttribute("data-status", "grace_period");
 
 			const dot = screen.getByTestId("status-dot");
 			expect(dot).toHaveClass("animate-pulse");
@@ -88,36 +88,36 @@ describe("CampaignStatusBadge", () => {
 	});
 
 	describe("Dot Indicator", () => {
-		it("should show animated dot for ACTIVE status", () => {
-			render(<CampaignStatusBadge status="ACTIVE" />);
+		it("should show animated dot for active status", () => {
+			render(<CampaignStatusBadge status="active" />);
 
 			const dot = screen.getByTestId("status-dot");
 			expect(dot).toHaveClass("animate-pulse");
 			expect(dot).toHaveClass("bg-green-500");
 		});
 
-		it("should show static dot for LOCKED status", () => {
-			render(<CampaignStatusBadge status="LOCKED" />);
+		it("should show static dot for locked status", () => {
+			render(<CampaignStatusBadge status="locked" />);
 
 			const dot = screen.getByTestId("status-dot");
 			expect(dot).not.toHaveClass("animate-pulse");
 			expect(dot).toHaveClass("bg-blue-500");
 		});
 
-		it("should not show dot for DRAFT status", () => {
-			render(<CampaignStatusBadge status="DRAFT" />);
+		it("should not show dot for draft status", () => {
+			render(<CampaignStatusBadge status="draft" />);
 
 			expect(screen.queryByTestId("status-dot")).not.toBeInTheDocument();
 		});
 
-		it("should not show dot for CANCELLED status", () => {
-			render(<CampaignStatusBadge status="CANCELLED" />);
+		it("should not show dot for cancelled status", () => {
+			render(<CampaignStatusBadge status="cancelled" />);
 
 			expect(screen.queryByTestId("status-dot")).not.toBeInTheDocument();
 		});
 
-		it("should not show dot for DONE status", () => {
-			render(<CampaignStatusBadge status="DONE" />);
+		it("should not show dot for done status", () => {
+			render(<CampaignStatusBadge status="done" />);
 
 			expect(screen.queryByTestId("status-dot")).not.toBeInTheDocument();
 		});
@@ -125,21 +125,21 @@ describe("CampaignStatusBadge", () => {
 
 	describe("Size Variants", () => {
 		it("should render small size", () => {
-			render(<CampaignStatusBadge status="ACTIVE" size="sm" />);
+			render(<CampaignStatusBadge status="active" size="sm" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveClass("text-xs");
 		});
 
 		it("should render medium size by default", () => {
-			render(<CampaignStatusBadge status="ACTIVE" />);
+			render(<CampaignStatusBadge status="active" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveClass("text-sm");
 		});
 
 		it("should render large size", () => {
-			render(<CampaignStatusBadge status="ACTIVE" size="lg" />);
+			render(<CampaignStatusBadge status="active" size="lg" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveClass("text-base");
@@ -148,7 +148,7 @@ describe("CampaignStatusBadge", () => {
 
 	describe("Custom className", () => {
 		it("should accept and apply custom className", () => {
-			render(<CampaignStatusBadge status="ACTIVE" className="custom-class" />);
+			render(<CampaignStatusBadge status="active" className="custom-class" />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
 			expect(badge).toHaveClass("custom-class");

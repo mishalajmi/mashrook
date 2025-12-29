@@ -713,4 +713,41 @@ class CampaignLifecycleServiceTest {
                     .isInstanceOf(InvalidCampaignStateTransitionException.class);
         }
     }
+
+    @Nested
+    @DisplayName("Auto-drop PENDING pledges")
+    class AutoDropPendingPledges {
+
+        @Test
+        @DisplayName("should auto-drop all PENDING pledges when campaign is LOCKED")
+        void shouldAutoDropPendingPledgesWhenLocked() {
+            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
+            DiscountBracketEntity bracket = createBracket(campaignId, 10, 50, new BigDecimal("100.00"), 0);
+
+            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+            when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(15);
+            when(discountBracketService.findFirstBracketMinQuantity(campaignId)).thenReturn(10);
+            when(discountBracketService.getCurrentBracket(campaignId, 15)).thenReturn(Optional.of(bracket));
+            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+            campaignLifecycleService.evaluateCampaign(campaignId);
+
+            verify(pledgeService).withdrawAllPendingPledges(campaignId);
+        }
+
+        @Test
+        @DisplayName("should auto-drop all PENDING pledges when campaign is CANCELLED")
+        void shouldAutoDropPendingPledgesWhenCancelled() {
+            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
+
+            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
+            when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(5);
+            when(discountBracketService.findFirstBracketMinQuantity(campaignId)).thenReturn(100);
+            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+            campaignLifecycleService.evaluateCampaign(campaignId);
+
+            verify(pledgeService).withdrawAllPendingPledges(campaignId);
+        }
+    }
 }

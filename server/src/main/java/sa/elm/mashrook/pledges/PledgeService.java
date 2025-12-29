@@ -9,6 +9,7 @@ import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.InvalidCampaignStateException;
+import sa.elm.mashrook.exceptions.InvalidPledgeStateException;
 import sa.elm.mashrook.exceptions.PledgeAccessDeniedException;
 import sa.elm.mashrook.exceptions.PledgeAlreadyExistsException;
 import sa.elm.mashrook.exceptions.PledgeNotFoundException;
@@ -20,6 +21,7 @@ import sa.elm.mashrook.pledges.dto.PledgeListResponse;
 import sa.elm.mashrook.pledges.dto.PledgeResponse;
 import sa.elm.mashrook.pledges.dto.PledgeUpdateRequest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -53,7 +55,8 @@ public class PledgeService {
         PledgeEntity pledge = findPledgeOrThrow(pledgeId);
         validatePledgeOwnership(pledge, buyerOrgId);
 
-        validateCampaignAcceptsPledges(pledge.getCampaign());
+        // Pledges can only be updated during ACTIVE phase
+        validateCampaignIsActive(pledge.getCampaign());
 
         pledge.setQuantity(request.quantity());
         PledgeEntity saved = pledgeRepository.save(pledge);
@@ -65,11 +68,61 @@ public class PledgeService {
         PledgeEntity pledge = findPledgeOrThrow(pledgeId);
         validatePledgeOwnership(pledge, buyerOrgId);
 
-
-        validateCampaignAcceptsPledges(pledge.getCampaign());
+        // Pledges can only be cancelled during ACTIVE phase
+        validateCampaignIsActive(pledge.getCampaign());
 
         pledge.setStatus(PledgeStatus.WITHDRAWN);
         pledgeRepository.save(pledge);
+    }
+
+    /**
+     * Commits a pledge during the campaign's grace period.
+     *
+     * <p>This operation:
+     * <ul>
+     *   <li>Validates the campaign is in GRACE_PERIOD status</li>
+     *   <li>Validates the pledge is in PENDING status</li>
+     *   <li>Validates the buyer owns the pledge</li>
+     *   <li>Sets pledge status to COMMITTED</li>
+     *   <li>Sets committedAt timestamp</li>
+     * </ul>
+     *
+     * @param pledgeId the ID of the pledge to commit
+     * @param buyerOrgId the ID of the buyer organization
+     * @return the updated pledge response
+     * @throws PledgeNotFoundException if the pledge does not exist
+     * @throws PledgeAccessDeniedException if the buyer does not own the pledge
+     * @throws InvalidCampaignStateException if the campaign is not in GRACE_PERIOD
+     * @throws InvalidPledgeStateException if the pledge is not in PENDING status
+     */
+    @Transactional
+    public PledgeResponse commitPledge(UUID pledgeId, UUID buyerOrgId) {
+        PledgeEntity pledge = findPledgeOrThrow(pledgeId);
+        validatePledgeOwnership(pledge, buyerOrgId);
+        validateCampaignInGracePeriod(pledge.getCampaign());
+        validatePledgeIsPending(pledge);
+
+        pledge.setStatus(PledgeStatus.COMMITTED);
+        pledge.setCommittedAt(LocalDateTime.now());
+
+        PledgeEntity saved = pledgeRepository.save(pledge);
+        return PledgeResponse.from(saved);
+    }
+
+    private void validateCampaignInGracePeriod(CampaignEntity campaign) {
+        if (campaign.getStatus() != CampaignStatus.GRACE_PERIOD) {
+            throw new InvalidCampaignStateException(
+                    String.format("Pledge commitment is only allowed during GRACE_PERIOD. Campaign %s is in %s status",
+                            campaign.getId(), campaign.getStatus()));
+        }
+    }
+
+    private void validatePledgeIsPending(PledgeEntity pledge) {
+        if (pledge.getStatus() != PledgeStatus.PENDING) {
+            throw new InvalidPledgeStateException(
+                    String.format("Only PENDING pledges can be committed. Pledge %s is in %s status",
+                            pledge.getId(), pledge.getStatus()));
+        }
     }
 
     public PledgeListResponse getBuyerPledges(UUID buyerOrgId, PledgeStatus status, Pageable pageable) {
@@ -81,21 +134,13 @@ public class PledgeService {
         return PledgeListResponse.from(responsePage);
     }
 
-    public PledgeListResponse getCampaignPledges(UUID campaignId, Pageable pageable) {
-        findCampaignOrThrow(campaignId);
-        Page<PledgeEntity> pledges = pledgeRepository.findAllByCampaignId(campaignId, pageable);
+    public PledgeListResponse getCampaignPledges(CampaignEntity campaign, Pageable pageable) {
+        Page<PledgeEntity> pledges = pledgeRepository.findAllByCampaignId(campaign.getId(), pageable);
+        if (pledges.getSize() <= 0) {
+            throw new PledgeNotFoundException(String.format("Pledge not found for campaign: %s", campaign.getId()));
+        }
         Page<PledgeResponse> responsePage = pledges.map(PledgeResponse::from);
         return PledgeListResponse.from(responsePage);
-    }
-
-    private void findCampaignOrThrow(UUID campaignId) {
-        pledgeRepository.findAllByCampaignId(campaignId)
-                .stream()
-                .map(PledgeEntity::getCampaign)
-                .findFirst()
-                .orElseThrow(() -> new CampaignNotFoundException(
-                        String.format("Campaign with id %s not found", campaignId)));
-
     }
 
     private PledgeEntity findPledgeOrThrow(UUID pledgeId) {
@@ -109,6 +154,14 @@ public class PledgeService {
         if (!pledgeAllowedStatuses.contains(campaign.getStatus())) {
             throw new InvalidCampaignStateException(
                     String.format("Campaign %s is not accepting pledges. Current status: %s",
+                            campaign.getId(), campaign.getStatus()));
+        }
+    }
+
+    private void validateCampaignIsActive(CampaignEntity campaign) {
+        if (campaign.getStatus() != CampaignStatus.ACTIVE) {
+            throw new InvalidCampaignStateException(
+                    String.format("Pledges can only be modified during ACTIVE phase. Campaign %s is in %s status",
                             campaign.getId(), campaign.getStatus()));
         }
     }
@@ -136,5 +189,23 @@ public class PledgeService {
                 .stream()
                 .mapToInt(PledgeEntity::getQuantity)
                 .sum();
+    }
+
+    /**
+     * Withdraws all PENDING pledges for a given campaign.
+     *
+     * <p>This method is called when a campaign transitions from GRACE_PERIOD
+     * to LOCKED or CANCELLED. All pledges that were not explicitly committed
+     * during the grace period are automatically withdrawn.
+     *
+     * @param campaignId the ID of the campaign
+     */
+    @Transactional
+    public void withdrawAllPendingPledges(UUID campaignId) {
+        List<PledgeEntity> pendingPledges = findAllByCampaignIdAndStatus(campaignId, PledgeStatus.PENDING);
+
+        pendingPledges.forEach(pledge -> pledge.setStatus(PledgeStatus.WITHDRAWN));
+
+        pledgeRepository.saveAll(pendingPledges);
     }
 }

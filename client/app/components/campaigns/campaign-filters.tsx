@@ -25,10 +25,10 @@ type StatusOption = CampaignStatus | "ALL";
 
 const statusOptions: { value: StatusOption; label: string }[] = [
 	{ value: "ALL", label: "All" },
-	{ value: "ACTIVE", label: "Active" },
-	{ value: "DRAFT", label: "Draft" },
-	{ value: "LOCKED", label: "Locked" },
-	{ value: "DONE", label: "Done" },
+	{ value: "active", label: "Active" },
+	{ value: "draft", label: "Draft" },
+	{ value: "locked", label: "Locked" },
+	{ value: "done", label: "Done" },
 ];
 
 /**

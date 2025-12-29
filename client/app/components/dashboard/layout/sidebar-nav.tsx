@@ -26,6 +26,7 @@ import {
 	FileText,
 	AlertTriangle,
 	Bell,
+	HandCoins,
 	type LucideIcon,
 } from "lucide-react";
 
@@ -83,6 +84,22 @@ const sidebarItems: NavItem[] = [
 		iconName: "Megaphone",
 		href: "/dashboard/campaigns",
         priority: 4,
+	},
+	{
+		id: "pledges",
+		labelKey: "dashboard.nav.pledges",
+		icon: HandCoins,
+		iconName: "HandCoins",
+		href: "/dashboard/pledges",
+        priority: 5,
+	},
+	{
+		id: "browse-campaigns",
+		labelKey: "dashboard.nav.browseCampaigns",
+		icon: Megaphone,
+		iconName: "Megaphone",
+		href: "/dashboard/browse-campaigns",
+		priority: 4,
 	},
 	{
 		id: "analytics",

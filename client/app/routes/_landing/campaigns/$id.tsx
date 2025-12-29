@@ -28,6 +28,7 @@ import {
 	BracketProgressVisualization,
 	CountdownTimer,
 	PledgeForm,
+	ProductDetailsCard,
 } from "@/components/campaigns";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -371,7 +372,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 	const brackets: DiscountBracket[] = campaign.brackets.map(toBracket);
 
 	// Determine if campaign is in grace period
-	const isGracePeriod = campaign.status === "GRACE_PERIOD";
+	const isGracePeriod = campaign.status === "grace_period";
 
 	// For grace period, use gracePeriodEndDate for countdown
 	const countdownEndDate = isGracePeriod && campaign.gracePeriodEndDate
@@ -395,8 +396,8 @@ export default function PublicCampaignDetailPage(): ReactNode {
 		: calculatePledgeSummary(campaign.id, brackets, pledges);
 	const currentPrice = pledgeSummary.currentBracket?.unitPrice ?? brackets[0]?.unitPrice ?? "0";
 
-	// Check if pledging is allowed (ACTIVE or GRACE_PERIOD)
-	const canPledge = campaign.status === "ACTIVE" || campaign.status === "GRACE_PERIOD";
+	// Check if pledging is allowed (active or grace_period)
+	const canPledge = campaign.status === "active" || campaign.status === "grace_period";
 
 	return (
 		<div
@@ -511,9 +512,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 								<div className="flex items-start gap-3">
 									<Package className="h-5 w-5 text-muted-foreground mt-0.5" />
 									<div>
-										<p className="font-medium text-foreground">
-											{campaign.productDetails}
-										</p>
+										<ProductDetailsCard productDetails={campaign.productDetails} />
 									</div>
 								</div>
 

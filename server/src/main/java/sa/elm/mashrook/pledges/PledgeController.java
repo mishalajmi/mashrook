@@ -29,6 +29,7 @@ import sa.elm.mashrook.pledges.dto.PledgeResponse;
 import sa.elm.mashrook.pledges.dto.PledgeUpdateRequest;
 import sa.elm.mashrook.security.domain.JwtPrincipal;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -72,7 +73,7 @@ public class PledgeController {
         pledgeService.cancelPledge(pledgeId, principal.getOrganizationId());
     }
 
-    @GetMapping("/")
+    @GetMapping
     @PreAuthorize("hasAuthority('pledges:read')")
     public PledgeListResponse getBuyerPledges(
             @RequestParam(required = false) PledgeStatus status,
@@ -89,7 +90,17 @@ public class PledgeController {
             @PathVariable UUID id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+        CampaignEntity campaign = campaignService.findById(id)
+                .orElseThrow(() -> new CampaignNotFoundException(String.format("Could not find campaign with id: %s", id)));
         Pageable pageable = PageRequest.of(page, size);
-        return pledgeService.getCampaignPledges(id, pageable);
+        return pledgeService.getCampaignPledges(campaign, pageable);
+    }
+
+    @PostMapping("/{pledgeId}/commit")
+    @PreAuthorize("hasAuthority('pledges:update')")
+    public PledgeResponse commitPledge(
+            @PathVariable UUID pledgeId,
+            @AuthenticationPrincipal JwtPrincipal principal) {
+        return pledgeService.commitPledge(pledgeId, principal.getOrganizationId());
     }
 }

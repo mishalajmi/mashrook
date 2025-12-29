@@ -185,4 +185,15 @@ export const pledgeService = {
 			`/v1/pledges/campaigns/${campaignId}${queryString}`
 		);
 	},
+
+	/**
+	 * Commit a pledge during the grace period
+	 *
+	 * @param pledgeId - Pledge ID
+	 * @returns Committed pledge response with updated status
+	 * @throws Error if pledge not found, not authorized, or campaign not in grace period
+	 */
+	async commitPledge(pledgeId: string): Promise<PledgeResponse> {
+		return apiClient.post<PledgeResponse>(`/v1/pledges/${pledgeId}/commit`);
+	},
 };

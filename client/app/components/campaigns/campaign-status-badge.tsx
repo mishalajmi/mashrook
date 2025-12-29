@@ -30,42 +30,42 @@ interface StatusConfig {
 }
 
 const statusConfig: Record<CampaignStatus, StatusConfig> = {
-	DRAFT: {
+	draft: {
 		label: "Draft",
 		styles: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
 		showDot: false,
 		dotStyles: "",
 		animated: false,
 	},
-	ACTIVE: {
+	active: {
 		label: "Active",
 		styles: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
 		showDot: true,
 		dotStyles: "bg-green-500",
 		animated: true,
 	},
-	GRACE_PERIOD: {
+	grace_period: {
 		label: "Final Window",
 		styles: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
 		showDot: true,
 		dotStyles: "bg-amber-500",
 		animated: true,
 	},
-	LOCKED: {
+	locked: {
 		label: "Locked",
 		styles: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
 		showDot: true,
 		dotStyles: "bg-blue-500",
 		animated: false,
 	},
-	CANCELLED: {
+	cancelled: {
 		label: "Cancelled",
 		styles: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 		showDot: false,
 		dotStyles: "",
 		animated: false,
 	},
-	DONE: {
+	done: {
 		label: "Done",
 		styles: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
 		showDot: false,

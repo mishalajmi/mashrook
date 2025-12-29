@@ -10,6 +10,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router";
 
 import CampaignDetailPage from "./$id";
+import type { User } from "@/services/auth.service";
 
 // Mock services
 vi.mock("@/services/campaign.service", () => ({
@@ -19,6 +20,7 @@ vi.mock("@/services/campaign.service", () => ({
 		addBracket: vi.fn(),
 		updateBracket: vi.fn(),
 		deleteBracket: vi.fn(),
+		listMedia: vi.fn().mockResolvedValue([]),
 	},
 }));
 
@@ -47,6 +49,45 @@ vi.mock("react-router", async () => {
 	};
 });
 
+// Mock the useAuth hook
+const mockUseAuth = vi.fn();
+vi.mock("@/contexts/AuthContext", () => ({
+	useAuth: () => mockUseAuth(),
+}));
+
+// Helper to create mock users with different authorities
+const createMockUser = (authorities: User["authorities"]): User => ({
+	id: "user-1",
+	firstName: "Test",
+	lastName: "User",
+	username: "testuser",
+	email: "test@example.com",
+	authorities,
+	status: "ACTIVE",
+});
+
+// Supplier user with full CRUD authority
+const supplierUser = createMockUser([
+	{
+		resource: "campaigns",
+		read: true,
+		write: true,
+		update: true,
+		delete: true,
+	},
+]);
+
+// Buyer user with read-only authority
+const buyerUser = createMockUser([
+	{
+		resource: "campaigns",
+		read: true,
+		write: false,
+		update: false,
+		delete: false,
+	},
+]);
+
 import { campaignService } from "@/services/campaign.service";
 import { pledgeService } from "@/services/pledge.service";
 import type { Mock } from "vitest";
@@ -60,7 +101,7 @@ const mockCampaignResponse = {
 	targetQuantity: 100,
 	startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
 	endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-	status: "ACTIVE" as const,
+	status: "active" as const,
 	supplierId: "supplier-1",
 	createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
 	updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -123,6 +164,12 @@ describe("CampaignDetailPage", () => {
 		mockNavigate.mockClear();
 		(campaignService.getCampaign as Mock).mockResolvedValue(mockCampaignResponse);
 		(pledgeService.getCampaignPledges as Mock).mockResolvedValue(mockPledgesResponse);
+		// Default to supplier user for backward compatibility
+		mockUseAuth.mockReturnValue({
+			user: supplierUser,
+			isAuthenticated: true,
+			isLoading: false,
+		});
 	});
 
 	describe("Basic Rendering", () => {
@@ -258,7 +305,7 @@ describe("CampaignDetailPage", () => {
 		it("should show publish button for DRAFT campaigns", async () => {
 			(campaignService.getCampaign as Mock).mockResolvedValue({
 				...mockCampaignResponse,
-				status: "DRAFT",
+				status: "draft",
 			});
 
 			renderWithRouter(<CampaignDetailPage />);
@@ -306,10 +353,16 @@ describe("CampaignDetailPage", () => {
 	});
 
 	describe("Bracket Editing (DRAFT campaigns)", () => {
-		it("should show edit tiers button for DRAFT campaigns", async () => {
+		it("should show edit tiers button for DRAFT campaigns when user has update authority", async () => {
+			mockUseAuth.mockReturnValue({
+				user: supplierUser,
+				isAuthenticated: true,
+				isLoading: false,
+			});
+
 			(campaignService.getCampaign as Mock).mockResolvedValue({
 				...mockCampaignResponse,
-				status: "DRAFT",
+				status: "draft",
 			});
 
 			renderWithRouter(<CampaignDetailPage />);
@@ -327,6 +380,93 @@ describe("CampaignDetailPage", () => {
 			});
 
 			expect(screen.queryByRole("button", { name: /edit tiers/i })).not.toBeInTheDocument();
+		});
+	});
+
+	describe("Authority-Based Rendering", () => {
+		describe("when user is a buyer (read-only authority)", () => {
+			beforeEach(() => {
+				mockUseAuth.mockReturnValue({
+					user: buyerUser,
+					isAuthenticated: true,
+					isLoading: false,
+				});
+			});
+
+			it("should NOT show publish button even for DRAFT campaigns", async () => {
+				(campaignService.getCampaign as Mock).mockResolvedValue({
+					...mockCampaignResponse,
+					status: "draft",
+				});
+
+				renderWithRouter(<CampaignDetailPage />);
+
+				await waitFor(() => {
+					expect(screen.getByText("Organic Coffee Beans")).toBeInTheDocument();
+				});
+
+				expect(screen.queryByRole("button", { name: /publish/i })).not.toBeInTheDocument();
+			});
+
+			it("should NOT show edit tiers button even for DRAFT campaigns", async () => {
+				(campaignService.getCampaign as Mock).mockResolvedValue({
+					...mockCampaignResponse,
+					status: "draft",
+				});
+
+				renderWithRouter(<CampaignDetailPage />);
+
+				await waitFor(() => {
+					expect(screen.getByText("Organic Coffee Beans")).toBeInTheDocument();
+				});
+
+				expect(screen.queryByRole("button", { name: /edit tiers/i })).not.toBeInTheDocument();
+			});
+
+			it("should still show campaign details (read access)", async () => {
+				renderWithRouter(<CampaignDetailPage />);
+
+				await waitFor(() => {
+					expect(screen.getByText("Organic Coffee Beans")).toBeInTheDocument();
+					expect(screen.getByText(/pricing tiers/i)).toBeInTheDocument();
+				});
+			});
+		});
+
+		describe("when user is a supplier (full CRUD authority)", () => {
+			beforeEach(() => {
+				mockUseAuth.mockReturnValue({
+					user: supplierUser,
+					isAuthenticated: true,
+					isLoading: false,
+				});
+			});
+
+			it("should show publish button for DRAFT campaigns", async () => {
+				(campaignService.getCampaign as Mock).mockResolvedValue({
+					...mockCampaignResponse,
+					status: "draft",
+				});
+
+				renderWithRouter(<CampaignDetailPage />);
+
+				await waitFor(() => {
+					expect(screen.getByRole("button", { name: /publish/i })).toBeInTheDocument();
+				});
+			});
+
+			it("should show edit tiers button for DRAFT campaigns", async () => {
+				(campaignService.getCampaign as Mock).mockResolvedValue({
+					...mockCampaignResponse,
+					status: "draft",
+				});
+
+				renderWithRouter(<CampaignDetailPage />);
+
+				await waitFor(() => {
+					expect(screen.getByRole("button", { name: /edit tiers/i })).toBeInTheDocument();
+				});
+			});
 		});
 	});
 });

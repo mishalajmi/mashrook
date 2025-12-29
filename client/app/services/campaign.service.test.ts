@@ -56,7 +56,7 @@ describe("Campaign Service", () => {
 			targetQuantity: 100,
 			startDate: "2024-01-01T00:00:00Z",
 			endDate: "2024-02-01T00:00:00Z",
-			status: "ACTIVE",
+			status: "active",
 			supplierId: "supplier-123",
 			createdAt: "2024-01-01T00:00:00Z",
 			updatedAt: "2024-01-01T00:00:00Z",
@@ -78,7 +78,7 @@ describe("Campaign Service", () => {
 
 			expect(result.id).toBe("campaign-123");
 			expect(result.title).toBe("Test Campaign");
-			expect(result.status).toBe("ACTIVE");
+			expect(result.status).toBe("active");
 		});
 
 		it("should throw error when campaign not found", async () => {
@@ -101,7 +101,7 @@ describe("Campaign Service", () => {
 				targetQuantity: 50,
 				startDate: "2024-01-01T00:00:00Z",
 				endDate: "2024-02-01T00:00:00Z",
-				status: "ACTIVE",
+				status: "active",
 				supplierId: "supplier-1",
 				createdAt: "2024-01-01T00:00:00Z",
 				updatedAt: "2024-01-01T00:00:00Z",
@@ -130,10 +130,10 @@ describe("Campaign Service", () => {
 		it("should include status query param when provided", async () => {
 			(apiClient.get as Mock).mockResolvedValueOnce(mockCampaigns);
 
-			await campaignService.listCampaigns({ status: "ACTIVE" });
+			await campaignService.listCampaigns({ status: "active" });
 
 			expect(apiClient.get).toHaveBeenCalledWith(
-				"/api/campaigns?status=ACTIVE"
+				"/api/campaigns?status=active"
 			);
 		});
 
@@ -142,11 +142,11 @@ describe("Campaign Service", () => {
 
 			await campaignService.listCampaigns({
 				supplierId: "supplier-123",
-				status: "DRAFT",
+				status: "draft",
 			});
 
 			expect(apiClient.get).toHaveBeenCalledWith(
-				"/api/campaigns?supplier_id=supplier-123&status=DRAFT"
+				"/api/campaigns?supplier_id=supplier-123&status=draft"
 			);
 		});
 
@@ -371,7 +371,7 @@ describe("Campaign Service", () => {
 			targetQuantity: 100,
 			startDate: "2024-01-01T00:00:00Z",
 			endDate: "2024-02-01T00:00:00Z",
-			status: "ACTIVE",
+			status: "active",
 			supplierId: "supplier-123",
 			createdAt: "2024-01-01T00:00:00Z",
 			updatedAt: "2024-01-01T00:00:00Z",
@@ -388,12 +388,12 @@ describe("Campaign Service", () => {
 			);
 		});
 
-		it("should return updated campaign with ACTIVE status", async () => {
+		it("should return updated campaign with active status", async () => {
 			(apiClient.patch as Mock).mockResolvedValueOnce(mockCampaignResponse);
 
 			const result = await campaignService.publishCampaign("campaign-123");
 
-			expect(result.status).toBe("ACTIVE");
+			expect(result.status).toBe("active");
 		});
 
 		it("should throw error when campaign not found", async () => {
@@ -457,7 +457,7 @@ describe("Campaign Service", () => {
 				targetQuantity: 100,
 				startDate: "2024-01-01T00:00:00Z",
 				endDate: "2024-02-01T00:00:00Z",
-				status: "DRAFT",
+				status: "draft",
 				supplierId: "supplier-1",
 				createdAt: "2024-01-01T00:00:00Z",
 				updatedAt: "2024-01-01T00:00:00Z",
