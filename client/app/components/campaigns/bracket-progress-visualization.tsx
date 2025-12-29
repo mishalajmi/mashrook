@@ -3,12 +3,14 @@
  *
  * Full tier visualization with milestones showing all discount brackets.
  * Displays achieved tiers with check, current tier highlighted, and future tiers locked.
+ * Includes optional horizontal progress bar and units-to-next-tier display.
  */
 
 import type { ReactNode } from "react";
-import { Check, Lock } from "lucide-react";
+import { Check, Lock, TrendingUp } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { ProgressBar } from "@/components/ui";
 import type { DiscountBracket } from "@/types/campaign";
 
 interface BracketProgressVisualizationProps {
@@ -18,6 +20,14 @@ interface BracketProgressVisualizationProps {
 	currentQuantity: number;
 	/** Currently active bracket (null if not in any bracket yet) */
 	currentBracket: DiscountBracket | null;
+	/** Whether to show the horizontal progress bar */
+	showProgressBar?: boolean;
+	/** Target quantity for progress bar calculation */
+	targetQuantity?: number;
+	/** Whether to show units needed to unlock next tier */
+	showUnitsToNextTier?: boolean;
+	/** Whether to show current quantity indicator */
+	showCurrentQuantity?: boolean;
 	/** Additional class names */
 	className?: string;
 }
@@ -65,6 +75,25 @@ function getBracketStatus(
 }
 
 /**
+ * Get the next bracket after current
+ */
+function getNextBracket(
+	currentBracket: DiscountBracket | null,
+	sortedBrackets: DiscountBracket[]
+): DiscountBracket | null {
+	if (!currentBracket || sortedBrackets.length === 0) {
+		return sortedBrackets[0] || null;
+	}
+
+	const currentIndex = sortedBrackets.findIndex((b) => b.id === currentBracket.id);
+	if (currentIndex === -1 || currentIndex >= sortedBrackets.length - 1) {
+		return null;
+	}
+
+	return sortedBrackets[currentIndex + 1];
+}
+
+/**
  * BracketProgressVisualization - Full tier milestone visualization
  *
  * Features:
@@ -74,21 +103,77 @@ function getBracketStatus(
  * - Future tiers with lock icon
  * - Price and quantity for each tier
  * - Progress connectors between tiers
+ * - Optional horizontal progress bar
+ * - Optional units-to-next-tier display
+ * - Optional current quantity indicator
  */
 export function BracketProgressVisualization({
 	brackets,
 	currentQuantity,
 	currentBracket,
+	showProgressBar = false,
+	targetQuantity,
+	showUnitsToNextTier = false,
+	showCurrentQuantity = false,
 	className,
 }: BracketProgressVisualizationProps): ReactNode {
 	// Sort brackets by order
 	const sortedBrackets = [...brackets].sort((a, b) => a.bracketOrder - b.bracketOrder);
 
+	// Calculate next bracket and units needed
+	const nextBracket = getNextBracket(currentBracket, sortedBrackets);
+	const unitsToNextTier = nextBracket ? nextBracket.minQuantity - currentQuantity : null;
+
+	// Calculate progress for progress bar
+	const maxQuantity = targetQuantity || (sortedBrackets.length > 0
+		? (sortedBrackets[sortedBrackets.length - 1].maxQuantity || sortedBrackets[sortedBrackets.length - 1].minQuantity * 2)
+		: 100);
+	const progressPercentage = Math.min(100, (currentQuantity / maxQuantity) * 100);
+
 	return (
 		<div
 			data-testid="bracket-progress-visualization"
-			className={cn("w-full", className)}
+			className={cn("w-full space-y-4", className)}
 		>
+			{/* Current Quantity Indicator */}
+			{showCurrentQuantity && (
+				<div
+					data-testid="current-quantity-indicator"
+					className="flex items-center gap-2 text-sm"
+				>
+					<TrendingUp className="h-4 w-4 text-primary" />
+					<span className="font-medium">{currentQuantity} units</span>
+					<span className="text-muted-foreground">currently pledged</span>
+				</div>
+			)}
+
+			{/* Horizontal Progress Bar */}
+			{showProgressBar && (
+				<div data-testid="bracket-progress-bar">
+					<ProgressBar
+						value={currentQuantity}
+						max={maxQuantity}
+						showPercentage
+						label="Overall Progress"
+					/>
+				</div>
+			)}
+
+			{/* Units to Next Tier */}
+			{showUnitsToNextTier && unitsToNextTier !== null && unitsToNextTier > 0 && (
+				<div
+					data-testid="units-to-next-tier"
+					className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20"
+				>
+					<Lock className="h-4 w-4 text-primary" />
+					<span className="text-sm">
+						<span className="font-semibold text-primary">{unitsToNextTier} more units needed</span>
+						{" "}to unlock next tier
+					</span>
+				</div>
+			)}
+
+			{/* Bracket Steps */}
 			<div className="flex flex-col gap-0">
 				{sortedBrackets.map((bracket, index) => {
 					const status = getBracketStatus(bracket, currentBracket, sortedBrackets);

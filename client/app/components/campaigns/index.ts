@@ -15,4 +15,5 @@ export { DiscountBracketEditor } from "./discount-bracket-editor";
 export { CampaignFilters } from "./campaign-filters";
 export { PledgeForm } from "./pledge-form";
 export { ProductDetailsEditor } from "./product-details-editor";
+export { ProductDetailsCard } from "./product-details-card";
 export { MediaUploader } from "./media-uploader";

@@ -38,10 +38,11 @@ import {
 	Label,
 } from "@/components/ui";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CampaignStatusBadge, BracketProgressIndicator, DiscountBracketEditor, MediaUploader } from "@/components/campaigns";
+import { CampaignStatusBadge, BracketProgressIndicator, DiscountBracketEditor, MediaUploader, ProductDetailsCard } from "@/components/campaigns";
 import { campaignService, type CampaignResponse, type BracketRequest, type CampaignMediaResponse } from "@/services/campaign.service";
 import { pledgeService, type PledgeResponse } from "@/services/pledge.service";
-import type { DiscountBracket, CampaignPledgeSummary, DiscountBracketFormData, ProductDetail, CampaignMedia } from "@/types/campaign";
+import type { DiscountBracket, CampaignPledgeSummary, DiscountBracketFormData, CampaignMedia } from "@/types/campaign";
+import { useResourceAuthorities } from "@/hooks/use-authority";
 
 /**
  * Format price with currency symbol
@@ -73,25 +74,6 @@ function calculateDaysRemaining(endDate: string): number {
 	return Math.max(0, diffDays);
 }
 
-/**
- * Parse product details from JSON string
- */
-function parseProductDetails(productDetails: string): ProductDetail[] {
-	try {
-		const parsed = JSON.parse(productDetails);
-		if (Array.isArray(parsed)) {
-			return parsed.filter((item): item is ProductDetail =>
-				typeof item === "object" &&
-				item !== null &&
-				typeof item.key === "string" &&
-				typeof item.value === "string"
-			);
-		}
-	} catch {
-		// If parsing fails, return empty array
-	}
-	return [];
-}
 
 /**
  * Transform media response to component-compatible type
@@ -188,6 +170,9 @@ function calculatePledgeSummary(
  */
 export default function CampaignDetailPage(): ReactNode {
 	const { id } = useParams();
+
+	// Get user authorities for campaigns resource
+	const { canUpdate } = useResourceAuthorities("campaigns");
 
 	// State for data fetching
 	const [campaign, setCampaign] = useState<CampaignResponse | null>(null);
@@ -391,7 +376,7 @@ export default function CampaignDetailPage(): ReactNode {
 	const pledgeSummary = calculatePledgeSummary(campaign.id, brackets, pledges);
 
 	const daysRemaining = calculateDaysRemaining(campaign.endDate);
-	const isDraft = campaign.status === "DRAFT";
+	const isDraft = campaign.status === "draft";
 
 	return (
 		<div className="flex flex-col gap-6 p-6">
@@ -414,7 +399,7 @@ export default function CampaignDetailPage(): ReactNode {
 						<p className="text-muted-foreground max-w-2xl">{campaign.description}</p>
 					</div>
 
-					{isDraft && (
+					{isDraft && canUpdate && (
 						<Button onClick={handlePublish} disabled={isPublishing}>
 							{isPublishing ? (
 								<>
@@ -507,22 +492,7 @@ export default function CampaignDetailPage(): ReactNode {
 									<h4 className="text-sm font-medium text-muted-foreground mb-2">
 										Product Details
 									</h4>
-									{(() => {
-										const details = parseProductDetails(campaign.productDetails);
-										if (details.length > 0) {
-											return (
-												<div className="space-y-1">
-													{details.map((detail, idx) => (
-														<div key={idx} className="flex text-sm">
-															<span className="font-medium min-w-[120px]">{detail.key}:</span>
-															<span className="text-muted-foreground">{detail.value}</span>
-														</div>
-													))}
-												</div>
-											);
-										}
-										return <p className="text-sm text-muted-foreground">No product details available</p>;
-									})()}
+									<ProductDetailsCard productDetails={campaign.productDetails} />
 								</div>
 
 								<div className="grid grid-cols-2 gap-4">
@@ -544,23 +514,50 @@ export default function CampaignDetailPage(): ReactNode {
 							</CardContent>
 						</Card>
 
-						{/* Media */}
+						{/* Media - Only show upload UI for users with update permission */}
 						<Card className="lg:col-span-2">
 							<CardHeader>
 								<CardTitle>Campaign Media</CardTitle>
 								<CardDescription>
-									{isDraft
+									{isDraft && canUpdate
 										? "Upload images and videos for your campaign"
 										: "Images and videos for this campaign"}
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<MediaUploader
-									media={media}
-									onUpload={handleMediaUpload}
-									onDelete={handleMediaDelete}
-									disabled={!isDraft}
-								/>
+								{canUpdate ? (
+									<MediaUploader
+										media={media}
+										onUpload={handleMediaUpload}
+										onDelete={handleMediaDelete}
+										disabled={!isDraft}
+									/>
+								) : (
+									// Read-only media display for users without update permission
+									<div className="space-y-4">
+										{media.length > 0 ? (
+											<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+												{media.map((item) => (
+													<div key={item.id} className="relative aspect-video rounded-lg overflow-hidden border bg-muted">
+														{item.mediaType === "IMAGE" && item.presignedUrl ? (
+															<img
+																src={item.presignedUrl}
+																alt={item.originalFilename}
+																className="w-full h-full object-cover"
+															/>
+														) : (
+															<div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+																{item.originalFilename}
+															</div>
+														)}
+													</div>
+												))}
+											</div>
+										) : (
+											<p className="text-sm text-muted-foreground">No media available</p>
+										)}
+									</div>
+								)}
 							</CardContent>
 						</Card>
 
@@ -573,7 +570,7 @@ export default function CampaignDetailPage(): ReactNode {
 										Price decreases as more units are pledged
 									</CardDescription>
 								</div>
-								{isDraft && (
+								{isDraft && canUpdate && (
 									<Button
 										variant="outline"
 										size="sm"

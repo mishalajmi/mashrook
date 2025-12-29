@@ -89,7 +89,7 @@ function transformToCompatibleFormat(
 		targetQuantity: c.targetQty,
 		startDate: c.startDate,
 		endDate: c.endDate,
-		status: "ACTIVE" as const, // Public endpoint only returns active campaigns
+		status: "active" as const, // Public endpoint only returns active campaigns
 		supplierId: c.supplierId,
 		createdAt: "",
 		updatedAt: "",

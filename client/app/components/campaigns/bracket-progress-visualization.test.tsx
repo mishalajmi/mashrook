@@ -297,4 +297,119 @@ describe("BracketProgressVisualization", () => {
 			expect(achievedConnector).toBeInTheDocument();
 		});
 	});
+
+	describe("Horizontal Progress Bar", () => {
+		it("should display horizontal progress bar", () => {
+			render(
+				<BracketProgressVisualization
+					brackets={mockBrackets}
+					currentQuantity={35}
+					currentBracket={mockBrackets[0]}
+					showProgressBar
+				/>
+			);
+
+			expect(screen.getByTestId("bracket-progress-bar")).toBeInTheDocument();
+		});
+
+		it("should show overall progress percentage", () => {
+			render(
+				<BracketProgressVisualization
+					brackets={mockBrackets}
+					currentQuantity={50}
+					currentBracket={mockBrackets[1]}
+					showProgressBar
+					targetQuantity={100}
+				/>
+			);
+
+			// 50 out of 100 = 50%
+			const progressBar = screen.getByTestId("bracket-progress-bar");
+			expect(progressBar).toBeInTheDocument();
+		});
+
+		it("should not display progress bar when showProgressBar is false", () => {
+			render(
+				<BracketProgressVisualization
+					brackets={mockBrackets}
+					currentQuantity={35}
+					currentBracket={mockBrackets[0]}
+					showProgressBar={false}
+				/>
+			);
+
+			expect(screen.queryByTestId("bracket-progress-bar")).not.toBeInTheDocument();
+		});
+	});
+
+	describe("Units to Next Tier", () => {
+		it("should display units needed to unlock next tier", () => {
+			render(
+				<BracketProgressVisualization
+					brackets={mockBrackets}
+					currentQuantity={35}
+					currentBracket={mockBrackets[0]}
+					showUnitsToNextTier
+				/>
+			);
+
+			// Current is bracket 1 (10-49), next is bracket 2 (50-99)
+			// Need 50 - 35 = 15 more units
+			expect(screen.getByTestId("units-to-next-tier")).toHaveTextContent("15 more units needed to unlock next tier");
+		});
+
+		it("should not display when at highest tier", () => {
+			render(
+				<BracketProgressVisualization
+					brackets={mockBrackets}
+					currentQuantity={120}
+					currentBracket={mockBrackets[2]}
+					showUnitsToNextTier
+				/>
+			);
+
+			expect(screen.queryByTestId("units-to-next-tier")).not.toBeInTheDocument();
+		});
+
+		it("should not display when showUnitsToNextTier is false", () => {
+			render(
+				<BracketProgressVisualization
+					brackets={mockBrackets}
+					currentQuantity={35}
+					currentBracket={mockBrackets[0]}
+					showUnitsToNextTier={false}
+				/>
+			);
+
+			expect(screen.queryByTestId("units-to-next-tier")).not.toBeInTheDocument();
+		});
+	});
+
+	describe("Current Quantity Indicator", () => {
+		it("should display current quantity indicator", () => {
+			render(
+				<BracketProgressVisualization
+					brackets={mockBrackets}
+					currentQuantity={35}
+					currentBracket={mockBrackets[0]}
+					showCurrentQuantity
+				/>
+			);
+
+			expect(screen.getByTestId("current-quantity-indicator")).toHaveTextContent("35 units");
+		});
+
+		it("should not display when showCurrentQuantity is false", () => {
+			render(
+				<BracketProgressVisualization
+					brackets={mockBrackets}
+					currentQuantity={35}
+					currentBracket={mockBrackets[0]}
+					showCurrentQuantity={false}
+				/>
+			);
+
+			expect(screen.queryByTestId("current-quantity-indicator")).not.toBeInTheDocument();
+		});
+	});
 });

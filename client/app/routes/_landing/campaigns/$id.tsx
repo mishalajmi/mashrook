@@ -1,10 +1,4 @@
-/**
- * Public Campaign Detail Page
- *
- * Displays detailed campaign information for public viewing.
- * Shows context-aware CTA based on authentication status.
- * Wired to backend API endpoints for campaigns and pledges.
- */
+
 
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useParams, useNavigate } from "react-router";
@@ -28,6 +22,7 @@ import {
 	BracketProgressVisualization,
 	CountdownTimer,
 	PledgeForm,
+	ProductDetailsCard,
 } from "@/components/campaigns";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -43,7 +38,7 @@ import type {
 	PledgeFormData,
 } from "@/types/campaign";
 
-// SEO metadata
+
 export function meta(): MetaDescriptor[] {
 	return [
 		{ title: "Campaign Details - Mashrook" },
@@ -54,9 +49,6 @@ export function meta(): MetaDescriptor[] {
 	];
 }
 
-/**
- * Format date for display
- */
 function formatDate(dateString: string): string {
 	return new Date(dateString).toLocaleDateString("en-US", {
 		month: "long",
@@ -65,9 +57,6 @@ function formatDate(dateString: string): string {
 	});
 }
 
-/**
- * Format date with time for display (used for lock date)
- */
 function formatDateWithTime(dateString: string): string {
 	return new Date(dateString).toLocaleDateString("en-US", {
 		weekday: "long",
@@ -80,9 +69,7 @@ function formatDateWithTime(dateString: string): string {
 	});
 }
 
-/**
- * Convert API bracket response to UI discount bracket type
- */
+
 function toBracket(response: { id: string; campaignId: string; minQuantity: number; maxQuantity: number | null; unitPrice: string; bracketOrder: number }): DiscountBracket {
 	return {
 		id: response.id,
@@ -94,9 +81,6 @@ function toBracket(response: { id: string; campaignId: string; minQuantity: numb
 	};
 }
 
-/**
- * Calculate pledge summary from brackets and pledges
- */
 function calculatePledgeSummary(
 	campaignId: string,
 	brackets: DiscountBracket[],
@@ -274,7 +258,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 
 			if (userPledge) {
 				// Update existing pledge
-				const updated = await pledgeService.updatePledge(id, userPledge.id, {
+				const updated = await pledgeService.updatePledge(userPledge.id, {
 					quantity: data.quantity,
 				});
 				setUserPledge(updated);
@@ -371,7 +355,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 	const brackets: DiscountBracket[] = campaign.brackets.map(toBracket);
 
 	// Determine if campaign is in grace period
-	const isGracePeriod = campaign.status === "GRACE_PERIOD";
+	const isGracePeriod = campaign.status === "grace_period";
 
 	// For grace period, use gracePeriodEndDate for countdown
 	const countdownEndDate = isGracePeriod && campaign.gracePeriodEndDate
@@ -382,21 +366,24 @@ export default function PublicCampaignDetailPage(): ReactNode {
 	const pledgeSummary: CampaignPledgeSummary = bracketProgress
 		? {
 				campaignId: campaign.id,
-				totalPledges: bracketProgress.totalPledges,
-				totalQuantity: bracketProgress.totalQuantity,
-				currentBracket: bracketProgress.currentBracketOrder
-					? brackets.find(b => b.bracketOrder === bracketProgress.currentBracketOrder) ?? null
+				totalPledges: 0,
+				totalQuantity: bracketProgress.totalPledged,
+				// Find matching bracket from brackets array by bracketOrder to preserve ID
+				currentBracket: bracketProgress.currentBracket
+					? brackets.find((b) => b.bracketOrder === bracketProgress.currentBracket?.bracketOrder) ?? null
 					: null,
-				nextBracket: bracketProgress.currentBracketOrder
-					? brackets.find(b => b.bracketOrder === (bracketProgress.currentBracketOrder ?? 0) + 1) ?? null
-					: brackets[0] ?? null,
-				unitsToNextBracket: bracketProgress.unitsToNextBracket,
+				nextBracket: bracketProgress.nextBracket
+					? brackets.find((b) => b.bracketOrder === bracketProgress.nextBracket?.bracketOrder) ?? null
+					: null,
+				unitsToNextBracket: bracketProgress.nextBracket
+					? bracketProgress.nextBracket.minQuantity - bracketProgress.totalPledged
+					: null,
 		  }
 		: calculatePledgeSummary(campaign.id, brackets, pledges);
 	const currentPrice = pledgeSummary.currentBracket?.unitPrice ?? brackets[0]?.unitPrice ?? "0";
 
-	// Check if pledging is allowed (ACTIVE or GRACE_PERIOD)
-	const canPledge = campaign.status === "ACTIVE" || campaign.status === "GRACE_PERIOD";
+	// Check if pledging is allowed (active or grace_period)
+	const canPledge = campaign.status === "active" || campaign.status === "grace_period";
 
 	return (
 		<div
@@ -511,9 +498,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 								<div className="flex items-start gap-3">
 									<Package className="h-5 w-5 text-muted-foreground mt-0.5" />
 									<div>
-										<p className="font-medium text-foreground">
-											{campaign.productDetails}
-										</p>
+										<ProductDetailsCard productDetails={campaign.productDetails} />
 									</div>
 								</div>
 
@@ -612,7 +597,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 															<PledgeForm
 																unitPrice={currentPrice}
 																minQuantity={1}
-																maxQuantity={campaign.targetQuantity}
+																maxQuantity={campaign.targetQty}
 																initialQuantity={userPledge.quantity}
 																isSubmitting={isSubmittingPledge}
 																submitButtonText="Update Pledge"
@@ -638,7 +623,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 														<PledgeForm
 															unitPrice={currentPrice}
 															minQuantity={1}
-															maxQuantity={campaign.targetQuantity}
+															maxQuantity={campaign.targetQty}
 															isSubmitting={isSubmittingPledge}
 															onSubmit={handlePledgeSubmit}
 														/>

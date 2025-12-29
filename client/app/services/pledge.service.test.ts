@@ -310,7 +310,7 @@ describe("Pledge Service", () => {
 		});
 	});
 
-	describe("pledgeService.getCampaignPledges(campaignId, options) - GET /v1/campaigns/{id}/pledges", () => {
+	describe("pledgeService.getCampaignPledges(campaignId, options) - GET /v1/pledges/campaigns/{id}", () => {
 		const mockPledgeListResponse: PledgeListResponse = {
 			content: [
 				{
@@ -330,13 +330,13 @@ describe("Pledge Service", () => {
 			totalPages: 1,
 		};
 
-		it("should make GET request to /v1/campaigns/{id}/pledges", async () => {
+		it("should make GET request to /v1/pledges/campaigns/{id}", async () => {
 			(apiClient.get as Mock).mockResolvedValueOnce(mockPledgeListResponse);
 
 			await pledgeService.getCampaignPledges("campaign-123");
 
 			expect(apiClient.get).toHaveBeenCalledWith(
-				"/v1/campaigns/campaign-123/pledges"
+				"/v1/pledges/campaigns/campaign-123"
 			);
 		});
 
@@ -349,7 +349,7 @@ describe("Pledge Service", () => {
 			});
 
 			expect(apiClient.get).toHaveBeenCalledWith(
-				"/v1/campaigns/campaign-123/pledges?page=1&size=10"
+				"/v1/pledges/campaigns/campaign-123?page=1&size=10"
 			);
 		});
 
@@ -369,6 +369,81 @@ describe("Pledge Service", () => {
 			await expect(
 				pledgeService.getCampaignPledges("non-existent")
 			).rejects.toThrow("Campaign not found");
+		});
+	});
+
+	describe("pledgeService.commitPledge(pledgeId) - POST /v1/pledges/{id}/commit", () => {
+		const mockPledgeResponse: PledgeResponse = {
+			id: "pledge-123",
+			campaignId: "campaign-123",
+			buyerOrgId: "buyer-org-123",
+			quantity: 10,
+			status: "COMMITTED",
+			committedAt: "2024-01-02T00:00:00Z",
+			createdAt: "2024-01-01T00:00:00Z",
+			updatedAt: "2024-01-02T00:00:00Z",
+		};
+
+		it("should make POST request to /v1/pledges/{id}/commit", async () => {
+			(apiClient.post as Mock).mockResolvedValueOnce(mockPledgeResponse);
+
+			await pledgeService.commitPledge("pledge-123");
+
+			expect(apiClient.post).toHaveBeenCalledWith("/v1/pledges/pledge-123/commit");
+		});
+
+		it("should return committed pledge on success", async () => {
+			(apiClient.post as Mock).mockResolvedValueOnce(mockPledgeResponse);
+
+			const result = await pledgeService.commitPledge("pledge-123");
+
+			expect(result.id).toBe("pledge-123");
+			expect(result.status).toBe("COMMITTED");
+			expect(result.committedAt).toBe("2024-01-02T00:00:00Z");
+		});
+
+		it("should throw error when pledge not found", async () => {
+			const apiError = createApiError("Pledge not found", 404, "NOT_FOUND");
+			(apiClient.post as Mock).mockRejectedValueOnce(apiError);
+
+			await expect(pledgeService.commitPledge("non-existent")).rejects.toThrow(
+				"Pledge not found"
+			);
+		});
+
+		it("should throw error when not authorized", async () => {
+			const apiError = createApiError("Access denied", 403, "FORBIDDEN");
+			(apiClient.post as Mock).mockRejectedValueOnce(apiError);
+
+			await expect(pledgeService.commitPledge("pledge-123")).rejects.toThrow(
+				"Access denied"
+			);
+		});
+
+		it("should throw error when campaign is not in grace period", async () => {
+			const apiError = createApiError(
+				"Campaign is not in grace period",
+				400,
+				"BAD_REQUEST"
+			);
+			(apiClient.post as Mock).mockRejectedValueOnce(apiError);
+
+			await expect(pledgeService.commitPledge("pledge-123")).rejects.toThrow(
+				"Campaign is not in grace period"
+			);
+		});
+
+		it("should throw error when pledge is already committed", async () => {
+			const apiError = createApiError(
+				"Pledge is already committed",
+				409,
+				"CONFLICT"
+			);
+			(apiClient.post as Mock).mockRejectedValueOnce(apiError);
+
+			await expect(pledgeService.commitPledge("pledge-123")).rejects.toThrow(
+				"Pledge is already committed"
+			);
 		});
 	});
 

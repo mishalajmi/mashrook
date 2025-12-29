@@ -31,7 +31,7 @@ const mockCampaign: Campaign = {
 	targetQuantity: 100,
 	startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
 	endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-	status: "ACTIVE",
+	status: "active",
 	supplierId: "supplier-1",
 	createdAt: new Date().toISOString(),
 	updatedAt: new Date().toISOString(),

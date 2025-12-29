@@ -93,7 +93,7 @@ export function CampaignCard({
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
 	// For grace period campaigns, show days until grace period ends
-	const isGracePeriod = campaign.status === "GRACE_PERIOD";
+	const isGracePeriod = campaign.status === "grace_period";
 	const targetDate = isGracePeriod && campaign.gracePeriodEndDate
 		? campaign.gracePeriodEndDate
 		: campaign.endDate;
@@ -101,7 +101,7 @@ export function CampaignCard({
 
 	const totalPledges = pledgeSummary?.totalPledges ?? 0;
 	const currentPrice = pledgeSummary?.currentBracket?.unitPrice;
-	const isDraft = campaign.status === "DRAFT";
+	const isDraft = campaign.status === "draft";
 
 	const handleDeleteConfirm = () => {
 		setIsDeleteDialogOpen(false);

@@ -91,6 +91,9 @@ public class CampaignLifecycleService {
         int totalPledged = calculateTotalCommittedPledges(campaignId);
         int minimumRequired = getMinimumBracketQuantity(campaignId);
 
+        // Auto-drop all PENDING pledges (they failed to commit during grace period)
+        pledgeService.withdrawAllPendingPledges(campaignId);
+
         if (totalPledged >= minimumRequired) {
             campaign.setStatus(CampaignStatus.LOCKED);
             CampaignEntity savedCampaign = campaignRepository.save(campaign);
@@ -103,12 +106,13 @@ public class CampaignLifecycleService {
             paymentIntentService.generatePaymentIntents(campaignId, finalBracket);
             invoiceService.generateInvoicesForCampaign(campaignId, finalBracket);
 
-            log.info("Campaign {} locked - minimum met ({} >= {}), invoices generated",
+            log.info("Campaign {} locked - minimum met ({} >= {}), pending pledges withdrawn, invoices generated",
                     campaignId, totalPledged, minimumRequired);
             return savedCampaign;
         } else {
             campaign.setStatus(CampaignStatus.CANCELLED);
-            log.info("Campaign {} cancelled - minimum not met ({} < {})", campaignId, totalPledged, minimumRequired);
+            log.info("Campaign {} cancelled - minimum not met ({} < {}), pending pledges withdrawn",
+                    campaignId, totalPledged, minimumRequired);
             return campaignRepository.save(campaign);
         }
     }

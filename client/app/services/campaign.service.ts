@@ -144,7 +144,10 @@ export interface PublicCampaignResponse {
 	title: string;
 	description: string;
 	productDetails: string;
-	targetQuantity: number;
+	supplierId: string;
+	supplierName: string;
+	targetQty: number;
+	totalPledged: number;
 	startDate: string;
 	endDate: string;
 	gracePeriodEndDate?: string;
@@ -153,14 +156,24 @@ export interface PublicCampaignResponse {
 }
 
 /**
+ * Bracket data from bracket progress endpoint (matches backend DiscountBracketDto)
+ */
+export interface BracketProgressBracket {
+	minQuantity: number;
+	maxQuantity: number | null;
+	unitPrice: string;
+	bracketOrder: number;
+}
+
+/**
  * Bracket progress response for a campaign
  */
 export interface BracketProgressResponse {
 	campaignId: string;
-	totalPledges: number;
-	totalQuantity: number;
-	currentBracketOrder: number | null;
-	unitsToNextBracket: number | null;
+	totalPledged: number;
+	currentBracket: BracketProgressBracket | null;
+	nextBracket: BracketProgressBracket | null;
+	percentageToNextTier: number;
 }
 
 /**

@@ -79,7 +79,7 @@ public class UserEntity {
         user.setEmail(request.email());
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
-        user.setUsername(request.firstName().substring(0, 2) + request.lastName());
+        user.setUsername(request.firstName().substring(0, 2).toLowerCase() + request.lastName().toLowerCase());
         user.setStatus(UserStatus.INACTIVE);
         user.addRole(request.role(), null);
         user.setCreatedAt(LocalDateTime.now());

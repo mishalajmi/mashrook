@@ -491,8 +491,10 @@ class CampaignControllerTest {
                     "Test Supplier",
                     LocalDate.now(),
                     LocalDate.now().plusDays(30),
+                    null,  // gracePeriodEndDate
                     100,
                     50,
+                    "active",
                     brackets
             );
 

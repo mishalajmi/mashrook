@@ -28,12 +28,16 @@ export interface PledgeUpdateRequest {
 export interface PledgeResponse {
 	id: string;
 	campaignId: string;
+	campaignTitle: string;
+	campaignStatus: string;
 	buyerOrgId: string;
 	quantity: number;
 	status: PledgeStatus;
 	committedAt: string | null;
 	createdAt: string;
 	updatedAt: string;
+	unitPrice: string | null;
+	totalAmount: string | null;
 }
 
 /**
@@ -102,24 +106,13 @@ function buildCampaignPledgesQueryString(options: GetCampaignPledgesOptions): st
 	return params.length > 0 ? `?${params.join("&")}` : "";
 }
 
-/**
- * Pledge service object providing pledge-related operations
- */
 export const pledgeService = {
-	/**
-	 * Create a new pledge on a campaign
-	 *
-	 * @param campaignId - Campaign ID
-	 * @param data - Pledge creation data with quantity
-	 * @returns Created pledge response
-	 * @throws Error if campaign not found, already pledged, or validation fails
-	 */
 	async createPledge(
 		campaignId: string,
 		data: PledgeCreateRequest
 	): Promise<PledgeResponse> {
 		return apiClient.post<PledgeResponse>(
-			`/v1/campaigns/${campaignId}/pledges`,
+			`/v1/pledges/campaigns/${campaignId}`,
 			data
 		);
 	},
@@ -127,19 +120,17 @@ export const pledgeService = {
 	/**
 	 * Update an existing pledge
 	 *
-	 * @param campaignId - Campaign ID
 	 * @param pledgeId - Pledge ID
 	 * @param data - Updated pledge data with quantity
 	 * @returns Updated pledge response
 	 * @throws Error if pledge not found or not authorized
 	 */
 	async updatePledge(
-		campaignId: string,
 		pledgeId: string,
 		data: PledgeUpdateRequest
 	): Promise<PledgeResponse> {
 		return apiClient.put<PledgeResponse>(
-			`/v1/campaigns/${campaignId}/pledges/${pledgeId}`,
+			`/v1/pledges/${pledgeId}`,
 			data
 		);
 	},
@@ -184,5 +175,16 @@ export const pledgeService = {
 		return apiClient.get<PledgeListResponse>(
 			`/v1/pledges/campaigns/${campaignId}${queryString}`
 		);
+	},
+
+	/**
+	 * Commit a pledge during the grace period
+	 *
+	 * @param pledgeId - Pledge ID
+	 * @returns Committed pledge response with updated status
+	 * @throws Error if pledge not found, not authorized, or campaign not in grace period
+	 */
+	async commitPledge(pledgeId: string): Promise<PledgeResponse> {
+		return apiClient.post<PledgeResponse>(`/v1/pledges/${pledgeId}/commit`);
 	},
 };

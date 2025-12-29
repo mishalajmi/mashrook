@@ -238,4 +238,36 @@ describe("PledgeForm", () => {
 			expect(screen.getByRole("button", { name: /update pledge/i })).toBeInTheDocument();
 		});
 	});
+
+	describe("Price Range Display", () => {
+		it("should display best case price when provided", () => {
+			render(<PledgeForm {...defaultProps} bestCasePrice="20.00" />);
+
+			expect(screen.getByTestId("best-case-price")).toHaveTextContent("$20.00");
+		});
+
+		it("should display current price when provided", () => {
+			render(<PledgeForm {...defaultProps} currentPrice="25.00" />);
+
+			expect(screen.getByTestId("current-price")).toHaveTextContent("$25.00");
+		});
+
+		it("should display price info text when price range is shown", () => {
+			render(<PledgeForm {...defaultProps} bestCasePrice="20.00" currentPrice="25.00" />);
+
+			expect(screen.getByText(/price decreases as more buyers join/i)).toBeInTheDocument();
+		});
+
+		it("should not display price range section when prices are not provided", () => {
+			render(<PledgeForm {...defaultProps} />);
+
+			expect(screen.queryByTestId("price-range-section")).not.toBeInTheDocument();
+		});
+
+		it("should show price range section when both prices are provided", () => {
+			render(<PledgeForm {...defaultProps} bestCasePrice="20.00" currentPrice="25.00" />);
+
+			expect(screen.getByTestId("price-range-section")).toBeInTheDocument();
+		});
+	});
 });

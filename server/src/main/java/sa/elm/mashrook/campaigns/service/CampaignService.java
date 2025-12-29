@@ -190,7 +190,7 @@ public class CampaignService {
         CampaignEntity campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new CampaignNotFoundException("Campaign not found: " + campaignId));
 
-        if (campaign.getStatus() != CampaignStatus.ACTIVE) {
+        if (campaign.getStatus() != CampaignStatus.ACTIVE && campaign.getStatus() != CampaignStatus.GRACE_PERIOD) {
             throw new CampaignNotFoundException("Campaign is not available for public viewing");
         }
 
@@ -211,8 +211,10 @@ public class CampaignService {
                 .supplierName(supplier.getNameEn())
                 .startDate(campaign.getStartDate())
                 .endDate(campaign.getEndDate())
+                .gracePeriodEndDate(campaign.getGracePeriodEndDate())
                 .targetQty(campaign.getTargetQty())
                 .totalPledged(totalPledged)
+                .status(campaign.getStatus().getValue())
                 .brackets(bracketDtos)
                 .build();
     }
@@ -222,7 +224,7 @@ public class CampaignService {
         CampaignEntity campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new CampaignNotFoundException("Campaign not found: " + campaignId));
 
-        if (campaign.getStatus() != CampaignStatus.ACTIVE) {
+        if (campaign.getStatus() != CampaignStatus.ACTIVE && campaign.getStatus() != CampaignStatus.GRACE_PERIOD) {
             throw new CampaignNotFoundException("Campaign is not available for public viewing");
         }
 

@@ -22,7 +22,7 @@ const mockCampaign: Campaign = {
 	targetQuantity: 100,
 	startDate: "2024-01-15T00:00:00Z",
 	endDate: "2024-02-15T00:00:00Z",
-	status: "ACTIVE",
+	status: "active",
 	supplierId: "supplier-1",
 	createdAt: "2024-01-10T00:00:00Z",
 	updatedAt: "2024-01-10T00:00:00Z",
@@ -86,19 +86,19 @@ describe("CampaignCard", () => {
 			expect(screen.getByTestId("campaign-status-badge")).toBeInTheDocument();
 		});
 
-		it("should show ACTIVE status", () => {
+		it("should show active status", () => {
 			render(<CampaignCard campaign={mockCampaign} pledgeSummary={mockPledgeSummary} />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
-			expect(badge).toHaveAttribute("data-status", "ACTIVE");
+			expect(badge).toHaveAttribute("data-status", "active");
 		});
 
-		it("should show DRAFT status for draft campaigns", () => {
-			const draftCampaign = { ...mockCampaign, status: "DRAFT" as const };
+		it("should show draft status for draft campaigns", () => {
+			const draftCampaign = { ...mockCampaign, status: "draft" as const };
 			render(<CampaignCard campaign={draftCampaign} pledgeSummary={mockPledgeSummary} />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
-			expect(badge).toHaveAttribute("data-status", "DRAFT");
+			expect(badge).toHaveAttribute("data-status", "draft");
 		});
 	});
 
@@ -176,8 +176,8 @@ describe("CampaignCard", () => {
 			expect(handleViewDetails).toHaveBeenCalledWith(mockCampaign);
 		});
 
-		it("should show Edit action for DRAFT campaigns when showActions and canEdit are true", () => {
-			const draftCampaign = { ...mockCampaign, status: "DRAFT" as const };
+		it("should show Edit action for draft campaigns when showActions and canEdit are true", () => {
+			const draftCampaign = { ...mockCampaign, status: "draft" as const };
 
 			render(
 				<CampaignCard
@@ -194,7 +194,7 @@ describe("CampaignCard", () => {
 		it("should call onEdit when Edit button clicked", async () => {
 			const user = userEvent.setup();
 			const handleEdit = vi.fn();
-			const draftCampaign = { ...mockCampaign, status: "DRAFT" as const };
+			const draftCampaign = { ...mockCampaign, status: "draft" as const };
 
 			render(
 				<CampaignCard
@@ -247,23 +247,23 @@ describe("CampaignCard", () => {
 	});
 
 	describe("Grace Period Status", () => {
-		it("should show GRACE_PERIOD status badge", () => {
-			const gracePeriodCampaign = { ...mockCampaign, status: "GRACE_PERIOD" as const };
+		it("should show grace_period status badge", () => {
+			const gracePeriodCampaign = { ...mockCampaign, status: "grace_period" as const };
 			render(<CampaignCard campaign={gracePeriodCampaign} pledgeSummary={mockPledgeSummary} />);
 
 			const badge = screen.getByTestId("campaign-status-badge");
-			expect(badge).toHaveAttribute("data-status", "GRACE_PERIOD");
+			expect(badge).toHaveAttribute("data-status", "grace_period");
 		});
 
-		it("should show urgency message for GRACE_PERIOD campaigns", () => {
-			const gracePeriodCampaign = { ...mockCampaign, status: "GRACE_PERIOD" as const };
+		it("should show urgency message for grace_period campaigns", () => {
+			const gracePeriodCampaign = { ...mockCampaign, status: "grace_period" as const };
 			render(<CampaignCard campaign={gracePeriodCampaign} pledgeSummary={mockPledgeSummary} />);
 
 			expect(screen.getByText("Final commitment window - pledge now")).toBeInTheDocument();
 		});
 
-		it("should have urgent styling border for GRACE_PERIOD campaigns", () => {
-			const gracePeriodCampaign = { ...mockCampaign, status: "GRACE_PERIOD" as const };
+		it("should have urgent styling border for grace_period campaigns", () => {
+			const gracePeriodCampaign = { ...mockCampaign, status: "grace_period" as const };
 			render(<CampaignCard campaign={gracePeriodCampaign} pledgeSummary={mockPledgeSummary} />);
 
 			const card = screen.getByTestId("campaign-card");
@@ -275,7 +275,7 @@ describe("CampaignCard", () => {
 			futureGraceEnd.setDate(futureGraceEnd.getDate() + 3);
 			const gracePeriodCampaign = {
 				...mockCampaign,
-				status: "GRACE_PERIOD" as const,
+				status: "grace_period" as const,
 				gracePeriodEndDate: futureGraceEnd.toISOString(),
 			};
 

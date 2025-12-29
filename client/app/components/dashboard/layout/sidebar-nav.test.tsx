@@ -1,8 +1,8 @@
 /**
  * Sidebar Navigation Tests
  *
- * TDD tests for the SidebarNav component with role-based navigation.
- * Tests written FIRST according to acceptance criteria.
+ * TDD tests for the SidebarNav component with authority-based navigation.
+ * Navigation items are shown based on user authorities, not roles.
  */
 
 import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
@@ -40,7 +40,7 @@ vi.mock("react-i18next", () => ({
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/i18n/language-context";
-import type { User } from "@/services/auth.service";
+import type { User, UserAuthority } from "@/services/auth.service";
 
 // Import component to be implemented
 import { SidebarNav } from "./sidebar-nav";
@@ -64,27 +64,98 @@ function renderWithRouter(
 	);
 }
 
-// Mock user objects for different roles
+// Helper to create authority with full permissions
+function createAuthority(resource: string): UserAuthority {
+	return {
+		resource,
+		action: "read",
+		read: true,
+		write: true,
+		update: true,
+		delete: true,
+	};
+}
+
+// Helper to create authority with specific action
+function createAuthorityWithAction(resource: string, action: string): UserAuthority {
+	return {
+		resource,
+		action,
+		read: action === "read",
+		write: action === "write",
+		update: action === "update",
+		delete: action === "delete",
+	};
+}
+
+// Mock user objects with proper authorities
+// Supplier authorities: dashboard, products, orders, campaigns (with update), analytics, buyers, messages, settings
 const mockSupplierUser: User = {
 	id: "user-1",
+	firstName: "Supplier",
+	lastName: "User",
+	username: "supplier",
 	email: "supplier@example.com",
-	role: "SUPPLIER",
+	authorities: [
+		createAuthority("dashboard"),
+		createAuthority("products"),
+		createAuthority("orders"),
+		createAuthorityWithAction("campaigns", "read"),
+		createAuthorityWithAction("campaigns", "update"), // Suppliers can update campaigns
+		createAuthority("analytics"),
+		createAuthority("buyers"),
+		createAuthority("messages"),
+		createAuthority("settings"),
+	],
+	status: "ACTIVE",
 	organizationId: "org-1",
 	organizationName: "Supplier Corp",
 };
 
+// Buyer authorities: dashboard, procurement, campaigns (read only), suppliers, orders, analytics, team, messages, settings, pledges
 const mockBuyerUser: User = {
 	id: "user-2",
+	firstName: "Buyer",
+	lastName: "User",
+	username: "buyer",
 	email: "buyer@example.com",
-	role: "BUYER",
+	authorities: [
+		createAuthority("dashboard"),
+		createAuthority("procurement"),
+		createAuthorityWithAction("campaigns", "read"), // Buyers can only read campaigns (browse)
+		createAuthority("pledges"),
+		createAuthority("suppliers"),
+		createAuthority("orders"),
+		createAuthority("analytics"),
+		createAuthority("team"),
+		createAuthority("messages"),
+		createAuthority("settings"),
+	],
+	status: "ACTIVE",
 	organizationId: "org-2",
 	organizationName: "Buyer Corp",
 };
 
+// Admin authorities: dashboard, user-management, organizations, campaigns (with update), system-settings, reports, moderation, communications, configuration
 const mockAdminUser: User = {
 	id: "user-3",
+	firstName: "Admin",
+	lastName: "User",
+	username: "admin",
 	email: "admin@example.com",
-	role: "ADMIN",
+	authorities: [
+		createAuthority("dashboard"),
+		createAuthority("user-management"),
+		createAuthority("organizations"),
+		createAuthorityWithAction("campaigns", "read"),
+		createAuthorityWithAction("campaigns", "update"), // Admins can manage campaigns
+		createAuthority("system-settings"),
+		createAuthority("reports"),
+		createAuthority("moderation"),
+		createAuthority("communications"),
+		createAuthority("configuration"),
+	],
+	status: "ACTIVE",
 	organizationId: "org-3",
 	organizationName: "Admin Corp",
 };
@@ -154,6 +225,11 @@ describe("SidebarNav", () => {
 			expect(screen.queryByTestId("nav-item-procurement")).not.toBeInTheDocument();
 		});
 
+		it("should NOT render Buyer-specific items like Pledges", () => {
+			renderWithRouter(<SidebarNav isExpanded={true} />);
+			expect(screen.queryByTestId("nav-item-pledges")).not.toBeInTheDocument();
+		});
+
 		it("should NOT render Admin-specific items like User Management", () => {
 			renderWithRouter(<SidebarNav isExpanded={true} />);
 			expect(screen.queryByTestId("nav-item-user-management")).not.toBeInTheDocument();
@@ -179,9 +255,22 @@ describe("SidebarNav", () => {
 			expect(screen.getByTestId("nav-item-procurement")).toBeInTheDocument();
 		});
 
-		it("should render Campaigns nav item", () => {
+		it("should render Browse Campaigns nav item (not supplier campaigns)", () => {
 			renderWithRouter(<SidebarNav isExpanded={true} />);
-			expect(screen.getByTestId("nav-item-campaigns")).toBeInTheDocument();
+			// Buyers should see browse-campaigns, not the supplier campaigns page
+			expect(screen.getByTestId("nav-item-browse-campaigns")).toBeInTheDocument();
+			expect(screen.queryByTestId("nav-item-campaigns")).not.toBeInTheDocument();
+		});
+
+		it("should link Browse Campaigns to /dashboard/browse-campaigns", () => {
+			renderWithRouter(<SidebarNav isExpanded={true} />);
+			const browseCampaignsNavItem = screen.getByTestId("nav-item-browse-campaigns");
+			expect(browseCampaignsNavItem).toHaveAttribute("href", "/dashboard/browse-campaigns");
+		});
+
+		it("should render Pledges nav item", () => {
+			renderWithRouter(<SidebarNav isExpanded={true} />);
+			expect(screen.getByTestId("nav-item-pledges")).toBeInTheDocument();
 		});
 
 		it("should render Suppliers nav item", () => {
@@ -288,6 +377,11 @@ describe("SidebarNav", () => {
 			renderWithRouter(<SidebarNav isExpanded={true} />);
 			expect(screen.queryByTestId("nav-item-procurement")).not.toBeInTheDocument();
 		});
+
+		it("should NOT render Buyer-specific items like Pledges", () => {
+			renderWithRouter(<SidebarNav isExpanded={true} />);
+			expect(screen.queryByTestId("nav-item-pledges")).not.toBeInTheDocument();
+		});
 	});
 
 	describe("Navigation Link Behavior", () => {
@@ -377,7 +471,7 @@ describe("SidebarNav", () => {
 	});
 
 	describe("Icons", () => {
-		it("should render correct icon for Dashboard (LayoutDashboard for SUPPLIER)", () => {
+		it("should render correct icon for Dashboard (LayoutDashboard)", () => {
 			(useAuth as Mock).mockReturnValue({
 				user: mockSupplierUser,
 				isAuthenticated: true,
@@ -387,18 +481,6 @@ describe("SidebarNav", () => {
 			renderWithRouter(<SidebarNav isExpanded={true} />);
 			const icon = screen.getByTestId("nav-icon-dashboard");
 			expect(icon).toHaveAttribute("data-icon", "LayoutDashboard");
-		});
-
-		it("should render correct icon for Dashboard (LayoutGrid for ADMIN)", () => {
-			(useAuth as Mock).mockReturnValue({
-				user: mockAdminUser,
-				isAuthenticated: true,
-				isLoading: false,
-			});
-
-			renderWithRouter(<SidebarNav isExpanded={true} />);
-			const icon = screen.getByTestId("nav-icon-dashboard");
-			expect(icon).toHaveAttribute("data-icon", "LayoutGrid");
 		});
 
 		it("should render Package icon for Products (SUPPLIER)", () => {
@@ -423,6 +505,18 @@ describe("SidebarNav", () => {
 			renderWithRouter(<SidebarNav isExpanded={true} />);
 			const icon = screen.getByTestId("nav-icon-procurement");
 			expect(icon).toHaveAttribute("data-icon", "ShoppingBag");
+		});
+
+		it("should render HandCoins icon for Pledges (BUYER)", () => {
+			(useAuth as Mock).mockReturnValue({
+				user: mockBuyerUser,
+				isAuthenticated: true,
+				isLoading: false,
+			});
+
+			renderWithRouter(<SidebarNav isExpanded={true} />);
+			const icon = screen.getByTestId("nav-icon-pledges");
+			expect(icon).toHaveAttribute("data-icon", "HandCoins");
 		});
 
 		it("should render Users icon for User Management (ADMIN)", () => {
@@ -485,6 +579,77 @@ describe("SidebarNav", () => {
 			renderWithRouter(<SidebarNav isExpanded={true} />);
 			const nav = screen.getByRole("navigation");
 			expect(nav).toHaveAttribute("data-rtl", "true");
+		});
+	});
+
+	describe("Pledges Navigation", () => {
+		it("should render Pledges nav item for users with pledges authority", () => {
+			(useAuth as Mock).mockReturnValue({
+				user: mockBuyerUser,
+				isAuthenticated: true,
+				isLoading: false,
+			});
+
+			renderWithRouter(<SidebarNav isExpanded={true} />);
+			expect(screen.getByTestId("nav-item-pledges")).toBeInTheDocument();
+		});
+
+		it("should link to /dashboard/pledges", () => {
+			(useAuth as Mock).mockReturnValue({
+				user: mockBuyerUser,
+				isAuthenticated: true,
+				isLoading: false,
+			});
+
+			renderWithRouter(<SidebarNav isExpanded={true} />);
+			const pledgesNavItem = screen.getByTestId("nav-item-pledges");
+			expect(pledgesNavItem).toHaveAttribute("href", "/dashboard/pledges");
+		});
+
+		it("should navigate to pledges page when clicked", async () => {
+			(useAuth as Mock).mockReturnValue({
+				user: mockBuyerUser,
+				isAuthenticated: true,
+				isLoading: false,
+			});
+
+			renderWithRouter(<SidebarNav isExpanded={true} />, {
+				initialEntries: ["/dashboard"],
+			});
+
+			const pledgesNavItem = screen.getByTestId("nav-item-pledges");
+			fireEvent.click(pledgesNavItem);
+
+			await waitFor(() => {
+				expect(screen.getByTestId("location")).toHaveTextContent("/dashboard/pledges");
+			});
+		});
+
+		it("should highlight pledges nav item when on pledges page", () => {
+			(useAuth as Mock).mockReturnValue({
+				user: mockBuyerUser,
+				isAuthenticated: true,
+				isLoading: false,
+			});
+
+			renderWithRouter(<SidebarNav isExpanded={true} />, {
+				initialEntries: ["/dashboard/pledges"],
+			});
+
+			const pledgesNavItem = screen.getByTestId("nav-item-pledges");
+			expect(pledgesNavItem).toHaveAttribute("data-active", "true");
+		});
+
+		it("should display correct label for pledges", () => {
+			(useAuth as Mock).mockReturnValue({
+				user: mockBuyerUser,
+				isAuthenticated: true,
+				isLoading: false,
+			});
+
+			renderWithRouter(<SidebarNav isExpanded={true} />);
+			const pledgesLabel = screen.getByTestId("nav-label-pledges");
+			expect(pledgesLabel).toHaveTextContent("dashboard.nav.pledges");
 		});
 	});
 });

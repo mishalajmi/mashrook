@@ -18,10 +18,13 @@ const mockCampaign: PublicCampaignResponse = {
 	title: "Organic Coffee Beans",
 	description: "Premium organic coffee beans sourced from sustainable farms.",
 	productDetails: "1kg bag of premium arabica beans",
-	targetQuantity: 100,
+	supplierId: "supplier-1",
+	supplierName: "Test Supplier",
+	targetQty: 100,
+	totalPledged: 35,
 	startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
 	endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-	status: "ACTIVE",
+	status: "active",
 	brackets: [
 		{
 			id: "bracket-1",
@@ -238,7 +241,7 @@ describe("PublicCampaignDetailPage - Authenticated User", () => {
 describe("PublicCampaignDetailPage - Grace Period", () => {
 	const gracePeriodCampaign: PublicCampaignResponse = {
 		...mockCampaign,
-		status: "GRACE_PERIOD",
+		status: "grace_period",
 		gracePeriodEndDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
 	};
 
@@ -286,12 +289,12 @@ describe("PublicCampaignDetailPage - Grace Period", () => {
 		});
 	});
 
-	it("should display the GRACE_PERIOD status badge", async () => {
+	it("should display the grace_period status badge", async () => {
 		renderWithRouter(<PublicCampaignDetailPage />);
 
 		await waitFor(() => {
 			const badge = screen.getByTestId("campaign-status-badge");
-			expect(badge).toHaveAttribute("data-status", "GRACE_PERIOD");
+			expect(badge).toHaveAttribute("data-status", "grace_period");
 		});
 	});
 });

@@ -10,5 +10,6 @@ public record R2StorageProperties(
         String secretAccessKey,
         String bucketName,
         @DefaultValue("auto") String region,
-        @DefaultValue("3600") Long presignedUrlExpirySeconds
+        @DefaultValue("3600") Long presignedUrlExpirySeconds,
+        @DefaultValue("http://localhost:5173") String corsAllowedOrigins
 ) {}
