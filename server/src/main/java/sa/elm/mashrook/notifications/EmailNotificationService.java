@@ -19,8 +19,6 @@ import sa.elm.mashrook.notifications.email.dto.WelcomeEmail;
 import sa.elm.mashrook.notifications.email.service.EmailSendResult;
 import sa.elm.mashrook.notifications.email.service.EmailTemplateService;
 
-import java.util.concurrent.CompletableFuture;
-
 /**
  * Email notification service using Resend.
  * Implements NotificationProvider for email notifications.
@@ -57,8 +55,8 @@ public class EmailNotificationService implements NotificationProvider<Object> {
 
     @Async
     @Override
-    public CompletableFuture<Void> send(Object notification) {
-        return CompletableFuture.runAsync(() -> sendEmailInternal(notification));
+    public void send(Object notification) {
+        sendEmailInternal(notification);
     }
 
     private void sendEmailInternal(Object notification) {
