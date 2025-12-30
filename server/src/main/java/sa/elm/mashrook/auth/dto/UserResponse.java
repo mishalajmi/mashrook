@@ -89,6 +89,14 @@ public record UserResponse(
         )
         String organizationName,
 
+        @Schema(
+                description = "User's organization type",
+                example = "SUPPLIER",
+                allowableValues = {"SUPPLIER", "BUYER"},
+                nullable = true
+        )
+        String organizationType,
+
         @Schema(description = "User's created timestamp", example = "2025-12-12T12:12:12")
         LocalDateTime createdAt,
 
@@ -119,6 +127,7 @@ public record UserResponse(
                 .status(user.getStatus().name())
                 .organizationId(organization != null ? organization.getId().toString() : null)
                 .organizationName(organization != null ? organization.getNameEn() : null)
+                .organizationType(organization != null ? organization.getType().name() : null)
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

@@ -42,6 +42,7 @@ export interface GetCurrentUserResponse {
     status: UserStatus;
     organizationId?: string;
     organizationName?: string;
+    organizationType?: OrganizationType;
 }
 
 /**
@@ -57,6 +58,7 @@ export interface User {
     status: UserStatus;
 	organizationId?: string;
 	organizationName?: string;
+	organizationType?: OrganizationType;
 }
 
 /**
@@ -133,7 +135,8 @@ function mapResponseToUser(userResponse: GetCurrentUserResponse): User {
         authorities: mapUserAuthorities(userResponse.authorities),
         status: userResponse.status,
         organizationId: userResponse.organizationId,
-        organizationName: userResponse.organizationName
+        organizationName: userResponse.organizationName,
+        organizationType: userResponse.organizationType
     };
 }
 

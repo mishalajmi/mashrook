@@ -39,7 +39,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { UserAuthority } from "@/services/auth.service";
+import type { UserAuthority, OrganizationType } from "@/services/auth.service";
 
 interface NavItem {
 	id: string;
@@ -47,7 +47,9 @@ interface NavItem {
 	icon: LucideIcon;
 	iconName: string;
 	href: string;
-    priority: number;
+	priority: number;
+	authorityResource?: string;  // Maps to authority resource (defaults to id)
+	restrictToOrgTypes?: OrganizationType[];  // Restrict visibility to specific org types
 }
 
 // Navigation configurations
@@ -83,7 +85,8 @@ const sidebarItems: NavItem[] = [
 		icon: Megaphone,
 		iconName: "Megaphone",
 		href: "/dashboard/campaigns",
-        priority: 4,
+		priority: 4,
+		restrictToOrgTypes: ["SUPPLIER"],
 	},
 	{
 		id: "pledges",
@@ -91,7 +94,8 @@ const sidebarItems: NavItem[] = [
 		icon: HandCoins,
 		iconName: "HandCoins",
 		href: "/dashboard/pledges",
-        priority: 5,
+		priority: 5,
+		restrictToOrgTypes: ["BUYER"],
 	},
 	{
 		id: "browse-campaigns",
@@ -100,6 +104,8 @@ const sidebarItems: NavItem[] = [
 		iconName: "Megaphone",
 		href: "/dashboard/browse-campaigns",
 		priority: 4,
+		authorityResource: "campaigns",
+		restrictToOrgTypes: ["BUYER"],
 	},
 	{
 		id: "analytics",
@@ -217,54 +223,39 @@ const sidebarItems: NavItem[] = [
 
 
 /**
- * Check if user has specific action on a resource
+ * Get navigation items based on user authorities and organization type
+ * Uses declarative NavItem configuration to determine visibility:
+ * - authorityResource: Which authority grants access (defaults to id)
+ * - restrictToOrgTypes: Which org types can see the item (defaults to all)
  */
-function hasAuthorityAction(
+function getNavItemsByAuthorities(
     authorities: Array<UserAuthority> | undefined,
-    resource: string,
-    action: string
-): boolean {
-    if (!authorities) return false;
-    return authorities.some(
-        (auth) => auth.resource === resource && auth.action === action
-    );
-}
-
-/**
- * Get navigation items based on user authorities
- * Matches authority resources to NavItem IDs and sorts by priority
- *
- * Special handling for campaigns:
- * - Suppliers (with campaigns:update) see supplier campaigns page
- * - Buyers (campaigns:read only) see browse-campaigns page
- */
-function getNavItemsByAuthorities(authorities: Array<UserAuthority> | undefined): Array<NavItem> {
+    organizationType?: OrganizationType
+): Array<NavItem> {
     if (!authorities) return [];
-    const items: NavItem[] = [];
-    const processedResources = new Set<string>();
 
-    for (const authority of authorities) {
-        const resource = authority?.resource;
-        if (!resource || processedResources.has(resource)) continue;
-        processedResources.add(resource);
+    // Create a Set of authority resources for fast lookup
+    const authorityResources = new Set(
+        authorities.map(a => a.resource).filter(Boolean)
+    );
 
-        // Special handling for campaigns resource
-        if (resource === "campaigns") {
-            const canUpdate = hasAuthorityAction(authorities, "campaigns", "update");
-            // Buyers (no update) get browse-campaigns, suppliers get campaigns
-            const targetId = canUpdate ? "campaigns" : "browse-campaigns";
-            const navItem = sidebarItems.find(item => item.id === targetId);
-            if (navItem && !items.includes(navItem)) {
-                items.push(navItem);
-            }
-            continue;
+    // Filter NavItems based on:
+    // 1. User has the required authority resource
+    // 2. User's org type matches restrictions (if any)
+    const items = sidebarItems.filter(item => {
+        const resource = item.authorityResource ?? item.id;
+
+        // Check if user has the authority
+        if (!authorityResources.has(resource)) return false;
+
+        // Check org type restriction
+        if (item.restrictToOrgTypes && organizationType) {
+            if (!item.restrictToOrgTypes.includes(organizationType)) return false;
         }
 
-        const navItem = sidebarItems.find(item => item.id === resource);
-        if (navItem && !items.includes(navItem)) {
-            items.push(navItem);
-        }
-    }
+        return true;
+    });
+
     return items.sort((a, b) => a.priority - b.priority);
 }
 
@@ -283,7 +274,7 @@ export function SidebarNav({ isExpanded, onNavigate }: SidebarNavProps): ReactNo
 		return null;
 	}
 
-	const navItems = getNavItemsByAuthorities(user?.authorities);
+	const navItems = getNavItemsByAuthorities(user?.authorities, user?.organizationType);
 
 	const isActive = (href: string): boolean => {
 		if (href === "/dashboard") {

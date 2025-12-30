@@ -34,7 +34,7 @@ function transformApiResponse(
 		targetQuantity: c.targetQty,
 		startDate: c.startDate,
 		endDate: c.endDate,
-		status: "active" as const,
+		status: c.status,
 		supplierId: c.supplierId,
 		createdAt: "",
 		updatedAt: "",

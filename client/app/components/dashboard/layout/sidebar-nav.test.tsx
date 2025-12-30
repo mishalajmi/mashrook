@@ -68,7 +68,6 @@ function renderWithRouter(
 function createAuthority(resource: string): UserAuthority {
 	return {
 		resource,
-		action: "read",
 		read: true,
 		write: true,
 		update: true,
@@ -76,20 +75,22 @@ function createAuthority(resource: string): UserAuthority {
 	};
 }
 
-// Helper to create authority with specific action
-function createAuthorityWithAction(resource: string, action: string): UserAuthority {
+// Helper to create authority with specific permissions
+function createAuthorityWithPermissions(
+	resource: string,
+	permissions: { read?: boolean; write?: boolean; update?: boolean; delete?: boolean }
+): UserAuthority {
 	return {
 		resource,
-		action,
-		read: action === "read",
-		write: action === "write",
-		update: action === "update",
-		delete: action === "delete",
+		read: permissions.read ?? false,
+		write: permissions.write ?? false,
+		update: permissions.update ?? false,
+		delete: permissions.delete ?? false,
 	};
 }
 
 // Mock user objects with proper authorities
-// Supplier authorities: dashboard, products, orders, campaigns (with update), analytics, buyers, messages, settings
+// Supplier authorities: dashboard, products, orders, campaigns, pledges (read-only), analytics, buyers, messages, settings
 const mockSupplierUser: User = {
 	id: "user-1",
 	firstName: "Supplier",
@@ -100,8 +101,8 @@ const mockSupplierUser: User = {
 		createAuthority("dashboard"),
 		createAuthority("products"),
 		createAuthority("orders"),
-		createAuthorityWithAction("campaigns", "read"),
-		createAuthorityWithAction("campaigns", "update"), // Suppliers can update campaigns
+		createAuthority("campaigns"),
+		createAuthorityWithPermissions("pledges", { read: true }), // Can view pledges TO their campaigns
 		createAuthority("analytics"),
 		createAuthority("buyers"),
 		createAuthority("messages"),
@@ -110,6 +111,7 @@ const mockSupplierUser: User = {
 	status: "ACTIVE",
 	organizationId: "org-1",
 	organizationName: "Supplier Corp",
+	organizationType: "SUPPLIER",
 };
 
 // Buyer authorities: dashboard, procurement, campaigns (read only), suppliers, orders, analytics, team, messages, settings, pledges
@@ -122,7 +124,7 @@ const mockBuyerUser: User = {
 	authorities: [
 		createAuthority("dashboard"),
 		createAuthority("procurement"),
-		createAuthorityWithAction("campaigns", "read"), // Buyers can only read campaigns (browse)
+		createAuthorityWithPermissions("campaigns", { read: true }), // Buyers can only read campaigns (browse)
 		createAuthority("pledges"),
 		createAuthority("suppliers"),
 		createAuthority("orders"),
@@ -134,9 +136,11 @@ const mockBuyerUser: User = {
 	status: "ACTIVE",
 	organizationId: "org-2",
 	organizationName: "Buyer Corp",
+	organizationType: "BUYER",
 };
 
-// Admin authorities: dashboard, user-management, organizations, campaigns (with update), system-settings, reports, moderation, communications, configuration
+// Admin authorities: dashboard, user-management, organizations, campaigns, system-settings, reports, moderation, communications, configuration
+// Note: Admin belongs to a SUPPLIER organization for campaign management access
 const mockAdminUser: User = {
 	id: "user-3",
 	firstName: "Admin",
@@ -147,8 +151,7 @@ const mockAdminUser: User = {
 		createAuthority("dashboard"),
 		createAuthority("user-management"),
 		createAuthority("organizations"),
-		createAuthorityWithAction("campaigns", "read"),
-		createAuthorityWithAction("campaigns", "update"), // Admins can manage campaigns
+		createAuthority("campaigns"),
 		createAuthority("system-settings"),
 		createAuthority("reports"),
 		createAuthority("moderation"),
@@ -158,6 +161,7 @@ const mockAdminUser: User = {
 	status: "ACTIVE",
 	organizationId: "org-3",
 	organizationName: "Admin Corp",
+	organizationType: "SUPPLIER",
 };
 
 describe("SidebarNav", () => {
