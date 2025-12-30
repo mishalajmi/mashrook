@@ -55,6 +55,8 @@ springdoc:
   default-produces-media-type: application/json
 
 mashrook:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
   storage:
     r2:
       endpoint: ${R2_ENDPOINT:https://your-account-id.r2.cloudflarestorage.com}

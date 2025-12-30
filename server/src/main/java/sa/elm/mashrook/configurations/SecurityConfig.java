@@ -31,7 +31,10 @@ import sa.elm.mashrook.security.details.MashrookUserDetailsService;
 import sa.elm.mashrook.security.evaluators.MashrookPermissionEvaluator;
 import sa.elm.mashrook.security.providers.JwtAuthenticationProvider;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -44,7 +47,9 @@ public class SecurityConfig {
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final PasswordEncoder passwordEncoder;
 
-    private static final List<String> ALLOWED_ORIGINS = List.of("http://localhost:5173/");
+    @Value("${mashrook.cors.allowed-origins}")
+    private String allowedOriginsConfig;
+
     private static final List<String> ALLOWED_METHODS = List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS");
     private static final List<String> EXPOSED_HEADERS = List.of(HttpHeaders.SET_COOKIE, HttpHeaders.AUTHORIZATION);
     private static final List<String> ALLOWED_HEADERS = List.of(HttpHeaders.AUTHORIZATION,
@@ -153,7 +158,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(ALLOWED_ORIGINS);
+        List<String> allowedOrigins = Arrays.stream(allowedOriginsConfig.split(","))
+                .map(String::trim)
+                .toList();
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(ALLOWED_METHODS);
         configuration.setAllowedHeaders(ALLOWED_HEADERS);
         configuration.setExposedHeaders(EXPOSED_HEADERS);
