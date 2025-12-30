@@ -1,10 +1,7 @@
 package sa.elm.mashrook.notifications.email.service;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -32,34 +29,6 @@ public class EmailTemplateService {
     private static final String TEXT_TEMPLATE_SUFFIX = "-text";
 
     private final TemplateEngine templateEngine;
-
-    @PostConstruct
-    public void logAvailableTemplates() {
-        log.info("=== Email Template Diagnostic ===");
-        try {
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-
-            // Check templates/email directory
-            Resource[] resources = resolver.getResources("classpath:/templates/email/*.html");
-            log.info("Found {} email templates in classpath:/templates/email/", resources.length);
-            for (Resource resource : resources) {
-                log.info("  Template found: {}", resource.getFilename());
-            }
-
-            // Also try without leading slash
-            Resource[] resources2 = resolver.getResources("classpath:templates/email/*.html");
-            log.info("Found {} email templates in classpath:templates/email/", resources2.length);
-
-            // Check if specific template exists
-            Resource accountActivation = resolver.getResource("classpath:/templates/email/account-activation.html");
-            log.info("account-activation.html exists: {}, readable: {}",
-                    accountActivation.exists(), accountActivation.isReadable());
-
-        } catch (Exception e) {
-            log.error("Error scanning for email templates: {}", e.getMessage(), e);
-        }
-        log.info("=== End Template Diagnostic ===");
-    }
 
     /**
      * Renders an email from an email DTO object.

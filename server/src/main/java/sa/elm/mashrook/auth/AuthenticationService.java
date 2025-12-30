@@ -350,9 +350,7 @@ public class AuthenticationService {
      * Builds the activation link URL for account activation emails.
      */
     private String buildActivationLink(String token) {
-        String baseUrl = authConfig.verification() != null
-                ? authConfig.verification().frontendBaseUrl()
-                : "http://localhost:5173";
+        String baseUrl = getBaseUrl();
         return baseUrl + "/activate?token=" + token;
     }
 
@@ -360,9 +358,15 @@ public class AuthenticationService {
      * Builds the login URL for welcome emails.
      */
     private String buildLoginUrl() {
+        String baseUrl = getBaseUrl();
+        return baseUrl + "/login";
+    }
+
+    private String getBaseUrl() {
         String baseUrl = authConfig.verification() != null
                 ? authConfig.verification().frontendBaseUrl()
                 : "http://localhost:5173";
-        return baseUrl + "/login";
+        // Strip trailing slash to avoid double slashes in URLs
+        return baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
     }
 }
