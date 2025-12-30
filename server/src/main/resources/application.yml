@@ -1,6 +1,12 @@
 spring:
   application:
     name: mashrook
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    check-template-location: true
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${DB_CONNECTION_STRING}
