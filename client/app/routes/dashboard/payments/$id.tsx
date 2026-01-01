@@ -1,0 +1,448 @@
+/**
+ * Invoice Detail Page
+ *
+ * Displays full invoice details with breakdown and bank transfer instructions.
+ * Allows buyer to mark invoice as paid (pending admin confirmation).
+ */
+
+import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { Link, useParams } from "react-router";
+import { ArrowLeft, Building2, CreditCard, Copy, Check, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { cn } from "@/lib/utils";
+import {
+	Button,
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+	Separator,
+} from "@/components/ui";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LoadingState } from "@/components/ui/loading-state";
+import {
+	invoiceService,
+	type InvoiceResponse,
+	type InvoiceStatus,
+} from "@/services/invoice.service";
+
+// Bank details - in production these would come from application config
+const BANK_DETAILS = {
+	bankName: "National Commerce Bank",
+	accountName: "Mashrook Trading LLC",
+	accountNumber: "SA03 8000 0000 6080 1016 7519",
+	swiftCode: "NCBKSAJE",
+};
+
+// Status badge configurations
+const invoiceStatusConfig: Record<
+	InvoiceStatus,
+	{ label: string; className: string }
+> = {
+	DRAFT: {
+		label: "Draft",
+		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+	},
+	ISSUED: {
+		label: "Pending Payment",
+		className: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+	},
+	PARTIALLY_PAID: {
+		label: "Partially Paid",
+		className: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
+	},
+	PAID: {
+		label: "Paid",
+		className: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+	},
+	OVERDUE: {
+		label: "Overdue",
+		className: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
+	},
+	CANCELLED: {
+		label: "Cancelled",
+		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+	},
+	PENDING_CONFIRMATION: {
+		label: "Awaiting Confirmation",
+		className: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
+	},
+};
+
+/**
+ * Format date for display
+ */
+function formatDate(dateString: string): string {
+	return new Date(dateString).toLocaleDateString("en-US", {
+		weekday: "long",
+		month: "long",
+		day: "numeric",
+		year: "numeric",
+	});
+}
+
+/**
+ * Format price with currency symbol
+ */
+function formatPrice(price: string): string {
+	const numericPrice = parseFloat(price);
+	return `$${numericPrice.toFixed(2)}`;
+}
+
+/**
+ * Check if invoice can be marked as paid
+ */
+function canMarkAsPaid(status: InvoiceStatus): boolean {
+	return status === "ISSUED" || status === "OVERDUE" || status === "PARTIALLY_PAID";
+}
+
+/**
+ * Copy text to clipboard helper
+ */
+async function copyToClipboard(text: string, label: string): Promise<void> {
+	try {
+		await navigator.clipboard.writeText(text);
+		toast.success(`${label} copied to clipboard`);
+	} catch {
+		toast.error("Failed to copy to clipboard");
+	}
+}
+
+/**
+ * CopyableField - Field with copy button
+ */
+function CopyableField({
+	label,
+	value,
+	testId,
+}: {
+	label: string;
+	value: string;
+	testId: string;
+}): ReactNode {
+	const [copied, setCopied] = useState(false);
+
+	const handleCopy = async () => {
+		await copyToClipboard(value, label);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
+
+	return (
+		<div className="flex items-center justify-between py-2">
+			<div>
+				<p className="text-sm text-muted-foreground">{label}</p>
+				<p data-testid={testId} className="font-medium">
+					{value}
+				</p>
+			</div>
+			<Button
+				variant="ghost"
+				size="sm"
+				onClick={handleCopy}
+				className="h-8 w-8 p-0"
+			>
+				{copied ? (
+					<Check className="h-4 w-4 text-green-600" />
+				) : (
+					<Copy className="h-4 w-4" />
+				)}
+				<span className="sr-only">Copy {label}</span>
+			</Button>
+		</div>
+	);
+}
+
+/**
+ * InvoiceDetailPage - Invoice detail view with bank instructions
+ *
+ * Features:
+ * - Full invoice breakdown (subtotal, VAT, total)
+ * - Campaign information
+ * - Bank transfer instructions card
+ * - Mark as paid button
+ * - Status display
+ */
+export default function InvoiceDetailPage(): ReactNode {
+	const { id } = useParams<{ id: string }>();
+
+	// State
+	const [invoice, setInvoice] = useState<InvoiceResponse | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [isMarkingPaid, setIsMarkingPaid] = useState(false);
+
+	// Fetch invoice details
+	const fetchInvoice = useCallback(async () => {
+		if (!id) return;
+
+		try {
+			setLoading(true);
+			setError(null);
+			const data = await invoiceService.getInvoice(id);
+			setInvoice(data);
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Failed to load invoice";
+			setError(message);
+		} finally {
+			setLoading(false);
+		}
+	}, [id]);
+
+	// Initial fetch
+	useEffect(() => {
+		fetchInvoice();
+	}, [fetchInvoice]);
+
+	// Handle mark as paid
+	const handleMarkAsPaid = async () => {
+		if (!id) return;
+
+		try {
+			setIsMarkingPaid(true);
+			const updated = await invoiceService.markAsPaid(id);
+			setInvoice(updated);
+			toast.success("Payment marked as complete. Awaiting admin confirmation.");
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Failed to mark as paid";
+			toast.error(message);
+		} finally {
+			setIsMarkingPaid(false);
+		}
+	};
+
+	// Loading state
+	if (loading) {
+		return (
+			<div data-testid="invoice-detail-page" className="flex flex-col gap-6 p-6">
+				<div className="flex items-center gap-4">
+					<Link
+						to="/dashboard/payments"
+						className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+					>
+						<ArrowLeft className="mr-2 h-4 w-4" />
+						Back to Payments
+					</Link>
+				</div>
+				<LoadingState message="Loading invoice details..." />
+			</div>
+		);
+	}
+
+	// Error state
+	if (error || !invoice) {
+		return (
+			<div data-testid="invoice-detail-page" className="flex flex-col gap-6 p-6">
+				<div className="flex items-center gap-4">
+					<Link
+						to="/dashboard/payments"
+						className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+					>
+						<ArrowLeft className="mr-2 h-4 w-4" />
+						Back to Payments
+					</Link>
+				</div>
+				<EmptyState
+					title="Failed to load invoice"
+					description={error || "Invoice not found"}
+					actionLabel="Try Again"
+					onAction={fetchInvoice}
+				/>
+			</div>
+		);
+	}
+
+	const statusConfig = invoiceStatusConfig[invoice.status];
+	const showMarkAsPaidButton = canMarkAsPaid(invoice.status);
+
+	return (
+		<div data-testid="invoice-detail-page" className="flex flex-col gap-6 p-6">
+			{/* Back Link */}
+			<div className="flex items-center gap-4">
+				<Link
+					to="/dashboard/payments"
+					className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+				>
+					<ArrowLeft className="mr-2 h-4 w-4" />
+					Back to Payments
+				</Link>
+			</div>
+
+			{/* Header */}
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+				<div className="space-y-1">
+					<h1 className="text-2xl font-bold tracking-tight">
+						{invoice.invoiceNumber}
+					</h1>
+					<p className="text-muted-foreground">{invoice.campaignTitle}</p>
+				</div>
+				<span
+					data-testid="invoice-status-badge"
+					className={cn(
+						"inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
+						statusConfig.className
+					)}
+				>
+					{statusConfig.label}
+				</span>
+			</div>
+
+			<div className="grid gap-6 lg:grid-cols-2">
+				{/* Invoice Details Card */}
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<CreditCard className="h-5 w-5" />
+							Invoice Details
+						</CardTitle>
+						<CardDescription>
+							Invoice breakdown and payment information
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						{/* Dates */}
+						<div className="grid gap-4 sm:grid-cols-2">
+							<div>
+								<p className="text-sm text-muted-foreground">Issue Date</p>
+								<p data-testid="invoice-issue-date" className="font-medium">
+									{formatDate(invoice.issueDate)}
+								</p>
+							</div>
+							<div>
+								<p className="text-sm text-muted-foreground">Due Date</p>
+								<p data-testid="invoice-due-date" className="font-medium">
+									{formatDate(invoice.dueDate)}
+								</p>
+							</div>
+						</div>
+
+						{/* Paid Date (if paid) */}
+						{invoice.paidDate && (
+							<div>
+								<p className="text-sm text-muted-foreground">Paid Date</p>
+								<p data-testid="invoice-paid-date" className="font-medium text-green-600">
+									{formatDate(invoice.paidDate)}
+								</p>
+							</div>
+						)}
+
+						<Separator />
+
+						{/* Amount Breakdown */}
+						<div className="space-y-2">
+							<div className="flex justify-between">
+								<span className="text-muted-foreground">Subtotal</span>
+								<span data-testid="invoice-subtotal" className="font-medium">
+									{formatPrice(invoice.subtotal)}
+								</span>
+							</div>
+							<div className="flex justify-between">
+								<span className="text-muted-foreground">VAT (10%)</span>
+								<span data-testid="invoice-tax" className="font-medium">
+									{formatPrice(invoice.taxAmount)}
+								</span>
+							</div>
+							<Separator />
+							<div className="flex justify-between text-lg">
+								<span className="font-semibold">Total</span>
+								<span data-testid="invoice-total" className="font-bold">
+									{formatPrice(invoice.totalAmount)}
+								</span>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Bank Transfer Instructions Card */}
+				<Card data-testid="bank-instructions-card">
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<Building2 className="h-5 w-5" />
+							Bank Transfer Instructions
+						</CardTitle>
+						<CardDescription>
+							Use the following details to make a bank transfer
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-1">
+						<CopyableField
+							label="Bank Name"
+							value={BANK_DETAILS.bankName}
+							testId="bank-name"
+						/>
+						<Separator />
+						<CopyableField
+							label="Account Name"
+							value={BANK_DETAILS.accountName}
+							testId="account-name"
+						/>
+						<Separator />
+						<CopyableField
+							label="Account Number / IBAN"
+							value={BANK_DETAILS.accountNumber}
+							testId="account-number"
+						/>
+						<Separator />
+						<CopyableField
+							label="SWIFT Code"
+							value={BANK_DETAILS.swiftCode}
+							testId="swift-code"
+						/>
+						<Separator />
+						<CopyableField
+							label="Payment Reference"
+							value={invoice.invoiceNumber}
+							testId="payment-reference"
+						/>
+
+						{/* Important Note */}
+						<div className="mt-4 rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
+							<p className="text-sm text-amber-800 dark:text-amber-200">
+								<strong>Important:</strong> Please include the invoice number (
+								{invoice.invoiceNumber}) as the payment reference to ensure your
+								payment is correctly attributed to this invoice.
+							</p>
+						</div>
+
+						{/* Mark as Paid Button */}
+						{showMarkAsPaidButton && (
+							<div className="mt-6">
+								<Button
+									className="w-full"
+									size="lg"
+									onClick={handleMarkAsPaid}
+									disabled={isMarkingPaid}
+								>
+									{isMarkingPaid ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											Processing...
+										</>
+									) : (
+										"I've Made Payment"
+									)}
+								</Button>
+								<p className="mt-2 text-center text-xs text-muted-foreground">
+									After clicking, your payment will be pending admin confirmation
+								</p>
+							</div>
+						)}
+
+						{/* Confirmation Pending Message */}
+						{invoice.status === "PENDING_CONFIRMATION" && (
+							<div className="mt-4 rounded-lg bg-purple-50 p-4 dark:bg-purple-900/20">
+								<p className="text-sm text-purple-800 dark:text-purple-200">
+									<strong>Payment Pending Confirmation:</strong> We have received
+									your payment notification. Our team will verify and confirm your
+									payment shortly.
+								</p>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			</div>
+		</div>
+	);
+}

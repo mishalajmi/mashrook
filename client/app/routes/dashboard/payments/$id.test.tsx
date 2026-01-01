@@ -1,0 +1,341 @@
+/**
+ * Invoice Detail Page Tests
+ *
+ * TDD tests for the invoice detail page with bank instructions.
+ * Tests written FIRST according to acceptance criteria.
+ */
+
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Routes, Route } from "react-router";
+
+import InvoiceDetailPage from "./$id";
+import { invoiceService } from "@/services/invoice.service";
+
+// Mock useNavigate
+const mockNavigate = vi.fn();
+vi.mock("react-router", async () => {
+	const actual = await vi.importActual("react-router");
+	return {
+		...actual,
+		useNavigate: () => mockNavigate,
+	};
+});
+
+// Mock invoice service
+vi.mock("@/services/invoice.service", () => ({
+	invoiceService: {
+		getMyInvoices: vi.fn(),
+		getInvoice: vi.fn(),
+		markAsPaid: vi.fn(),
+	},
+}));
+
+// Mock sonner toast
+vi.mock("sonner", () => ({
+	toast: {
+		success: vi.fn(),
+		error: vi.fn(),
+	},
+}));
+
+describe("InvoiceDetailPage", () => {
+	const mockInvoice = {
+		id: "invoice-1",
+		invoiceNumber: "INV-2024-001",
+		campaignId: "campaign-1",
+		campaignTitle: "Organic Coffee Beans",
+		buyerOrgId: "buyer-org-1",
+		subtotal: "250.00",
+		taxAmount: "25.00",
+		totalAmount: "275.00",
+		issueDate: "2024-01-01T00:00:00Z",
+		dueDate: "2024-01-15T00:00:00Z",
+		paidDate: null,
+		status: "ISSUED" as const,
+		createdAt: "2024-01-01T00:00:00Z",
+		updatedAt: "2024-01-01T00:00:00Z",
+	};
+
+	const mockPaidInvoice = {
+		...mockInvoice,
+		id: "invoice-2",
+		status: "PAID" as const,
+		paidDate: "2024-01-10T00:00:00Z",
+	};
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockNavigate.mockReset();
+		(invoiceService.getInvoice as ReturnType<typeof vi.fn>).mockResolvedValue(
+			mockInvoice
+		);
+	});
+
+	const renderWithRouter = (invoiceId: string = "invoice-1") => {
+		return render(
+			<MemoryRouter initialEntries={[`/dashboard/payments/${invoiceId}`]}>
+				<Routes>
+					<Route path="/dashboard/payments/:id" element={<InvoiceDetailPage />} />
+				</Routes>
+			</MemoryRouter>
+		);
+	};
+
+	describe("Basic Rendering", () => {
+		it("should render the page", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-detail-page")).toBeInTheDocument();
+			});
+		});
+
+		it("should display invoice number as title", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				// Use getAllByText since invoice number appears in both title and reference
+				const invoiceNumbers = screen.getAllByText("INV-2024-001");
+				expect(invoiceNumbers.length).toBeGreaterThan(0);
+				// First one should be the h1 title
+				expect(invoiceNumbers[0].tagName).toBe("H1");
+			});
+		});
+
+		it("should display back link to payments list", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByRole("link", { name: /back to payments/i })).toBeInTheDocument();
+			});
+		});
+	});
+
+	describe("API Integration", () => {
+		it("should fetch invoice details on mount", async () => {
+			renderWithRouter("invoice-1");
+
+			await waitFor(() => {
+				expect(invoiceService.getInvoice).toHaveBeenCalledWith("invoice-1");
+			});
+		});
+
+		it("should display loading state while fetching", () => {
+			(invoiceService.getInvoice as ReturnType<typeof vi.fn>).mockImplementation(
+				() => new Promise(() => {})
+			);
+			renderWithRouter();
+
+			expect(screen.getByTestId("loading-state")).toBeInTheDocument();
+		});
+
+		it("should display error message on API failure", async () => {
+			(invoiceService.getInvoice as ReturnType<typeof vi.fn>).mockRejectedValue(
+				new Error("Invoice not found")
+			);
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByText(/failed to load invoice/i)).toBeInTheDocument();
+			});
+		});
+	});
+
+	describe("Invoice Breakdown", () => {
+		it("should display subtotal", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-subtotal")).toHaveTextContent("$250.00");
+			});
+		});
+
+		it("should display tax amount (VAT)", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-tax")).toHaveTextContent("$25.00");
+			});
+		});
+
+		it("should display total amount", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-total")).toHaveTextContent("$275.00");
+			});
+		});
+
+		it("should display campaign name", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByText("Organic Coffee Beans")).toBeInTheDocument();
+			});
+		});
+
+		it("should display issue date", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-issue-date")).toBeInTheDocument();
+			});
+		});
+
+		it("should display due date", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-due-date")).toBeInTheDocument();
+			});
+		});
+	});
+
+	describe("Bank Transfer Instructions Card", () => {
+		it("should display bank transfer instructions card", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("bank-instructions-card")).toBeInTheDocument();
+			});
+		});
+
+		it("should display bank name", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("bank-name")).toBeInTheDocument();
+			});
+		});
+
+		it("should display account name", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("account-name")).toBeInTheDocument();
+			});
+		});
+
+		it("should display account number / IBAN", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("account-number")).toBeInTheDocument();
+			});
+		});
+
+		it("should display invoice number as payment reference", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				const referenceField = screen.getByTestId("payment-reference");
+				expect(referenceField).toHaveTextContent("INV-2024-001");
+			});
+		});
+	});
+
+	describe("Mark as Paid Functionality", () => {
+		it("should display 'I've Made Payment' button for unpaid invoices", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /i've made payment/i })
+				).toBeInTheDocument();
+			});
+		});
+
+		it("should not display 'I've Made Payment' button for paid invoices", async () => {
+			(invoiceService.getInvoice as ReturnType<typeof vi.fn>).mockResolvedValue(
+				mockPaidInvoice
+			);
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(
+					screen.queryByRole("button", { name: /i've made payment/i })
+				).not.toBeInTheDocument();
+			});
+		});
+
+		it("should call markAsPaid when button is clicked", async () => {
+			const user = userEvent.setup();
+			(invoiceService.markAsPaid as ReturnType<typeof vi.fn>).mockResolvedValue({
+				...mockInvoice,
+				status: "PENDING_CONFIRMATION",
+			});
+
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /i've made payment/i })
+				).toBeInTheDocument();
+			});
+
+			const button = screen.getByRole("button", { name: /i've made payment/i });
+			await user.click(button);
+
+			await waitFor(() => {
+				expect(invoiceService.markAsPaid).toHaveBeenCalledWith("invoice-1");
+			});
+		});
+
+		it("should show loading state while marking as paid", async () => {
+			const user = userEvent.setup();
+			(invoiceService.markAsPaid as ReturnType<typeof vi.fn>).mockImplementation(
+				() => new Promise(() => {})
+			);
+
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /i've made payment/i })
+				).toBeInTheDocument();
+			});
+
+			const button = screen.getByRole("button", { name: /i've made payment/i });
+			await user.click(button);
+
+			await waitFor(() => {
+				expect(button).toBeDisabled();
+			});
+		});
+	});
+
+	describe("Invoice Status Display", () => {
+		it("should display invoice status badge", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-status-badge")).toBeInTheDocument();
+			});
+		});
+
+		it("should display PAID status for paid invoices", async () => {
+			(invoiceService.getInvoice as ReturnType<typeof vi.fn>).mockResolvedValue(
+				mockPaidInvoice
+			);
+			renderWithRouter();
+
+			await waitFor(() => {
+				const badge = screen.getByTestId("invoice-status-badge");
+				expect(badge).toHaveTextContent(/paid/i);
+			});
+		});
+
+		it("should display paid date for paid invoices", async () => {
+			(invoiceService.getInvoice as ReturnType<typeof vi.fn>).mockResolvedValue(
+				mockPaidInvoice
+			);
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-paid-date")).toBeInTheDocument();
+			});
+		});
+	});
+});
