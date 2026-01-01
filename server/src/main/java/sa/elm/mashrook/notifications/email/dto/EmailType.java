@@ -5,9 +5,13 @@ public enum EmailType {
     PAYMENT_REMINDER("payment-reminder", "Payment Reminder: Invoice Due Soon"),
     PAYMENT_RECEIVED("payment-received", "Payment Confirmation - Thank You"),
     CAMPAIGN_LOCKED("campaign-locked", "Campaign Locked - Your Final Order Details"),
+    CAMPAIGN_PUBLISHED("campaign-published", "New Campaign Available on Mashrook"),
+    PLEDGE_CONFIRMED("pledge-confirmed", "Your Pledge Has Been Confirmed"),
+    GRACE_PERIOD_STARTED("grace-period-started", "Action Required: Campaign Ending Soon"),
     ACCOUNT_ACTIVATION("account-activation", "Activate Your Mashrook Account"),
     PASSWORD_RESET("password-reset", "Reset Your Mashrook Password"),
-    WELCOME("welcome", "Welcome to Mashrook!");
+    WELCOME("welcome", "Welcome to Mashrook!"),
+    ORGANIZATION_VERIFIED("organization-verified", "Your Organization Has Been Verified");
 
     private final String templateName;
     private final String subject;

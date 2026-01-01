@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pledge Confirmed - Mashrook</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        h1 {
+            color: #1e3a5f;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .success-badge {
+            display: inline-block;
+            background-color: #dcfce7;
+            color: #166534;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .pledge-highlight {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border-radius: 12px;
+            margin: 20px 0;
+            color: white;
+        }
+        .pledge-highlight .quantity {
+            font-size: 48px;
+            font-weight: bold;
+        }
+        .pledge-highlight .label {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .pledge-details {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .pledge-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .pledge-details td {
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .pledge-details tr:last-child td {
+            border-bottom: none;
+        }
+        .pledge-details td:first-child {
+            color: #64748b;
+            width: 40%;
+        }
+        .pledge-details td:last-child {
+            font-weight: 600;
+            text-align: right;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: #ffffff;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .info-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .warning-box {
+            background-color: #fef9c3;
+            border-left: 4px solid #eab308;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Mashrook</div>
+        </div>
+
+        <div style="text-align: center;">
+            <span class="success-badge">Pledge Received</span>
+        </div>
+
+        <h1 style="text-align: center;">Your Pledge Has Been Confirmed!</h1>
+
+        <p>Hello <span th:text="${recipientName}">Buyer</span>,</p>
+
+        <p>Thank you for pledging to the campaign "<span th:text="${campaignTitle}">Campaign Name</span>". Your pledge has been successfully recorded.</p>
+
+        <div class="pledge-highlight">
+            <div class="quantity" th:text="${quantity}">10</div>
+            <div class="label">Units Pledged</div>
+        </div>
+
+        <div class="pledge-details">
+            <table>
+                <tr>
+                    <td>Campaign</td>
+                    <td th:text="${campaignTitle}">Campaign Name</td>
+                </tr>
+                <tr>
+                    <td>Organization</td>
+                    <td th:text="${organizationName}">Company Name</td>
+                </tr>
+                <tr>
+                    <td>Quantity Pledged</td>
+                    <td th:text="${quantity + ' units'}">10 units</td>
+                </tr>
+                <tr>
+                    <td>Campaign End Date</td>
+                    <td th:text="${#temporals.format(campaignEndDate, 'dd MMM yyyy')}">31 Jan 2025</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="info-box">
+            <strong>What Happens Next?</strong>
+            <p style="margin: 10px 0 0 0;">Your pledge is currently in PENDING status. When the campaign reaches its end date, a grace period will begin during which you will need to confirm your commitment to finalize your order.</p>
+        </div>
+
+        <div class="warning-box">
+            <strong>Important:</strong>
+            <p style="margin: 10px 0 0 0;">You can modify or cancel your pledge at any time before the campaign ends. Once the grace period begins, you will need to confirm or your pledge will be automatically withdrawn.</p>
+        </div>
+
+        <p style="text-align: center;">
+            <a href="#" class="cta-button">View Pledge Details</a>
+        </p>
+
+        <p>Thank you for participating in this group buy! The more buyers join, the better the price for everyone.</p>
+
+        <div class="footer">
+            <p>This email was sent by Mashrook - B2B Cooperative Procurement Platform</p>
+            <p>&copy; 2025 Mashrook. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

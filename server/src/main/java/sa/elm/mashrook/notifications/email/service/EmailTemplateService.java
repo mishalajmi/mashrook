@@ -10,12 +10,17 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import sa.elm.mashrook.notifications.email.dto.AccountActivationEmail;
 import sa.elm.mashrook.notifications.email.dto.CampaignLockedEmail;
+import sa.elm.mashrook.notifications.email.dto.CampaignPublishedEmail;
+import sa.elm.mashrook.notifications.email.dto.EmailNotification;
 import sa.elm.mashrook.notifications.email.dto.EmailRequest;
 import sa.elm.mashrook.notifications.email.dto.EmailType;
+import sa.elm.mashrook.notifications.email.dto.GracePeriodStartedEmail;
 import sa.elm.mashrook.notifications.email.dto.InvoiceGeneratedEmail;
+import sa.elm.mashrook.notifications.email.dto.OrganizationVerifiedEmail;
 import sa.elm.mashrook.notifications.email.dto.PasswordResetEmail;
 import sa.elm.mashrook.notifications.email.dto.PaymentReceivedEmail;
 import sa.elm.mashrook.notifications.email.dto.PaymentReminderEmail;
+import sa.elm.mashrook.notifications.email.dto.PledgeConfirmedEmail;
 import sa.elm.mashrook.notifications.email.dto.WelcomeEmail;
 
 /**
@@ -33,34 +38,6 @@ public class EmailTemplateService {
 
     private final TemplateEngine templateEngine;
 
-    @PostConstruct
-    public void logAvailableTemplates() {
-        log.info("=== Email Template Diagnostic ===");
-        try {
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-
-            // Check templates/email directory
-            Resource[] resources = resolver.getResources("classpath:/templates/email/*.html");
-            log.info("Found {} email templates in classpath:/templates/email/", resources.length);
-            for (Resource resource : resources) {
-                log.info("  Template found: {}", resource.getFilename());
-            }
-
-            // Also try without leading slash
-            Resource[] resources2 = resolver.getResources("classpath:templates/email/*.html");
-            log.info("Found {} email templates in classpath:templates/email/", resources2.length);
-
-            // Check if specific template exists
-            Resource accountActivation = resolver.getResource("classpath:/templates/email/account-activation.html");
-            log.info("account-activation.html exists: {}, readable: {}",
-                    accountActivation.exists(), accountActivation.isReadable());
-
-        } catch (Exception e) {
-            log.error("Error scanning for email templates: {}", e.getMessage(), e);
-        }
-        log.info("=== End Template Diagnostic ===");
-    }
-
     /**
      * Renders an email from an email DTO object.
      *
@@ -68,9 +45,9 @@ public class EmailTemplateService {
      * @return the rendered email request ready for sending
      * @throws IllegalArgumentException if the notification type is not supported
      */
-    public EmailRequest renderEmail(Object notification) {
-        EmailType emailType = getEmailType(notification);
-        String recipientEmail = getRecipientEmail(notification);
+    public EmailRequest renderEmail(EmailNotification notification) {
+        EmailType emailType = notification.getEmailType();
+        String recipientEmail = notification.recipientEmail();
         String templateName = emailType.getTemplateName();
 
         Context context = createContextFromNotification(notification);
@@ -97,37 +74,7 @@ public class EmailTemplateService {
         );
     }
 
-    private EmailType getEmailType(Object notification) {
-        return switch (notification) {
-            case InvoiceGeneratedEmail email -> email.getEmailType();
-            case PaymentReminderEmail email -> email.getEmailType();
-            case PaymentReceivedEmail email -> email.getEmailType();
-            case CampaignLockedEmail email -> email.getEmailType();
-            case AccountActivationEmail email -> email.getEmailType();
-            case PasswordResetEmail email -> email.getEmailType();
-            case WelcomeEmail email -> email.getEmailType();
-            default -> throw new IllegalArgumentException(
-                    "Unsupported email notification type: " + notification.getClass().getName()
-            );
-        };
-    }
-
-    private String getRecipientEmail(Object notification) {
-        return switch (notification) {
-            case InvoiceGeneratedEmail email -> email.recipientEmail();
-            case PaymentReminderEmail email -> email.recipientEmail();
-            case PaymentReceivedEmail email -> email.recipientEmail();
-            case CampaignLockedEmail email -> email.recipientEmail();
-            case AccountActivationEmail email -> email.recipientEmail();
-            case PasswordResetEmail email -> email.recipientEmail();
-            case WelcomeEmail email -> email.recipientEmail();
-            default -> throw new IllegalArgumentException(
-                    "Unsupported email notification type: " + notification.getClass().getName()
-            );
-        };
-    }
-
-    private Context createContextFromNotification(Object notification) {
+    private Context createContextFromNotification(EmailNotification notification) {
         Context context = new Context();
 
         // Type-specific fields using pattern matching
@@ -186,6 +133,37 @@ public class EmailTemplateService {
                 context.setVariable("recipientName", welcome.recipientName());
                 context.setVariable("organizationName", welcome.organizationName());
                 context.setVariable("loginUrl", welcome.loginUrl());
+            }
+            case CampaignPublishedEmail published -> {
+                context.setVariable("recipientName", published.recipientName());
+                context.setVariable("campaignTitle", published.campaignTitle());
+                context.setVariable("campaignId", published.campaignId());
+                context.setVariable("supplierName", published.supplierName());
+                context.setVariable("startDate", published.startDate());
+                context.setVariable("endDate", published.endDate());
+                context.setVariable("targetQuantity", published.targetQuantity());
+            }
+            case PledgeConfirmedEmail pledgeConfirmed -> {
+                context.setVariable("recipientName", pledgeConfirmed.recipientName());
+                context.setVariable("organizationName", pledgeConfirmed.organizationName());
+                context.setVariable("campaignTitle", pledgeConfirmed.campaignTitle());
+                context.setVariable("campaignId", pledgeConfirmed.campaignId());
+                context.setVariable("pledgeId", pledgeConfirmed.pledgeId());
+                context.setVariable("quantity", pledgeConfirmed.quantity());
+                context.setVariable("campaignEndDate", pledgeConfirmed.campaignEndDate());
+            }
+            case GracePeriodStartedEmail gracePeriod -> {
+                context.setVariable("recipientName", gracePeriod.recipientName());
+                context.setVariable("organizationName", gracePeriod.organizationName());
+                context.setVariable("campaignTitle", gracePeriod.campaignTitle());
+                context.setVariable("campaignId", gracePeriod.campaignId());
+                context.setVariable("pledgeId", gracePeriod.pledgeId());
+                context.setVariable("quantity", gracePeriod.quantity());
+                context.setVariable("gracePeriodEndDate", gracePeriod.gracePeriodEndDate());
+            }
+            case OrganizationVerifiedEmail verified -> {
+                context.setVariable("recipientName", verified.recipientName());
+                context.setVariable("organizationName", verified.organizationName());
             }
             default -> {
                 log.warn("Unknown email notification type: {}", notification.getClass().getName());
