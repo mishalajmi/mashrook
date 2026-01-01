@@ -27,6 +27,8 @@ import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.FileSizeExceededException;
 import sa.elm.mashrook.exceptions.GlobalExceptionHandler;
 import sa.elm.mashrook.exceptions.InvalidMediaTypeException;
+import sa.elm.mashrook.organizations.OrganizationService;
+import sa.elm.mashrook.users.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,6 +59,12 @@ class CampaignMediaControllerTest {
     @Mock
     private CampaignMediaService campaignMediaService;
 
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private OrganizationService organizationService;
+
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
@@ -73,7 +81,10 @@ class CampaignMediaControllerTest {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(objectMapper);
 
-        CampaignController controller = new CampaignController(campaignService, campaignMediaService);
+        CampaignController controller = new CampaignController(
+                campaignService,
+                campaignMediaService
+        );
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setMessageConverters(converter)

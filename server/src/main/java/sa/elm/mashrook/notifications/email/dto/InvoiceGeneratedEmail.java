@@ -14,7 +14,7 @@ public record InvoiceGeneratedEmail(
         BigDecimal totalAmount,
         LocalDate dueDate,
         int quantity
-) {
+) implements EmailNotification {
 
     public EmailType getEmailType() {
         return EmailType.INVOICE_GENERATED;

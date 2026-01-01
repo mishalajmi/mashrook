@@ -9,7 +9,7 @@ public record PasswordResetEmail(
         String recipientName,
         String resetLink,
         String expirationHours
-) {
+) implements EmailNotification {
 
     public EmailType getEmailType() {
         return EmailType.PASSWORD_RESET;

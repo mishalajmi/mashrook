@@ -13,6 +13,9 @@ import sa.elm.mashrook.campaigns.domain.CampaignStatus;
 import sa.elm.mashrook.campaigns.service.CampaignLifecycleService;
 import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.exceptions.InvalidCampaignStateTransitionException;
+import sa.elm.mashrook.notifications.NotificationService;
+import sa.elm.mashrook.pledges.PledgeService;
+import sa.elm.mashrook.users.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,11 +39,26 @@ class GracePeriodTriggerJobTest {
     @Mock
     private CampaignLifecycleService campaignLifecycleService;
 
+    @Mock
+    private PledgeService pledgeService;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private NotificationService notificationService;
+
     private GracePeriodTriggerJob gracePeriodTriggerJob;
 
     @BeforeEach
     void setUp() {
-        gracePeriodTriggerJob = new GracePeriodTriggerJob(campaignRepository, campaignLifecycleService);
+        gracePeriodTriggerJob = new GracePeriodTriggerJob(
+                campaignRepository,
+                campaignLifecycleService,
+                pledgeService,
+                userService,
+                notificationService
+        );
     }
 
     private CampaignEntity createCampaign(UUID id, CampaignStatus status, LocalDate endDate) {

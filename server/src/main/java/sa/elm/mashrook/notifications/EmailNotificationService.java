@@ -7,15 +7,9 @@ import com.resend.services.emails.model.CreateEmailResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import sa.elm.mashrook.notifications.email.dto.AccountActivationEmail;
-import sa.elm.mashrook.notifications.email.dto.CampaignLockedEmail;
+import sa.elm.mashrook.notifications.email.dto.EmailNotification;
 import sa.elm.mashrook.notifications.email.dto.EmailRequest;
 import sa.elm.mashrook.notifications.email.dto.EmailType;
-import sa.elm.mashrook.notifications.email.dto.InvoiceGeneratedEmail;
-import sa.elm.mashrook.notifications.email.dto.PasswordResetEmail;
-import sa.elm.mashrook.notifications.email.dto.PaymentReceivedEmail;
-import sa.elm.mashrook.notifications.email.dto.PaymentReminderEmail;
-import sa.elm.mashrook.notifications.email.dto.WelcomeEmail;
 import sa.elm.mashrook.notifications.email.service.EmailSendResult;
 import sa.elm.mashrook.notifications.email.service.EmailTemplateService;
 
@@ -25,7 +19,7 @@ import sa.elm.mashrook.notifications.email.service.EmailTemplateService;
  */
 @Slf4j
 @Service
-public class EmailNotificationService implements NotificationProvider<Object> {
+public class EmailNotificationService implements NotificationProvider<EmailNotification> {
 
     private final EmailTemplateService templateService;
     private final NotificationConfigProperties config;
@@ -55,13 +49,13 @@ public class EmailNotificationService implements NotificationProvider<Object> {
 
     @Async
     @Override
-    public void send(Object notification) {
+    public void send(EmailNotification notification) {
         sendEmailInternal(notification);
     }
 
-    private void sendEmailInternal(Object notification) {
-        EmailType emailType = getEmailType(notification);
-        String recipientEmail = getRecipientEmail(notification);
+    private void sendEmailInternal(EmailNotification notification) {
+        EmailType emailType = notification.getEmailType();
+        String recipientEmail = notification.recipientEmail();
 
         log.info("Sending {} email to {}", emailType, recipientEmail);
 
@@ -77,36 +71,6 @@ public class EmailNotificationService implements NotificationProvider<Object> {
                     recipientEmail, e.getMessage(), e);
             EmailSendResult.failure(e.getMessage());
         }
-    }
-
-    private EmailType getEmailType(Object notification) {
-        return switch (notification) {
-            case InvoiceGeneratedEmail email -> email.getEmailType();
-            case PaymentReminderEmail email -> email.getEmailType();
-            case PaymentReceivedEmail email -> email.getEmailType();
-            case CampaignLockedEmail email -> email.getEmailType();
-            case AccountActivationEmail email -> email.getEmailType();
-            case PasswordResetEmail email -> email.getEmailType();
-            case WelcomeEmail email -> email.getEmailType();
-            default -> throw new IllegalArgumentException(
-                    "Unsupported email notification type: " + notification.getClass().getName()
-            );
-        };
-    }
-
-    private String getRecipientEmail(Object notification) {
-        return switch (notification) {
-            case InvoiceGeneratedEmail email -> email.recipientEmail();
-            case PaymentReminderEmail email -> email.recipientEmail();
-            case PaymentReceivedEmail email -> email.recipientEmail();
-            case CampaignLockedEmail email -> email.recipientEmail();
-            case AccountActivationEmail email -> email.recipientEmail();
-            case PasswordResetEmail email -> email.recipientEmail();
-            case WelcomeEmail email -> email.recipientEmail();
-            default -> throw new IllegalArgumentException(
-                    "Unsupported email notification type: " + notification.getClass().getName()
-            );
-        };
     }
 
     private EmailSendResult sendViaResend(EmailRequest request) {

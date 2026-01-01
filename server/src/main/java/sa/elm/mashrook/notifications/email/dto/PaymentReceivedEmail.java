@@ -14,7 +14,7 @@ public record PaymentReceivedEmail(
         BigDecimal amountPaid,
         LocalDate paymentDate,
         String paymentMethod
-) {
+) implements EmailNotification {
 
     public EmailType getEmailType() {
         return EmailType.PAYMENT_RECEIVED;
