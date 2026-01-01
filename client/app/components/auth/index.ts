@@ -5,3 +5,4 @@
  */
 
 export { ProtectedRoute, PublicRoute } from "./route-guards";
+export { ProtectedAction } from "./protected-action";
