@@ -33,6 +33,8 @@ export default [
 			route("suppliers", "routes/dashboard/suppliers/index.tsx"),
 			route("team", "routes/dashboard/team/index.tsx"),
 			route("pledges", "routes/dashboard/pledges/index.tsx"),
+			route("payments", "routes/dashboard/payments/index.tsx"),
+			route("payments/:id", "routes/dashboard/payments/$id.tsx"),
 			route("browse-campaigns", "routes/dashboard/browse-campaigns/index.tsx"),
 			route("browse-campaigns/:id", "routes/dashboard/browse-campaigns/$id.tsx"),
 
