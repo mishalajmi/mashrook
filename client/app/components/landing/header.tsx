@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { useState, useEffect, useCallback } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 import { Menu, User, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -43,8 +43,12 @@ function getUserInitials(email: string): string {
 function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
 	const { t } = useTranslation();
 	const { user, isAuthenticated, isLoading, logout } = useAuth();
+	const location = useLocation();
+	const navigate = useNavigate();
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isScrolled, setIsScrolled] = useState(false);
+
+	const isHomePage = location.pathname === "/";
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -54,6 +58,22 @@ function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
 		window.addEventListener("scroll", handleScroll, { passive: true });
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
+
+	const handleAnchorClick = useCallback(
+		(e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+			if (isHomePage) {
+				e.preventDefault();
+				const element = document.querySelector(hash);
+				if (element) {
+					element.scrollIntoView({ behavior: "smooth" });
+				}
+			} else {
+				e.preventDefault();
+				navigate(`/${hash}`);
+			}
+		},
+		[isHomePage, navigate]
+	);
 
 	const navLinks = [
 		{ href: "#features", label: t("header.features") },
@@ -99,7 +119,8 @@ function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
 						{navLinks.map((link) => (
 							<a
 								key={link.href}
-								href={link.href}
+								href={isHomePage ? link.href : `/${link.href}`}
+								onClick={(e) => handleAnchorClick(e, link.href)}
 								className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
 							>
 								{link.label}
@@ -210,9 +231,12 @@ function Header({ isDark, onThemeToggle }: HeaderProps): ReactNode {
 										{navLinks.map((link) => (
 											<a
 												key={link.href}
-												href={link.href}
+												href={isHomePage ? link.href : `/${link.href}`}
 												className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors duration-200"
-												onClick={() => setIsMenuOpen(false)}
+												onClick={(e) => {
+													handleAnchorClick(e, link.href);
+													setIsMenuOpen(false);
+												}}
 											>
 												{link.label}
 											</a>

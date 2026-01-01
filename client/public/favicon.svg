@@ -1,0 +1,18 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .node { fill: #0F766E; }
+    .line { stroke: #0F766E; stroke-width: 2.5; stroke-linecap: round; }
+    @media (prefers-color-scheme: dark) {
+      .node { fill: #14B8A6; }
+      .line { stroke: #14B8A6; }
+    }
+  </style>
+  <!-- Connection lines (drawn first so nodes appear on top) -->
+  <line x1="8" y1="7" x2="24" y2="7" class="line"/>
+  <line x1="8" y1="7" x2="16" y2="25" class="line"/>
+  <line x1="24" y1="7" x2="16" y2="25" class="line"/>
+  <!-- Nodes -->
+  <circle cx="8" cy="7" r="4.5" class="node"/>
+  <circle cx="24" cy="7" r="4.5" class="node"/>
+  <circle cx="16" cy="25" r="4.5" class="node"/>
+</svg>

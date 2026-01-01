@@ -8,6 +8,7 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { ArrowRight, Megaphone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Badge, Button } from "@/components/ui";
 import { CampaignCard } from "@/components/campaigns";
@@ -33,6 +34,7 @@ function FeaturedCampaigns({
 	campaigns,
 	pledgeSummaries,
 }: FeaturedCampaignsProps): ReactNode {
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const isEmpty = campaigns.length === 0;
 
@@ -54,19 +56,18 @@ function FeaturedCampaigns({
 							className="me-2 inline-block w-2 h-2 rounded-full bg-primary animate-pulse"
 							aria-hidden="true"
 						/>
-						Active Campaigns
+						{t("featuredCampaigns.badge")}
 					</Badge>
 
 					<h2
 						id="featured-campaigns-heading"
 						className="text-3xl sm:text-4xl font-bold text-foreground mb-4"
 					>
-						Current Group Buys
+						{t("featuredCampaigns.heading")}
 					</h2>
 
 					<p className="text-lg text-muted-foreground">
-						Join these active campaigns before they close. Watch as more
-						participants unlock better pricing for everyone in the group.
+						{t("featuredCampaigns.description")}
 					</p>
 				</div>
 
@@ -78,15 +79,15 @@ function FeaturedCampaigns({
 						</div>
 
 						<h3 className="text-xl font-semibold text-foreground mb-2">
-							No Active Campaigns
+							{t("featuredCampaigns.empty.title")}
 						</h3>
 
 						<p className="text-muted-foreground mb-6 max-w-md mx-auto">
-							New group buying opportunities coming soon. Sign up to get notified.
+							{t("featuredCampaigns.empty.description")}
 						</p>
 
 						<Button asChild>
-							<Link to="/register">Get Notified</Link>
+							<Link to="/register">{t("featuredCampaigns.empty.cta")}</Link>
 						</Button>
 					</div>
 				) : (
@@ -111,7 +112,7 @@ function FeaturedCampaigns({
 						<div className="text-center">
 							<Button variant="outline" size="lg" className="group" asChild>
 								<Link to="/campaigns">
-									View All Active Campaigns
+									{t("featuredCampaigns.viewAll")}
 									<ArrowRight
 										className="ms-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
 										aria-hidden="true"

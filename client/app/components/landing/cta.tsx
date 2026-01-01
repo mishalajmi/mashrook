@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router";
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui";
@@ -33,19 +34,25 @@ function CTA(): ReactNode {
 							size="xl"
 							variant="secondary"
 							className="group bg-background text-foreground hover:bg-background/90"
+							asChild
 						>
-							{t("cta.buyerButton")}
-							<ArrowRight
-								className={`h-5 w-5 transition-transform duration-200 ${isRtl ? "me-2 group-hover:-translate-x-1 rotate-180" : "ms-2 group-hover:translate-x-1"}`}
-								aria-hidden="true"
-							/>
+							<Link to="/register?type=BUYER">
+								{t("cta.buyerButton")}
+								<ArrowRight
+									className={`h-5 w-5 transition-transform duration-200 ${isRtl ? "me-2 group-hover:-translate-x-1 rotate-180" : "ms-2 group-hover:translate-x-1"}`}
+									aria-hidden="true"
+								/>
+							</Link>
 						</Button>
 						<Button
 							size="xl"
 							variant="outline"
 							className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
+							asChild
 						>
-							{t("cta.supplierButton")}
+							<Link to="/register?type=SUPPLIER">
+								{t("cta.supplierButton")}
+							</Link>
 						</Button>
 					</div>
 				</div>

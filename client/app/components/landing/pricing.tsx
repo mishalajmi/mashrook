@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router";
 import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -17,6 +18,7 @@ interface PlanConfig {
 	planKey: string;
 	highlighted: boolean;
 	buttonVariant: "default" | "outline";
+	ctaLink: string;
 }
 
 const planConfigs: PlanConfig[] = [
@@ -24,16 +26,19 @@ const planConfigs: PlanConfig[] = [
 		planKey: "pricing.plans.buyers",
 		highlighted: false,
 		buttonVariant: "outline",
+		ctaLink: "/register?type=BUYER",
 	},
 	{
 		planKey: "pricing.plans.successBased",
 		highlighted: true,
 		buttonVariant: "default",
+		ctaLink: "/#how-it-works",
 	},
 	{
 		planKey: "pricing.plans.suppliers",
 		highlighted: false,
 		buttonVariant: "outline",
+		ctaLink: "/register?type=SUPPLIER",
 	},
 ];
 
@@ -134,8 +139,11 @@ function Pricing(): ReactNode {
 										variant={config.buttonVariant}
 										className="w-full"
 										size="lg"
+										asChild
 									>
-										{buttonText}
+										<Link to={config.ctaLink}>
+											{buttonText}
+										</Link>
 									</Button>
 								</CardFooter>
 							</Card>
