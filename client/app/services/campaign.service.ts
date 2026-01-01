@@ -191,6 +191,7 @@ export interface CampaignSummary {
 	totalPledged: number;
 	originalPrice: string | null;
 	currentPrice: string | null;
+	status: CampaignStatus;
 }
 
 /**

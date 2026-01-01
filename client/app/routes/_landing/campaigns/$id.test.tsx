@@ -17,7 +17,10 @@ const mockCampaign: PublicCampaignResponse = {
 	id: "campaign-1",
 	title: "Organic Coffee Beans",
 	description: "Premium organic coffee beans sourced from sustainable farms.",
-	productDetails: "1kg bag of premium arabica beans",
+	productDetails: JSON.stringify([
+		{ key: "Weight", value: "1kg bag" },
+		{ key: "Type", value: "Premium arabica beans" },
+	]),
 	supplierId: "supplier-1",
 	supplierName: "Test Supplier",
 	targetQty: 100,
@@ -51,10 +54,20 @@ const mockCampaign: PublicCampaignResponse = {
 
 const mockBracketProgress: BracketProgressResponse = {
 	campaignId: "campaign-1",
-	totalPledges: 15,
-	totalQuantity: 35,
-	currentBracketOrder: 1,
-	unitsToNextBracket: 15,
+	totalPledged: 35,
+	currentBracket: {
+		minQuantity: 10,
+		maxQuantity: 49,
+		unitPrice: "25.00",
+		bracketOrder: 1,
+	},
+	nextBracket: {
+		minQuantity: 50,
+		maxQuantity: 99,
+		unitPrice: "22.00",
+		bracketOrder: 2,
+	},
+	percentageToNextTier: 70,
 };
 
 // Mock campaign service
@@ -150,7 +163,9 @@ describe("PublicCampaignDetailPage", () => {
 			renderWithRouter(<PublicCampaignDetailPage />);
 
 			await waitFor(() => {
-				expect(screen.getByText(/1kg bag of premium arabica beans/)).toBeInTheDocument();
+				// ProductDetailsCard renders key-value pairs separately
+				expect(screen.getByText("Weight:")).toBeInTheDocument();
+				expect(screen.getByText("1kg bag")).toBeInTheDocument();
 			});
 		});
 	});
