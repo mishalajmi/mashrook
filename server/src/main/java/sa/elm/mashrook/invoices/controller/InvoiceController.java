@@ -91,7 +91,7 @@ public class InvoiceController {
     @PreAuthorize("hasAuthority('invoices:read')")
     public List<InvoiceResponse> getMyOrganizationInvoices(
             @AuthenticationPrincipal JwtPrincipal principal) {
-        return invoiceService.getInvoicesForBuyerOrg(principal.getOrganizationId());
+        return invoiceService.getInvoicesForBuyerOrg(principal.organizationId());
     }
 
     /**
@@ -120,7 +120,7 @@ public class InvoiceController {
             @PathVariable UUID id,
             @Valid @RequestBody MarkAsPaidRequest request,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        UserEntity currentUser = authenticationService.getCurrentUser(principal.getUserId());
+        UserEntity currentUser = authenticationService.getCurrentUser(principal.userId());
         return invoiceService.markAsPaid(id, request, currentUser);
     }
 
