@@ -159,6 +159,7 @@ export interface PublicCampaignResponse {
  * Bracket data from bracket progress endpoint (matches backend DiscountBracketDto)
  */
 export interface BracketProgressBracket {
+	id: string;
 	minQuantity: number;
 	maxQuantity: number | null;
 	unitPrice: string;

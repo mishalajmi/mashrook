@@ -24,7 +24,11 @@ public interface PledgeRepository extends JpaRepository<PledgeEntity, UUID> {
 
     Page<PledgeEntity> findAllByOrganizationIdAndStatus(UUID organizationId, PledgeStatus status, Pageable pageable);
 
+    Page<PledgeEntity> findAllByOrganizationIdAndStatusNot(UUID organizationId, PledgeStatus status, Pageable pageable);
+
     Page<PledgeEntity> findAllByCampaignId(UUID campaignId, Pageable pageable);
 
     boolean existsByCampaignIdAndOrganizationId(UUID campaignId, UUID organizationId);
+
+    Optional<PledgeEntity> findByCampaignIdAndOrganizationId(UUID campaignId, UUID organizationId);
 }

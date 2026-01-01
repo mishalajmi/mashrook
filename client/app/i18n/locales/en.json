@@ -264,6 +264,7 @@
       "orders": "Orders",
       "campaigns": "Campaigns",
       "pledges": "Pledges",
+      "payments": "Payments",
       "browseCampaigns": "Browse Campaigns",
       "analytics": "Analytics",
       "buyers": "Buyers",
@@ -288,6 +289,7 @@
       "orders": "Orders",
       "campaigns": "Campaigns",
       "pledges": "My Pledges",
+      "payments": "Payments",
       "browse-campaigns": "Browse Campaigns",
       "analytics": "Analytics",
       "buyers": "Buyers",
@@ -306,7 +308,11 @@
     },
     "overview": {
       "title": "Dashboard Overview",
-      "welcome": "Welcome back"
+      "welcome": "Welcome back",
+      "emptyState": {
+        "title": "Analytics Coming Soon",
+        "description": "Dashboard analytics and insights will be available here. Check back soon for detailed reports on your activity."
+      }
     },
     "supplier": {
       "stats": {
@@ -348,6 +354,10 @@
       "description": "This page is under development",
       "comingSoon": "This feature will be available soon."
     }
+  },
+  "pledges": {
+    "confirmCommitment": "Confirm Commitment",
+    "commitmentDisabledTooltip": "Commitment is only available during the grace period. The grace period starts when the campaign ends."
   },
   "auth": {
     "login": {

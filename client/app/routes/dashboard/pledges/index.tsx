@@ -9,8 +9,15 @@ import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { ExternalLink, ShoppingBag, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
 	Button,
 	Table,
@@ -95,6 +102,7 @@ function formatPrice(price: string): string {
  */
 export default function PledgesPage(): ReactNode {
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 
 	// State
 	const [pledges, setPledges] = useState<PledgeWithCampaign[]>([]);
@@ -107,12 +115,15 @@ export default function PledgesPage(): ReactNode {
 	const [isCommitModalOpen, setIsCommitModalOpen] = useState(false);
 	const [isCommitting, setIsCommitting] = useState(false);
 
-	// Fetch pledges from API
-	const fetchPledges = useCallback(async () => {
+	// Fetch pledges from API based on selected tab
+	const fetchPledges = useCallback(async (tab: FilterTab) => {
 		try {
 			setLoading(true);
 			setError(null);
-			const response = await pledgeService.getBuyerPledges();
+			// When "ALL" is selected, don't pass status to get all non-withdrawn pledges
+			// When a specific status is selected, pass it to the API
+			const options = tab === "ALL" ? {} : { status: tab as PledgeStatus };
+			const response = await pledgeService.getBuyerPledges(options);
 			setPledges(response.content as PledgeWithCampaign[]);
 		} catch (err) {
 			const message = err instanceof Error ? err.message : "Failed to load pledges";
@@ -122,10 +133,10 @@ export default function PledgesPage(): ReactNode {
 		}
 	}, []);
 
-	// Initial fetch
+	// Fetch pledges when tab changes
 	useEffect(() => {
-		fetchPledges();
-	}, [fetchPledges]);
+		fetchPledges(activeTab);
+	}, [fetchPledges, activeTab]);
 
 	// Filter pledges based on active tab
 	const filteredPledges =
@@ -284,9 +295,9 @@ export default function PledgesPage(): ReactNode {
 								<TableBody>
 									{filteredPledges.map((pledge) => {
 										const statusConfig = pledgeStatusConfig[pledge.status];
-										const canConfirm =
-											pledge.status === "PENDING" &&
-											pledge.campaignStatus === "grace_period";
+										const isPending = pledge.status === "PENDING";
+										const isInGracePeriod = pledge.campaignStatus === "grace_period";
+										const canConfirm = isPending && isInGracePeriod;
 
 										return (
 											<TableRow key={pledge.id}>
@@ -315,16 +326,39 @@ export default function PledgesPage(): ReactNode {
 												</TableCell>
 												<TableCell className="text-right">
 													<div className="flex justify-end gap-2">
-														{canConfirm && (
-															<Button
-																variant="default"
-																size="sm"
-																onClick={() => handleConfirmCommitment(pledge)}
-																className="bg-[#0F766E] hover:bg-[#0D6660]"
-															>
-																<Check className="h-4 w-4 mr-1" />
-																Confirm Commitment
-															</Button>
+														{isPending && (
+															canConfirm ? (
+																<Button
+																	variant="default"
+																	size="sm"
+																	onClick={() => handleConfirmCommitment(pledge)}
+																	className="bg-[#0F766E] hover:bg-[#0D6660]"
+																>
+																	<Check className="h-4 w-4 mr-1" />
+																	{t("pledges.confirmCommitment")}
+																</Button>
+															) : (
+																<TooltipProvider>
+																	<Tooltip>
+																		<TooltipTrigger asChild>
+																			<span tabIndex={0}>
+																				<Button
+																					variant="default"
+																					size="sm"
+																					disabled
+																					className="bg-[#0F766E] hover:bg-[#0D6660]"
+																				>
+																					<Check className="h-4 w-4 mr-1" />
+																					{t("pledges.confirmCommitment")}
+																				</Button>
+																			</span>
+																		</TooltipTrigger>
+																		<TooltipContent>
+																			<p className="max-w-xs">{t("pledges.commitmentDisabledTooltip")}</p>
+																		</TooltipContent>
+																	</Tooltip>
+																</TooltipProvider>
+															)
 														)}
 														<Button
 															variant="outline"

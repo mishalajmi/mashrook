@@ -27,6 +27,7 @@ import {
 	AlertTriangle,
 	Bell,
 	HandCoins,
+	CreditCard,
 	type LucideIcon,
 } from "lucide-react";
 
@@ -95,6 +96,15 @@ const sidebarItems: NavItem[] = [
 		iconName: "HandCoins",
 		href: "/dashboard/pledges",
 		priority: 5,
+		restrictToOrgTypes: ["BUYER"],
+	},
+	{
+		id: "payments",
+		labelKey: "dashboard.nav.payments",
+		icon: CreditCard,
+		iconName: "CreditCard",
+		href: "/dashboard/payments",
+		priority: 6,
 		restrictToOrgTypes: ["BUYER"],
 	},
 	{
