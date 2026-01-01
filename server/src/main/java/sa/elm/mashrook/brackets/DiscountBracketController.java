@@ -42,7 +42,7 @@ public class DiscountBracketController {
         if (request.campaignId() == null) {
             throw new IllegalArgumentException("campaign ID is required for creating a bracket");
         }
-        UUID supplierId = principal.getOrganizationId();
+        UUID supplierId = principal.organizationId();
         CampaignEntity campaign = campaignService.findCampaignByIdAndSupplier(request.campaignId(), supplierId);
         return discountBracketService.createBracket(request, supplierId, campaign);
     }
@@ -59,7 +59,7 @@ public class DiscountBracketController {
             @PathVariable UUID id,
             @Valid @RequestBody DiscountBracketRequest request,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        UUID supplierId = principal.getOrganizationId();
+        UUID supplierId = principal.organizationId();
         return discountBracketService.updateBracket(id, request, supplierId);
     }
 
@@ -69,7 +69,7 @@ public class DiscountBracketController {
     public void deleteBracket(
             @PathVariable UUID id,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        UUID supplierId = principal.getOrganizationId();
+        UUID supplierId = principal.organizationId();
         discountBracketService.deleteBracket(id, supplierId);
     }
 

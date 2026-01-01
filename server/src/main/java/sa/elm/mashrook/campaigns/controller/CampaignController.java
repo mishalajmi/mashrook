@@ -51,7 +51,7 @@ public class CampaignController {
     public CampaignResponse createCampaign(
             @Valid @RequestBody CampaignCreateRequest request,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        UUID supplierId = principal.getOrganizationId();
+        UUID supplierId = principal.organizationId();
         return campaignService.createCampaign(request, supplierId);
     }
 
@@ -61,7 +61,7 @@ public class CampaignController {
             @PathVariable UUID id,
             @Valid @RequestBody CampaignUpdateRequest request,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        UUID supplierId = principal.getOrganizationId();
+        UUID supplierId = principal.organizationId();
         return campaignService.updateCampaign(id, request, supplierId);
     }
 
@@ -83,7 +83,8 @@ public class CampaignController {
     public CampaignResponse publishCampaign(
             @PathVariable UUID id,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        UUID supplierId = principal.getOrganizationId();
+        UUID supplierId = principal.organizationId();
+
         return campaignService.publishCampaign(id, supplierId);
     }
 
@@ -93,7 +94,7 @@ public class CampaignController {
     public void deleteCampaign(
             @PathVariable UUID id,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        UUID supplierId = principal.getOrganizationId();
+        UUID supplierId = principal.organizationId();
         campaignService.deleteCampaign(id, supplierId);
     }
 
@@ -105,7 +106,7 @@ public class CampaignController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "order", defaultValue = "0") int order,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        UUID supplierId = principal.getOrganizationId();
+        UUID supplierId = principal.organizationId();
         return campaignMediaService.addMedia(id, supplierId, file, order);
     }
 
@@ -116,7 +117,7 @@ public class CampaignController {
             @PathVariable UUID id,
             @PathVariable UUID mediaId,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        UUID supplierId = principal.getOrganizationId();
+        UUID supplierId = principal.organizationId();
         campaignMediaService.deleteMedia(id, mediaId, supplierId);
     }
 

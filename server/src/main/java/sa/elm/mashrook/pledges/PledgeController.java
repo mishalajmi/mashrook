@@ -21,6 +21,8 @@ import sa.elm.mashrook.brackets.DiscountBracketService;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.service.CampaignService;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
+import sa.elm.mashrook.notifications.NotificationService;
+import sa.elm.mashrook.notifications.email.dto.PledgeConfirmedEmail;
 import sa.elm.mashrook.organizations.OrganizationService;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
@@ -29,6 +31,7 @@ import sa.elm.mashrook.pledges.dto.PledgeListResponse;
 import sa.elm.mashrook.pledges.dto.PledgeResponse;
 import sa.elm.mashrook.pledges.dto.PledgeUpdateRequest;
 import sa.elm.mashrook.security.domain.JwtPrincipal;
+import sa.elm.mashrook.users.UserService;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -45,6 +48,8 @@ public class PledgeController {
     private final OrganizationService organizationService;
     private final CampaignService campaignService;
     private final DiscountBracketService discountBracketService;
+    private final UserService userService;
+    private final NotificationService notificationService;
 
     @PostMapping("/campaigns/{id}")
     @ResponseStatus(HttpStatus.CREATED)
@@ -56,8 +61,24 @@ public class PledgeController {
         CampaignEntity campaign = campaignService.findById(id)
                 .orElseThrow(() ->
                         new CampaignNotFoundException(String.format("Could not find campaign with id: %s", id)));
-        OrganizationEntity organization = organizationService.findById(principal.getOrganizationId());
-        return pledgeService.createPledge(campaign, organization, request);
+        OrganizationEntity organization = organizationService.findById(principal.organizationId());
+        PledgeResponse response = pledgeService.createPledge(campaign, organization, request);
+
+        // Send pledge confirmed notification to the buyer
+        userService.findByUserId(principal.userId()).ifPresent(user ->
+                notificationService.send(new PledgeConfirmedEmail(
+                        user.getEmail(),
+                        user.getFirstName() + " " + user.getLastName(),
+                        organization.getNameEn(),
+                        campaign.getTitle(),
+                        campaign.getId(),
+                        response.id(),
+                        response.quantity(),
+                        campaign.getEndDate()
+                ))
+        );
+
+        return response;
     }
 
     @PutMapping("/{pledgeId}")
@@ -66,7 +87,7 @@ public class PledgeController {
             @PathVariable UUID pledgeId,
             @Valid @RequestBody PledgeUpdateRequest request,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        return pledgeService.updatePledge(pledgeId, principal.getOrganizationId(), request);
+        return pledgeService.updatePledge(pledgeId, principal.organizationId(), request);
     }
 
     @DeleteMapping("/{pledgeId}")
@@ -75,7 +96,7 @@ public class PledgeController {
     public void cancelPledge(
             @PathVariable UUID pledgeId,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        pledgeService.cancelPledge(pledgeId, principal.getOrganizationId());
+        pledgeService.cancelPledge(pledgeId, principal.organizationId());
     }
 
     @GetMapping
@@ -86,7 +107,7 @@ public class PledgeController {
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal JwtPrincipal principal) {
         Pageable pageable = PageRequest.of(page, size);
-        PledgeListResponse response = pledgeService.getBuyerPledges(principal.getOrganizationId(), status, pageable);
+        PledgeListResponse response = pledgeService.getBuyerPledges(principal.organizationId(), status, pageable);
 
         // Enrich pledges with pricing information
         List<PledgeResponse> enrichedContent = enrichPledgesWithPricing(response.content());
@@ -160,6 +181,6 @@ public class PledgeController {
     public PledgeResponse commitPledge(
             @PathVariable UUID pledgeId,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        return pledgeService.commitPledge(pledgeId, principal.getOrganizationId());
+        return pledgeService.commitPledge(pledgeId, principal.organizationId());
     }
 }

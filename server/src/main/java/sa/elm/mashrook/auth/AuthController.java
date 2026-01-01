@@ -284,9 +284,9 @@ public class AuthController {
             throw new AuthenticationException("Authentication required");
         }
 
-        log.debug("Fetching user info for user: {}", principal.getUserId());
+        log.debug("Fetching user info for user: {}", principal.userId());
 
-        UserEntity user = authenticationService.getCurrentUser(principal.getUserId());
+        UserEntity user = authenticationService.getCurrentUser(principal.userId());
 
         return UserResponse.from(user);
     }
@@ -571,9 +571,9 @@ public class AuthController {
                     .body(Map.of("error", "Authentication required"));
         }
 
-        log.debug("Logout from all devices requested for user: {}", principal.getUserId());
+        log.debug("Logout from all devices requested for user: {}", principal.userId());
 
-        int revokedCount = authenticationService.logoutAllDevices(principal.getUserId());
+        int revokedCount = authenticationService.logoutAllDevices(principal.userId());
 
         // Clear the cookie for the current device
         clearRefreshTokenCookie(response);

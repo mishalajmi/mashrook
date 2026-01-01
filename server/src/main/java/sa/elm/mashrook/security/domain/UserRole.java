@@ -40,8 +40,9 @@ public enum UserRole {
             ResourcePermission.of(Resource.USER_MANAGEMENT, Permission.WRITE),
             ResourcePermission.of(Resource.USER_MANAGEMENT, Permission.UPDATE),
             ResourcePermission.of(Resource.USER_MANAGEMENT, Permission.DELETE),
-            // Organization read
+            // Organization read and update (for verification workflow)
             ResourcePermission.of(Resource.ORGANIZATIONS, Permission.READ),
+            ResourcePermission.of(Resource.ORGANIZATIONS, Permission.UPDATE),
             // Campaign read
             ResourcePermission.of(Resource.CAMPAIGNS, Permission.READ),
             // Dashboard read
