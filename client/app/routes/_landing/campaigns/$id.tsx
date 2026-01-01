@@ -288,7 +288,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 
 		try {
 			setIsSubmittingPledge(true);
-			await pledgeService.cancelPledge(id, userPledge.id);
+			await pledgeService.cancelPledge(userPledge.id);
 			setUserPledge(null);
 			toast.success("Pledge cancelled successfully");
 
@@ -368,12 +368,12 @@ export default function PublicCampaignDetailPage(): ReactNode {
 				campaignId: campaign.id,
 				totalPledges: 0,
 				totalQuantity: bracketProgress.totalPledged,
-				// Find matching bracket from brackets array by bracketOrder to preserve ID
+				// Find matching bracket from brackets array by id for reliable matching
 				currentBracket: bracketProgress.currentBracket
-					? brackets.find((b) => b.bracketOrder === bracketProgress.currentBracket?.bracketOrder) ?? null
+					? brackets.find((b) => b.id === bracketProgress.currentBracket?.id) ?? null
 					: null,
 				nextBracket: bracketProgress.nextBracket
-					? brackets.find((b) => b.bracketOrder === bracketProgress.nextBracket?.bracketOrder) ?? null
+					? brackets.find((b) => b.id === bracketProgress.nextBracket?.id) ?? null
 					: null,
 				unitsToNextBracket: bracketProgress.nextBracket
 					? bracketProgress.nextBracket.minQuantity - bracketProgress.totalPledged

@@ -62,23 +62,7 @@ public class PledgeController {
                 .orElseThrow(() ->
                         new CampaignNotFoundException(String.format("Could not find campaign with id: %s", id)));
         OrganizationEntity organization = organizationService.findById(principal.organizationId());
-        PledgeResponse response = pledgeService.createPledge(campaign, organization, request);
-
-        // Send pledge confirmed notification to the buyer
-        userService.findByUserId(principal.userId()).ifPresent(user ->
-                notificationService.send(new PledgeConfirmedEmail(
-                        user.getEmail(),
-                        user.getFirstName() + " " + user.getLastName(),
-                        organization.getNameEn(),
-                        campaign.getTitle(),
-                        campaign.getId(),
-                        response.id(),
-                        response.quantity(),
-                        campaign.getEndDate()
-                ))
-        );
-
-        return response;
+        return pledgeService.createPledge(campaign, organization, request);
     }
 
     @PutMapping("/{pledgeId}")
@@ -102,7 +86,7 @@ public class PledgeController {
     @GetMapping
     @PreAuthorize("hasAuthority('pledges:read')")
     public PledgeListResponse getBuyerPledges(
-            @RequestParam(required = false) PledgeStatus status,
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal JwtPrincipal principal) {
@@ -181,6 +165,28 @@ public class PledgeController {
     public PledgeResponse commitPledge(
             @PathVariable UUID pledgeId,
             @AuthenticationPrincipal JwtPrincipal principal) {
-        return pledgeService.commitPledge(pledgeId, principal.organizationId());
+        PledgeResponse response = pledgeService.commitPledge(pledgeId, principal.organizationId());
+
+        // Send pledge confirmed notification to the buyer
+        CampaignEntity campaign = campaignService.findById(response.campaignId())
+                .orElse(null);
+        OrganizationEntity organization = organizationService.findById(principal.organizationId());
+
+        if (campaign != null) {
+            userService.findByUserId(principal.userId()).ifPresent(user ->
+                    notificationService.send(new PledgeConfirmedEmail(
+                            user.getEmail(),
+                            user.getFirstName() + " " + user.getLastName(),
+                            organization.getNameEn(),
+                            campaign.getTitle(),
+                            campaign.getId(),
+                            response.id(),
+                            response.quantity(),
+                            campaign.getEndDate()
+                    ))
+            );
+        }
+
+        return response;
     }
 }

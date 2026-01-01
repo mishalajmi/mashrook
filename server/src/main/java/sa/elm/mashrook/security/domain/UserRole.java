@@ -72,6 +72,9 @@ public enum UserRole {
             ResourcePermission.of(Resource.PLEDGES, Permission.WRITE),
             ResourcePermission.of(Resource.PLEDGES, Permission.UPDATE),
             ResourcePermission.of(Resource.PLEDGES, Permission.DELETE),
+            // Payments
+            ResourcePermission.of(Resource.PAYMENTS, Permission.READ),
+            ResourcePermission.of(Resource.PAYMENTS, Permission.WRITE),
             // Dashboard
             ResourcePermission.of(Resource.DASHBOARD, Permission.READ),
             // Team management

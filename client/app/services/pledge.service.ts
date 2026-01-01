@@ -142,8 +142,8 @@ export const pledgeService = {
 	 * @param pledgeId - Pledge ID
 	 * @throws Error if pledge not found or not authorized
 	 */
-	async cancelPledge(campaignId: string, pledgeId: string): Promise<void> {
-		return apiClient.delete(`/v1/campaigns/${campaignId}/pledges/${pledgeId}`);
+	async cancelPledge(pledgeId: string): Promise<void> {
+		return apiClient.delete(`/v1/pledges/${pledgeId}`);
 	},
 
 	/**

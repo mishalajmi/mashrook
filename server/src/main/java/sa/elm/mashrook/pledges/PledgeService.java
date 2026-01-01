@@ -1,6 +1,7 @@
 package sa.elm.mashrook.pledges;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -40,8 +42,32 @@ public class PledgeService {
                                        PledgeCreateRequest request) {
         validateOrganizationIsActive(buyerOrg);
         validateCampaignAcceptsPledges(campaign);
-        validateNoDuplicatePledge(campaign.getId(), buyerOrg.getId());
 
+        // Check if a pledge already exists for this campaign and organization
+        var existingPledge = pledgeRepository.findByCampaignIdAndOrganizationId(
+                campaign.getId(), buyerOrg.getId());
+
+        if (existingPledge.isPresent()) {
+            PledgeEntity pledge = existingPledge.get();
+
+            // If the existing pledge is withdrawn, reactivate it
+            if (pledge.getStatus() == PledgeStatus.WITHDRAWN) {
+                log.info("Reactivating withdrawn pledge {} for campaign {} by organization {}",
+                        pledge.getId(), campaign.getId(), buyerOrg.getId());
+                pledge.setStatus(PledgeStatus.PENDING);
+                pledge.setQuantity(request.quantity());
+                pledge.setCommittedAt(null); // Clear any previous commit timestamp
+                PledgeEntity saved = pledgeRepository.save(pledge);
+                return PledgeResponse.from(saved);
+            }
+
+            // If pledge exists and is not withdrawn, throw duplicate error
+            throw new PledgeAlreadyExistsException(
+                    String.format("A pledge already exists for campaign %s by buyer %s",
+                            campaign.getId(), buyerOrg.getId()));
+        }
+
+        // No existing pledge, create a new one
         PledgeEntity pledge = new PledgeEntity();
         pledge.setCampaign(campaign);
         pledge.setOrganization(buyerOrg);
@@ -70,6 +96,11 @@ public class PledgeService {
     public void cancelPledge(UUID pledgeId, UUID buyerOrgId) {
         PledgeEntity pledge = findPledgeOrThrow(pledgeId);
         validatePledgeOwnership(pledge, buyerOrgId);
+
+        if (PledgeStatus.WITHDRAWN.equals(pledge.getStatus())) {
+            log.debug("pledge: {} is already withdrawn", pledge.getId());
+            return;
+        }
 
         // Pledges can only be cancelled during ACTIVE phase
         validateCampaignIsActive(pledge.getCampaign());
@@ -108,10 +139,16 @@ public class PledgeService {
         }
     }
 
-    public PledgeListResponse getBuyerPledges(UUID buyerOrgId, PledgeStatus status, Pageable pageable) {
-        Page<PledgeEntity> pledges = status != null
-                ? pledgeRepository.findAllByOrganizationIdAndStatus(buyerOrgId, status, pageable)
-                : pledgeRepository.findAllByOrganizationId(buyerOrgId, pageable);
+    public PledgeListResponse getBuyerPledges(UUID buyerOrgId, String status, Pageable pageable) {
+        Page<PledgeEntity> pledges;
+
+        if (status != null) {
+            // Filter by specific status when provided
+            pledges = pledgeRepository.findAllByOrganizationIdAndStatus(buyerOrgId, PledgeStatus.getStatus(status), pageable);
+        } else {
+            // By default, return all non-withdrawn pledges (PENDING + COMMITTED)
+            pledges = pledgeRepository.findAllByOrganizationIdAndStatusNot(buyerOrgId, PledgeStatus.WITHDRAWN, pageable);
+        }
 
         Page<PledgeResponse> responsePage = pledges.map(PledgeResponse::from);
         return PledgeListResponse.from(responsePage);
@@ -149,14 +186,6 @@ public class PledgeService {
             throw new InvalidCampaignStateException(
                     String.format("Pledges can only be modified during ACTIVE phase. Campaign %s is in %s status",
                             campaign.getId(), campaign.getStatus()));
-        }
-    }
-
-    private void validateNoDuplicatePledge(UUID campaignId, UUID buyerOrgId) {
-        if (pledgeRepository.existsByCampaignIdAndOrganizationId(campaignId, buyerOrgId)) {
-            throw new PledgeAlreadyExistsException(
-                    String.format("A pledge already exists for campaign %s by buyer %s",
-                            campaignId, buyerOrgId));
         }
     }
 

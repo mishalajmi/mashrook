@@ -264,6 +264,7 @@
       "orders": "الطلبات",
       "campaigns": "الحملات",
       "pledges": "تعهداتي",
+      "payments": "المدفوعات",
       "browseCampaigns": "تصفح الحملات",
       "analytics": "التحليلات",
       "buyers": "المشترين",
@@ -288,6 +289,7 @@
       "orders": "الطلبات",
       "campaigns": "الحملات",
       "pledges": "تعهداتي",
+      "payments": "المدفوعات",
       "browse-campaigns": "تصفح الحملات",
       "analytics": "التحليلات",
       "buyers": "المشترين",
@@ -306,7 +308,11 @@
     },
     "overview": {
       "title": "نظرة عامة على لوحة التحكم",
-      "welcome": "مرحباً بعودتك"
+      "welcome": "مرحباً بعودتك",
+      "emptyState": {
+        "title": "التحليلات قريباً",
+        "description": "ستتوفر تحليلات ورؤى لوحة التحكم هنا. تحقق قريباً للحصول على تقارير مفصلة عن نشاطك."
+      }
     },
     "supplier": {
       "stats": {
@@ -348,6 +354,10 @@
       "description": "هذه الصفحة قيد التطوير",
       "comingSoon": "ستكون هذه الميزة متاحة قريباً."
     }
+  },
+  "pledges": {
+    "confirmCommitment": "تأكيد الالتزام",
+    "commitmentDisabledTooltip": "التأكيد متاح فقط خلال فترة السماح. تبدأ فترة السماح عند انتهاء الحملة."
   },
   "auth": {
     "login": {

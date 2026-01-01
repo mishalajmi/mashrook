@@ -412,7 +412,8 @@ class CampaignControllerTest {
                     100,
                     50,
                     new BigDecimal("100.00"),
-                    new BigDecimal("90.00")
+                    new BigDecimal("90.00"),
+                    "active"
             );
 
             Page<CampaignListResponse.CampaignSummary> page = new PageImpl<>(
@@ -488,9 +489,9 @@ class CampaignControllerTest {
             UUID supplierId = UuidGeneratorUtil.generateUuidV7();
 
             List<DiscountBracketDto> brackets = List.of(
-                    new DiscountBracketDto(0, 49, new BigDecimal("100.00"), 0),
-                    new DiscountBracketDto(50, 99, new BigDecimal("90.00"), 1),
-                    new DiscountBracketDto(100, null, new BigDecimal("80.00"), 2)
+                    new DiscountBracketDto(UuidGeneratorUtil.generateUuidV7(), 0, 49, new BigDecimal("100.00"), 0),
+                    new DiscountBracketDto(UuidGeneratorUtil.generateUuidV7(), 50, 99, new BigDecimal("90.00"), 1),
+                    new DiscountBracketDto(UuidGeneratorUtil.generateUuidV7(), 100, null, new BigDecimal("80.00"), 2)
             );
 
             CampaignPublicResponse response = new CampaignPublicResponse(
@@ -565,8 +566,8 @@ class CampaignControllerTest {
         void shouldReturnBracketProgressInformation() throws Exception {
             UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
-            DiscountBracketDto currentBracket = new DiscountBracketDto(0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketDto nextBracket = new DiscountBracketDto(50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketDto currentBracket = new DiscountBracketDto(UuidGeneratorUtil.generateUuidV7(), 0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketDto nextBracket = new DiscountBracketDto(UuidGeneratorUtil.generateUuidV7(), 50, 99, new BigDecimal("90.00"), 1);
 
             BracketProgressResponse response = new BracketProgressResponse(
                     campaignId,
@@ -597,7 +598,7 @@ class CampaignControllerTest {
         void shouldReturnNullNextBracketWhenAtHighestTier() throws Exception {
             UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
-            DiscountBracketDto currentBracket = new DiscountBracketDto(100, null, new BigDecimal("80.00"), 2);
+            DiscountBracketDto currentBracket = new DiscountBracketDto(UuidGeneratorUtil.generateUuidV7(), 100, null, new BigDecimal("80.00"), 2);
 
             BracketProgressResponse response = new BracketProgressResponse(
                     campaignId,
@@ -638,8 +639,8 @@ class CampaignControllerTest {
         void shouldReturnProgressWithZeroPledges() throws Exception {
             UUID campaignId = UuidGeneratorUtil.generateUuidV7();
 
-            DiscountBracketDto currentBracket = new DiscountBracketDto(0, 49, new BigDecimal("100.00"), 0);
-            DiscountBracketDto nextBracket = new DiscountBracketDto(50, 99, new BigDecimal("90.00"), 1);
+            DiscountBracketDto currentBracket = new DiscountBracketDto(UuidGeneratorUtil.generateUuidV7(), 0, 49, new BigDecimal("100.00"), 0);
+            DiscountBracketDto nextBracket = new DiscountBracketDto(UuidGeneratorUtil.generateUuidV7(), 50, 99, new BigDecimal("90.00"), 1);
 
             BracketProgressResponse response = new BracketProgressResponse(
                     campaignId,

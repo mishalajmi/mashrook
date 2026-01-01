@@ -226,7 +226,8 @@ public class CampaignService {
         }
 
         OrganizationEntity supplier = organizationService.findById(campaign.getSupplierId());
-        int totalPledged = pledgeService.calculateTotalCommitedPledges(campaignId);
+        // Use active pledges (PENDING + COMMITTED) for display to show real activity
+        int totalPledged = pledgeService.calculateTotalActivePledges(campaignId);
         List<DiscountBracketEntity> brackets = discountBracketService.getAllBrackets(campaignId);
 
         List<DiscountBracketDto> bracketDtos = brackets.stream()
@@ -259,7 +260,8 @@ public class CampaignService {
             throw new CampaignNotFoundException("Campaign is not available for public viewing");
         }
 
-        int totalPledged = pledgeService.calculateTotalCommitedPledges(campaignId);
+        // Use active pledges (PENDING + COMMITTED) for display to show real activity
+        int totalPledged = pledgeService.calculateTotalActivePledges(campaignId);
         Optional<DiscountBracketEntity> currentBracket = discountBracketService.getCurrentBracket(campaignId, totalPledged);
         Optional<DiscountBracketEntity> nextBracket = discountBracketService.getNextBracket(campaignId, totalPledged);
 
@@ -317,7 +319,8 @@ public class CampaignService {
 
     private CampaignListResponse.CampaignSummary toCampaignSummary(CampaignEntity campaign) {
         OrganizationEntity supplier = organizationService.findById(campaign.getSupplierId());
-        int totalPledged = pledgeService.calculateTotalCommitedPledges(campaign.getId());
+        // Use active pledges (PENDING + COMMITTED) for display to show real activity
+        int totalPledged = pledgeService.calculateTotalActivePledges(campaign.getId());
         List<DiscountBracketEntity> brackets = discountBracketService.getAllBrackets(campaign.getId());
 
         BigDecimal originalPrice = brackets.stream()
@@ -341,6 +344,7 @@ public class CampaignService {
                 .totalPledged(totalPledged)
                 .originalPrice(originalPrice)
                 .currentPrice(currentPrice)
+                .status(campaign.getStatus().getValue())
                 .build();
     }
 
@@ -365,11 +369,15 @@ public class CampaignService {
             return BigDecimal.ZERO;
         }
 
-        int progressInRange = totalPledged - currentMin;
+        // Clamp progress to be at least 0 (handles case when totalPledged < currentMin)
+        int progressInRange = Math.max(0, totalPledged - currentMin);
 
-        return BigDecimal.valueOf(progressInRange)
+        BigDecimal percentage = BigDecimal.valueOf(progressInRange)
                 .multiply(BigDecimal.valueOf(100))
                 .divide(BigDecimal.valueOf(rangeSize), 2, RoundingMode.HALF_UP);
+
+        // Clamp percentage between 0 and 100
+        return percentage.min(new BigDecimal("100.00")).max(BigDecimal.ZERO);
     }
 
     public Optional<CampaignEntity> findById(UUID campaignId) {

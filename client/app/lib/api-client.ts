@@ -287,6 +287,12 @@ export function createApiClient(baseUrl: string = API_BASE_URL) {
 
 			// Handle successful response
 			if (response.ok) {
+				// Handle 204 No Content responses (no body to parse)
+				if (response.status === 204) {
+					logResponse(url, response.status, null);
+					return undefined as T;
+				}
+
 				const data = await response.json();
 				// Convert response body keys from snake_case to camelCase for frontend
 				const camelCaseData = convertKeysToCamelCase(data);

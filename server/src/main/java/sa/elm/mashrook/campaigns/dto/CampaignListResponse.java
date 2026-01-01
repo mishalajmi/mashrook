@@ -37,7 +37,8 @@ public record CampaignListResponse(
             Integer targetQty,
             Integer totalPledged,
             BigDecimal originalPrice,
-            BigDecimal currentPrice
+            BigDecimal currentPrice,
+            String status
     ) {}
 
     @Builder
