@@ -44,6 +44,7 @@ describe("BrowseCampaignsPage", () => {
 			totalPledged: 450,
 			originalPrice: "35.00",
 			currentPrice: "28.00",
+			status: "active" as const,
 		},
 		{
 			id: "campaign-2",
@@ -57,6 +58,7 @@ describe("BrowseCampaignsPage", () => {
 			totalPledged: 120,
 			originalPrice: "25.00",
 			currentPrice: "22.00",
+			status: "active" as const,
 		},
 	];
 
@@ -162,7 +164,9 @@ describe("BrowseCampaignsPage", () => {
 			renderWithRouter(<BrowseCampaignsPage />);
 
 			await waitFor(() => {
-				expect(screen.getByText("$28.00")).toBeInTheDocument();
+				// There can be multiple instances of the price displayed (e.g., in card and bracket indicator)
+				const priceElements = screen.getAllByText("$28.00");
+				expect(priceElements.length).toBeGreaterThanOrEqual(1);
 			});
 		});
 
@@ -170,7 +174,7 @@ describe("BrowseCampaignsPage", () => {
 			renderWithRouter(<BrowseCampaignsPage />);
 
 			await waitFor(() => {
-				expect(screen.getByTestId("campaigns-grid")).toBeInTheDocument();
+				expect(screen.getByTestId("campaign-grid")).toBeInTheDocument();
 			});
 		});
 	});
@@ -232,7 +236,8 @@ describe("BrowseCampaignsPage", () => {
 			renderWithRouter(<BrowseCampaignsPage />);
 
 			await waitFor(() => {
-				expect(screen.getByText(/no active campaigns/i)).toBeInTheDocument();
+				// The title in the EmptyState component
+				expect(screen.getByRole("heading", { name: /no active campaigns/i })).toBeInTheDocument();
 			});
 		});
 

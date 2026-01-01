@@ -27,6 +27,7 @@ const mockCampaignListResponse: CampaignListResponse = {
 			totalPledged: 25,
 			originalPrice: "100.00",
 			currentPrice: "90.00",
+			status: "active",
 		},
 	],
 	page: {
@@ -51,6 +52,25 @@ vi.mock("react-router", async () => {
 		useNavigate: () => vi.fn(),
 	};
 });
+
+// Mock useAuth
+vi.mock("@/contexts/AuthContext", () => ({
+	useAuth: vi.fn(() => ({
+		user: null,
+		isAuthenticated: false,
+		isLoading: false,
+	})),
+}));
+
+// Mock language context
+vi.mock("@/i18n/language-context", () => ({
+	useLanguage: () => ({
+		language: "en",
+		isRtl: false,
+		changeLanguage: vi.fn(),
+		toggleLanguage: vi.fn(),
+	}),
+}));
 
 describe("PublicCampaignsPage", () => {
 	const renderWithRouter = (ui: React.ReactNode) => {
