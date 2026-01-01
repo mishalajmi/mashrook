@@ -9,7 +9,7 @@ public record WelcomeEmail(
         String recipientName,
         String organizationName,
         String loginUrl
-) {
+) implements EmailNotification {
 
     public EmailType getEmailType() {
         return EmailType.WELCOME;

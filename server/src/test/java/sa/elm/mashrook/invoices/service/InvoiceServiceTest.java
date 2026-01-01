@@ -35,6 +35,8 @@ import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
 import sa.elm.mashrook.pledges.PledgeService;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
+import sa.elm.mashrook.notifications.NotificationService;
+import sa.elm.mashrook.users.UserRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -70,6 +72,12 @@ class InvoiceServiceTest {
     @Mock
     private PaymentIntentService paymentIntentService;
 
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private NotificationService notificationService;
+
     @Captor
     private ArgumentCaptor<InvoiceEntity> invoiceCaptor;
 
@@ -99,7 +107,9 @@ class InvoiceServiceTest {
                 invoiceConfig,
                 bankAccountConfig,
                 pledgeService,
-                paymentIntentService
+                paymentIntentService,
+                userRepository,
+                notificationService
         );
     }
 

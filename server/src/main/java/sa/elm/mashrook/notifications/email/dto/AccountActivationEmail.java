@@ -9,7 +9,7 @@ public record AccountActivationEmail(
         String recipientName,
         String activationLink,
         String expirationHours
-) {
+) implements EmailNotification {
 
     public EmailType getEmailType() {
         return EmailType.ACCOUNT_ACTIVATION;

@@ -8,6 +8,12 @@ import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
 import sa.elm.mashrook.campaigns.service.CampaignLifecycleService;
+import sa.elm.mashrook.notifications.NotificationService;
+import sa.elm.mashrook.notifications.email.dto.GracePeriodStartedEmail;
+import sa.elm.mashrook.pledges.PledgeService;
+import sa.elm.mashrook.pledges.domain.PledgeEntity;
+import sa.elm.mashrook.pledges.domain.PledgeStatus;
+import sa.elm.mashrook.users.UserService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -41,6 +47,9 @@ public class GracePeriodTriggerJob {
 
     private final CampaignRepository campaignRepository;
     private final CampaignLifecycleService campaignLifecycleService;
+    private final PledgeService pledgeService;
+    private final UserService userService;
+    private final NotificationService notificationService;
 
     /**
      * Triggers grace period for campaigns within 48 hours of their end date.
@@ -66,9 +75,12 @@ public class GracePeriodTriggerJob {
             try {
                 log.debug("Triggering grace period for campaign {} (end date: {})",
                         campaign.getId(), campaign.getEndDate());
-                campaignLifecycleService.startGracePeriod(campaign.getId());
+                CampaignEntity updatedCampaign = campaignLifecycleService.startGracePeriod(campaign.getId());
                 successCount++;
                 log.info("Successfully triggered grace period for campaign {}", campaign.getId());
+
+                // Send grace period notifications to all pledged buyers
+                sendGracePeriodNotifications(updatedCampaign);
             } catch (Exception e) {
                 failureCount++;
                 log.error("Failed to trigger grace period for campaign {}: {}",
@@ -78,5 +90,46 @@ public class GracePeriodTriggerJob {
 
         log.info("Grace period trigger job completed. Success: {}, Failures: {}",
                 successCount, failureCount);
+    }
+
+    /**
+     * Sends grace period notifications to all buyers with pending pledges.
+     *
+     * @param campaign the campaign that just entered grace period
+     */
+    private void sendGracePeriodNotifications(CampaignEntity campaign) {
+        try {
+            // Get all PENDING pledges for this campaign (these need to commit)
+            List<PledgeEntity> pendingPledges = pledgeService.findAllByCampaignIdAndStatus(
+                    campaign.getId(), PledgeStatus.PENDING);
+
+            if (pendingPledges.isEmpty()) {
+                log.debug("No pending pledges found for campaign {} - skipping grace period notifications",
+                        campaign.getId());
+                return;
+            }
+
+            int sentCount = 0;
+            for (PledgeEntity pledge : pendingPledges) {
+                userService.findFirstActiveUserByOrganizationId(pledge.getOrganization().getId())
+                        .ifPresent(user -> notificationService.send(new GracePeriodStartedEmail(
+                                user.getEmail(),
+                                user.getFirstName() + " " + user.getLastName(),
+                                pledge.getOrganization().getNameEn(),
+                                campaign.getTitle(),
+                                campaign.getId(),
+                                pledge.getId(),
+                                pledge.getQuantity(),
+                                campaign.getGracePeriodEndDate()
+                        )));
+                sentCount++;
+            }
+
+            log.info("Sent grace period notifications for campaign {} to {} buyers",
+                    campaign.getId(), sentCount);
+        } catch (Exception e) {
+            log.error("Failed to send grace period notifications for campaign {}: {}",
+                    campaign.getId(), e.getMessage(), e);
+        }
     }
 }

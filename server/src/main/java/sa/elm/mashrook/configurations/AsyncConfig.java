@@ -8,6 +8,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * Used by NotificationService to send emails asynchronously.
  */
 @Configuration
-@EnableAsync
+@EnableAsync(proxyTargetClass = true)
 public class AsyncConfig {
 }

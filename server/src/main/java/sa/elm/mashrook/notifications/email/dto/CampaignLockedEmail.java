@@ -13,7 +13,7 @@ public record CampaignLockedEmail(
         int quantity,
         BigDecimal totalAmount,
         int discountPercentage
-) {
+) implements EmailNotification {
 
     public EmailType getEmailType() {
         return EmailType.CAMPAIGN_LOCKED;

@@ -14,7 +14,7 @@ public record PaymentReminderEmail(
         BigDecimal totalAmount,
         LocalDate dueDate,
         int daysUntilDue
-) {
+) implements EmailNotification {
 
     public EmailType getEmailType() {
         return EmailType.PAYMENT_REMINDER;

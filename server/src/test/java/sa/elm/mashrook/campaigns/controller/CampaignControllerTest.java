@@ -36,6 +36,8 @@ import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignValidationException;
 import sa.elm.mashrook.exceptions.GlobalExceptionHandler;
+import sa.elm.mashrook.organizations.OrganizationService;
+import sa.elm.mashrook.users.UserService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -72,6 +74,12 @@ class CampaignControllerTest {
     @Mock
     private CampaignMediaService campaignMediaService;
 
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private OrganizationService organizationService;
+
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
@@ -88,7 +96,10 @@ class CampaignControllerTest {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(objectMapper);
 
-        CampaignController controller = new CampaignController(campaignService, campaignMediaService);
+        CampaignController controller = new CampaignController(
+                campaignService,
+                campaignMediaService
+        );
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
