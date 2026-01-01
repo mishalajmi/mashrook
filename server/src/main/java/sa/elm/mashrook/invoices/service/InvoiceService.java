@@ -8,10 +8,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sa.elm.mashrook.users.domain.UserEntity;
+import sa.elm.mashrook.users.domain.UserStatus;
+import sa.elm.mashrook.users.UserRepository;
 import sa.elm.mashrook.brackets.domain.DiscountBracketEntity;
 import sa.elm.mashrook.exceptions.InvoiceNotFoundException;
 import sa.elm.mashrook.exceptions.InvoiceValidationException;
 import sa.elm.mashrook.exceptions.InvalidInvoiceStatusTransitionException;
+import sa.elm.mashrook.invoices.domain.PaymentMethod;
+import sa.elm.mashrook.notifications.NotificationService;
+import sa.elm.mashrook.notifications.email.dto.InvoiceGeneratedEmail;
+import sa.elm.mashrook.notifications.email.dto.PaymentReceivedEmail;
 import sa.elm.mashrook.exceptions.PaymentIntentNotFoundException;
 import sa.elm.mashrook.invoices.config.BankAccountConfigProperties;
 import sa.elm.mashrook.invoices.config.InvoiceConfigProperties;
@@ -55,6 +61,8 @@ public class InvoiceService {
     private final BankAccountConfigProperties bankAccountConfig;
     private final PledgeService pledgeService;
     private final PaymentIntentService paymentIntentService;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /**
      * Valid invoice status transitions.
@@ -96,7 +104,38 @@ public class InvoiceService {
                 .toList();
 
         log.info("Generated {} invoices for campaign {}", generatedInvoices.size(), campaignId);
+
+        // Send invoice generated notifications
+        generatedInvoices.forEach(this::sendInvoiceGeneratedNotification);
+
         return generatedInvoices;
+    }
+
+    /**
+     * Sends invoice generated notification to the buyer.
+     */
+    private void sendInvoiceGeneratedNotification(InvoiceEntity invoice) {
+        try {
+            UUID buyerOrgId = invoice.getOrganization().getId();
+            userRepository.findFirstByOrganization_IdAndStatus(buyerOrgId, UserStatus.ACTIVE)
+                    .ifPresent(buyerUser -> {
+                        int quantity = invoice.getPaymentIntent().getPledge().getQuantity();
+                        notificationService.send(new InvoiceGeneratedEmail(
+                                buyerUser.getEmail(),
+                                buyerUser.getFirstName() + " " + buyerUser.getLastName(),
+                                invoice.getOrganization().getNameEn(),
+                                invoice.getCampaign().getTitle(),
+                                invoice.getInvoiceNumber(),
+                                invoice.getId(),
+                                invoice.getTotalAmount(),
+                                invoice.getDueDate(),
+                                quantity
+                        ));
+                    });
+        } catch (Exception e) {
+            log.error("Failed to send invoice generated notification for invoice {}: {}",
+                    invoice.getInvoiceNumber(), e.getMessage(), e);
+        }
     }
 
 
@@ -200,7 +239,60 @@ public class InvoiceService {
         InvoiceEntity saved = invoiceRepository.save(invoice);
         log.info("Invoice {} marked as PAID", invoice.getInvoiceNumber());
 
+        // Send payment received notifications
+        sendPaymentReceivedNotifications(payment, saved);
+
         return InvoiceResponse.from(saved, getBankAccountDetails());
+    }
+
+    /**
+     * Sends payment received notifications to the buyer and supplier.
+     */
+    private void sendPaymentReceivedNotifications(InvoicePaymentEntity payment, InvoiceEntity invoice) {
+        try {
+            // Notify the buyer
+            UUID buyerOrgId = invoice.getOrganization().getId();
+            userRepository.findFirstByOrganization_IdAndStatus(buyerOrgId, UserStatus.ACTIVE)
+                    .ifPresent(buyerUser ->
+                            notificationService.send(new PaymentReceivedEmail(
+                                    buyerUser.getEmail(),
+                                    buyerUser.getFirstName() + " " + buyerUser.getLastName(),
+                                    invoice.getOrganization().getNameEn(),
+                                    invoice.getCampaign().getTitle(),
+                                    invoice.getInvoiceNumber(),
+                                    invoice.getId(),
+                                    payment.getAmount(),
+                                    payment.getPaymentDate(),
+                                    formatPaymentMethod(payment.getPaymentMethod())
+                            )));
+
+            // Notify the supplier
+            UUID supplierOrgId = invoice.getCampaign().getSupplierId();
+            userRepository.findFirstByOrganization_IdAndStatus(supplierOrgId, UserStatus.ACTIVE)
+                    .ifPresent(supplierUser ->
+                            notificationService.send(new PaymentReceivedEmail(
+                                    supplierUser.getEmail(),
+                                    supplierUser.getFirstName() + " " + supplierUser.getLastName(),
+                                    invoice.getOrganization().getNameEn(),
+                                    invoice.getCampaign().getTitle(),
+                                    invoice.getInvoiceNumber(),
+                                    invoice.getId(),
+                                    payment.getAmount(),
+                                    payment.getPaymentDate(),
+                                    formatPaymentMethod(payment.getPaymentMethod())
+                            )));
+        } catch (Exception e) {
+            log.error("Failed to send payment received notifications for invoice {}: {}",
+                    invoice.getInvoiceNumber(), e.getMessage(), e);
+        }
+    }
+
+    private String formatPaymentMethod(PaymentMethod method) {
+        return switch (method) {
+            case BANK_TRANSFER -> "Bank Transfer";
+            case CASH -> "Cash";
+            case CHECK -> "Check";
+        };
     }
 
     @Transactional
