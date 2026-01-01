@@ -359,6 +359,17 @@
     "confirmCommitment": "Confirm Commitment",
     "commitmentDisabledTooltip": "Commitment is only available during the grace period. The grace period starts when the campaign ends."
   },
+  "featuredCampaigns": {
+    "badge": "Active Campaigns",
+    "heading": "Current Group Buys",
+    "description": "Join these active campaigns before they close. Watch as more participants unlock better pricing for everyone in the group.",
+    "empty": {
+      "title": "No Active Campaigns",
+      "description": "New group buying opportunities coming soon. Sign up to get notified.",
+      "cta": "Get Notified"
+    },
+    "viewAll": "View All Active Campaigns"
+  },
   "auth": {
     "login": {
       "title": "Sign In",
@@ -375,6 +386,21 @@
     "register": {
       "title": "Create Account",
       "subtitle": "Enter your details to create your account",
+      "steps": {
+        "account": "Account",
+        "organization": "Organization",
+        "review": "Review"
+      },
+      "stepTitles": {
+        "account": "Account Information",
+        "organization": "Organization Details",
+        "review": "Review & Submit"
+      },
+      "stepDescriptions": {
+        "account": "Enter your personal account details",
+        "organization": "Tell us about your organization",
+        "review": "Review your information before creating your account"
+      },
       "name": {
         "first": "First Name",
         "last": "Last Name"
@@ -398,7 +424,14 @@
       "emailTaken": "This email is already registered",
       "checkingEmail": "Checking email availability...",
       "emailAvailable": "Email is available",
-      "passwordStrengthLabel": "Password strength"
+      "passwordStrengthLabel": "Password strength",
+      "next": "Next",
+      "back": "Back",
+      "reviewSection": {
+        "accountInfo": "Account Information",
+        "orgInfo": "Organization Information",
+        "edit": "Edit"
+      }
     },
     "showPassword": "Show password",
     "hidePassword": "Hide password",

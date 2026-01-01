@@ -1,17 +1,21 @@
 /**
  * Registration Page
  *
- * User registration page with organization details.
+ * Multi-step registration wizard with:
+ * - Step 1: Account Information (name, email, password)
+ * - Step 2: Organization Details (name, industry, type)
+ * - Step 3: Review & Submit
+ *
  * Uses react-hook-form with zod validation and password strength indicator.
  */
 
 import type { ReactNode } from "react";
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { Eye, EyeOff, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle2, XCircle, Check, Pencil } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/i18n/language-context";
@@ -42,7 +46,81 @@ import {
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
+	Separator,
 } from "@/components/ui";
+import { cn } from "@/lib/utils";
+
+interface Step {
+	id: number;
+	key: "account" | "organization" | "review";
+}
+
+const steps: Step[] = [
+	{ id: 1, key: "account" },
+	{ id: 2, key: "organization" },
+	{ id: 3, key: "review" },
+];
+
+/**
+ * StepIndicator - Shows current progress through form steps
+ */
+function StepIndicator({
+	steps,
+	currentStep,
+	t,
+}: {
+	steps: Step[];
+	currentStep: number;
+	t: (key: string) => string;
+}): ReactNode {
+	return (
+		<nav aria-label="Progress" className="mb-6">
+			<ol className="flex items-center justify-center gap-2">
+				{steps.map((step, index) => (
+					<li key={step.id} className="flex items-center">
+						<div
+							data-testid={`step-${step.id}`}
+							data-active={currentStep === step.id ? "true" : undefined}
+							data-completed={currentStep > step.id ? "true" : undefined}
+							className={cn(
+								"flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+								currentStep === step.id && "bg-primary text-primary-foreground",
+								currentStep > step.id && "bg-muted text-foreground",
+								currentStep < step.id && "text-muted-foreground"
+							)}
+						>
+							<span
+								className={cn(
+									"flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
+									currentStep === step.id && "bg-primary-foreground text-primary",
+									currentStep > step.id && "bg-primary text-primary-foreground",
+									currentStep < step.id && "bg-muted text-muted-foreground border"
+								)}
+							>
+								{currentStep > step.id ? (
+									<Check className="h-3 w-3" />
+								) : (
+									step.id
+								)}
+							</span>
+							<span className="hidden sm:inline">
+								{t(`auth.register.steps.${step.key}`)}
+							</span>
+						</div>
+						{index < steps.length - 1 && (
+							<div
+								className={cn(
+									"ms-2 h-0.5 w-8",
+									currentStep > step.id ? "bg-primary" : "bg-muted"
+								)}
+							/>
+						)}
+					</li>
+				))}
+			</ol>
+		</nav>
+	);
+}
 
 /**
  * Password strength indicator component
@@ -100,6 +178,52 @@ function PasswordStrengthIndicator({
 }
 
 /**
+ * Review section component for displaying entered data
+ */
+function ReviewSection({
+	title,
+	onEdit,
+	children,
+}: {
+	title: string;
+	onEdit: () => void;
+	children: ReactNode;
+}): ReactNode {
+	const { t } = useTranslation();
+
+	return (
+		<div className="space-y-3">
+			<div className="flex items-center justify-between">
+				<h3 className="text-sm font-semibold text-foreground">{title}</h3>
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					onClick={onEdit}
+					className="h-8 text-xs"
+				>
+					<Pencil className="h-3 w-3 me-1" />
+					{t("auth.register.reviewSection.edit")}
+				</Button>
+			</div>
+			<div className="space-y-2 text-sm">{children}</div>
+		</div>
+	);
+}
+
+/**
+ * Review item component
+ */
+function ReviewItem({ label, value }: { label: string; value: string }): ReactNode {
+	return (
+		<div className="flex justify-between py-1">
+			<span className="text-muted-foreground">{label}</span>
+			<span className="font-medium text-foreground">{value || "—"}</span>
+		</div>
+	);
+}
+
+/**
  * Registration page component
  */
 export default function RegisterPage(): ReactNode {
@@ -107,7 +231,9 @@ export default function RegisterPage(): ReactNode {
 	const { register } = useAuth();
 	const { isRtl } = useLanguage();
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
 
+	const [currentStep, setCurrentStep] = useState(1);
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -141,17 +267,27 @@ export default function RegisterPage(): ReactNode {
 			ownerEmail: "",
 			ownerPassword: "",
 			ownerConfirmPassword: "",
-            ownerFirstName: "",
-            ownerLastName: "",
+			ownerFirstName: "",
+			ownerLastName: "",
 			organizationNameEn: "",
-            organizationNameAr: "",
-            organizationIndustry: "",
+			organizationNameAr: "",
+			organizationIndustry: "",
 			organizationType: undefined,
 		},
+		mode: "onChange",
 	});
 
 	const watchPassword = form.watch("ownerPassword");
 	const watchEmail = form.watch("ownerEmail");
+	const formValues = form.watch();
+
+	// Pre-fill organization type from URL parameter
+	useEffect(() => {
+		const typeParam = searchParams.get("type");
+		if (typeParam === "BUYER" || typeParam === "SUPPLIER") {
+			form.setValue("organizationType", typeParam);
+		}
+	}, [searchParams, form]);
 
 	// Debounced email availability check
 	const checkEmailAvailability = useCallback(async (email: string) => {
@@ -188,7 +324,66 @@ export default function RegisterPage(): ReactNode {
 		return () => clearTimeout(timeoutId);
 	}, [watchEmail, checkEmailAvailability]);
 
-	const onSubmit = async (data: RegisterFormData): Promise<void> => {
+	// Validate current step fields
+	const validateStep = async (step: number): Promise<boolean> => {
+		let fieldsToValidate: (keyof RegisterFormData)[] = [];
+
+		switch (step) {
+			case 1:
+				fieldsToValidate = ["ownerFirstName", "ownerLastName", "ownerEmail", "ownerPassword", "ownerConfirmPassword"];
+				break;
+			case 2:
+				fieldsToValidate = ["organizationNameEn", "organizationNameAr", "organizationIndustry", "organizationType"];
+				break;
+			default:
+				return true;
+		}
+
+		const result = await form.trigger(fieldsToValidate);
+
+		// Additional check for email availability on step 1
+		if (step === 1 && emailCheckStatus === "taken") {
+			return false;
+		}
+
+		return result;
+	};
+
+	const handleNext = async () => {
+		const isValid = await validateStep(currentStep);
+		if (isValid) {
+			setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+		}
+	};
+
+	const handleBack = () => {
+		setCurrentStep((prev) => Math.max(prev - 1, 1));
+	};
+
+	const goToStep = (step: number) => {
+		setCurrentStep(step);
+	};
+
+	// Prevent form from submitting via Enter key or other implicit submission
+	const handleFormSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		// Only allow submission via explicit button click on review step
+		// This handler intentionally does nothing - submission is handled by handleExplicitSubmit
+	};
+
+	// Explicit submit handler - only called when user clicks Submit button on review step
+	const handleExplicitSubmit = async () => {
+		if (currentStep !== steps.length) {
+			return;
+		}
+
+		const isValid = await form.trigger();
+		if (!isValid) {
+			return;
+		}
+
+		const data = form.getValues();
+
 		if (emailCheckStatus === "taken") {
 			setError(t("auth.register.emailTaken"));
 			return;
@@ -200,11 +395,11 @@ export default function RegisterPage(): ReactNode {
 			await register({
 				email: data.ownerEmail,
 				password: data.ownerPassword,
-                firstName: data.ownerFirstName,
-                lastName: data.ownerLastName,
+				firstName: data.ownerFirstName,
+				lastName: data.ownerLastName,
 				organizationNameAr: data.organizationNameAr,
-                organizationNameEn: data.organizationNameEn,
-                organizationIndustry: data.organizationIndustry,
+				organizationNameEn: data.organizationNameEn,
+				organizationIndustry: data.organizationIndustry,
 				organizationType: data.organizationType,
 			});
 			navigate("/dashboard");
@@ -215,6 +410,8 @@ export default function RegisterPage(): ReactNode {
 		}
 	};
 
+	const getCurrentStepKey = () => steps.find(s => s.id === currentStep)?.key || "account";
+
 	return (
 		<div
 			className="min-h-screen flex flex-col bg-background"
@@ -222,310 +419,406 @@ export default function RegisterPage(): ReactNode {
 		>
 			<Header isDark={isDark} onThemeToggle={handleThemeToggle} />
 			<div className="flex-1 flex items-center justify-center px-4 py-12 pt-24">
-			<Card className="w-full max-w-md">
-				<CardHeader className="space-y-1 text-center">
-					<CardTitle className="text-2xl font-bold">
-						{t("auth.register.title")}
-					</CardTitle>
-					<CardDescription>{t("auth.register.subtitle")}</CardDescription>
-				</CardHeader>
+				<Card className="w-full max-w-lg">
+					<CardHeader className="space-y-1 text-center">
+						<CardTitle className="text-2xl font-bold">
+							{t(`auth.register.stepTitles.${getCurrentStepKey()}`)}
+						</CardTitle>
+						<CardDescription>
+							{t(`auth.register.stepDescriptions.${getCurrentStepKey()}`)}
+						</CardDescription>
+					</CardHeader>
 
-				<CardContent>
-					{error && (
-						<div
-							role="alert"
-							className="mb-4 p-3 text-sm text-destructive bg-destructive/10 rounded-md"
-						>
-							{error}
-						</div>
-					)}
+					<CardContent>
+						{/* Step Indicator */}
+						<StepIndicator steps={steps} currentStep={currentStep} t={t} />
 
-					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <FormField
-                                control={form.control}
-                                name="ownerFirstName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>{t("auth.register.name.first")}</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="text"
-                                                placeholder="First Name"
-                                                autoComplete="first-name"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="ownerLastName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>{t("auth.register.name.last")}</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="text"
-                                                placeholder="First Name"
-                                                autoComplete="first-name"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-							<FormField
-								control={form.control}
-								name="ownerEmail"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>{t("auth.register.email")}</FormLabel>
-										<div className="relative">
-											<FormControl>
-												<Input
-													type="email"
-													placeholder="name@example.com"
-													autoComplete="email"
-													className="pe-10"
-													{...field}
-												/>
-											</FormControl>
-											{emailCheckStatus === "checking" && (
-												<div className="absolute end-0 top-0 h-full flex items-center px-3">
-													<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-												</div>
-											)}
-											{emailCheckStatus === "available" && (
-												<div className="absolute end-0 top-0 h-full flex items-center px-3">
-													<CheckCircle2 className="h-4 w-4 text-green-500" />
-												</div>
-											)}
-											{emailCheckStatus === "taken" && (
-												<div className="absolute end-0 top-0 h-full flex items-center px-3">
-													<XCircle className="h-4 w-4 text-destructive" />
-												</div>
-											)}
-										</div>
-										{emailCheckStatus === "checking" && (
-											<p className="text-xs text-muted-foreground">
-												{t("auth.register.checkingEmail")}
-											</p>
-										)}
-										{emailCheckStatus === "available" && (
-											<p className="text-xs text-green-600">
-												{t("auth.register.emailAvailable")}
-											</p>
-										)}
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<FormField
-								control={form.control}
-								name="ownerPassword"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>{t("auth.register.password")}</FormLabel>
-										<div className="relative">
-											<FormControl>
-												<Input
-													type={showPassword ? "text" : "password"}
-													placeholder="********"
-													autoComplete="new-password"
-													className="pe-10"
-													{...field}
-												/>
-											</FormControl>
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon"
-												className="absolute end-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-												onClick={() => setShowPassword((prev) => !prev)}
-												aria-label={
-													showPassword
-														? t("auth.hidePassword")
-														: t("auth.showPassword")
-												}
-											>
-												{showPassword ? (
-													<EyeOff className="h-4 w-4 text-muted-foreground" />
-												) : (
-													<Eye className="h-4 w-4 text-muted-foreground" />
-												)}
-											</Button>
-										</div>
-										<PasswordStrengthIndicator password={watchPassword || ""} />
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<FormField
-								control={form.control}
-								name="ownerConfirmPassword"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>{t("auth.register.confirmPassword")}</FormLabel>
-										<div className="relative">
-											<FormControl>
-												<Input
-													type={showConfirmPassword ? "text" : "password"}
-													placeholder="********"
-													autoComplete="new-password"
-													className="pe-10"
-													{...field}
-												/>
-											</FormControl>
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon"
-												className="absolute end-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-												onClick={() => setShowConfirmPassword((prev) => !prev)}
-												aria-label={
-													showConfirmPassword
-														? t("auth.hidePassword")
-														: t("auth.showPassword")
-												}
-											>
-												{showConfirmPassword ? (
-													<EyeOff className="h-4 w-4 text-muted-foreground" />
-												) : (
-													<Eye className="h-4 w-4 text-muted-foreground" />
-												)}
-											</Button>
-										</div>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<FormField
-								control={form.control}
-								name="organizationNameAr"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>{t("auth.register.organizationNameAr")}</FormLabel>
-										<FormControl>
-											<Input
-												type="text"
-												placeholder="اسم الشركة بالعربية"
-												autoComplete="organization"
-												dir="rtl"
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-                            <FormField
-                                control={form.control}
-                                name="organizationNameEn"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>{t("auth.register.organizationNameEn")}</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="text"
-                                                placeholder="Your Company Name in English"
-                                                autoComplete="organization"
-                                                dir="ltr"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="organizationIndustry"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>{t("auth.register.organizationIndustry")}</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="text"
-                                                placeholder="Your Company Industry"
-                                                autoComplete="organization"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-							<FormField
-								control={form.control}
-								name="organizationType"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>{t("auth.register.organizationType")}</FormLabel>
-										<Select
-											onValueChange={field.onChange}
-											defaultValue={field.value}
-										>
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue
-														placeholder={t("auth.register.selectType")}
-													/>
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												<SelectItem value="SUPPLIER">
-													{t("auth.register.supplier")}
-												</SelectItem>
-												<SelectItem value="BUYER">
-													{t("auth.register.buyer")}
-												</SelectItem>
-											</SelectContent>
-										</Select>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<Button
-								type="submit"
-								className="w-full"
-								disabled={isSubmitting}
+						{error && (
+							<div
+								role="alert"
+								className="mb-4 p-3 text-sm text-destructive bg-destructive/10 rounded-md"
 							>
-								{isSubmitting ? (
-									<>
-										<Loader2 className="me-2 h-4 w-4 animate-spin" />
-										{t("auth.register.submitting")}
-									</>
-								) : (
-									t("auth.register.submit")
-								)}
-							</Button>
-						</form>
-					</Form>
-				</CardContent>
+								{error}
+							</div>
+						)}
 
-				<CardFooter className="flex flex-col space-y-4">
-					<div className="text-sm text-muted-foreground text-center">
-						{t("auth.register.hasAccount")}{" "}
-						<Link
-							to="/login"
-							className="text-primary hover:underline font-medium"
-						>
-							{t("auth.register.login")}
-						</Link>
-					</div>
-				</CardFooter>
-			</Card>
+						<Form {...form}>
+							<form onSubmit={handleFormSubmit} className="space-y-4">
+								{/* Step 1: Account Information */}
+								{currentStep === 1 && (
+									<>
+										<div className="grid grid-cols-2 gap-4">
+											<FormField
+												control={form.control}
+												name="ownerFirstName"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>{t("auth.register.name.first")}</FormLabel>
+														<FormControl>
+															<Input
+																type="text"
+																placeholder={t("auth.register.name.first")}
+																autoComplete="given-name"
+																{...field}
+															/>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+											<FormField
+												control={form.control}
+												name="ownerLastName"
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel>{t("auth.register.name.last")}</FormLabel>
+														<FormControl>
+															<Input
+																type="text"
+																placeholder={t("auth.register.name.last")}
+																autoComplete="family-name"
+																{...field}
+															/>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+										</div>
+
+										<FormField
+											control={form.control}
+											name="ownerEmail"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>{t("auth.register.email")}</FormLabel>
+													<div className="relative">
+														<FormControl>
+															<Input
+																type="email"
+																placeholder="name@example.com"
+																autoComplete="email"
+																className="pe-10"
+																{...field}
+															/>
+														</FormControl>
+														{emailCheckStatus === "checking" && (
+															<div className="absolute end-0 top-0 h-full flex items-center px-3">
+																<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+															</div>
+														)}
+														{emailCheckStatus === "available" && (
+															<div className="absolute end-0 top-0 h-full flex items-center px-3">
+																<CheckCircle2 className="h-4 w-4 text-green-500" />
+															</div>
+														)}
+														{emailCheckStatus === "taken" && (
+															<div className="absolute end-0 top-0 h-full flex items-center px-3">
+																<XCircle className="h-4 w-4 text-destructive" />
+															</div>
+														)}
+													</div>
+													{emailCheckStatus === "checking" && (
+														<p className="text-xs text-muted-foreground">
+															{t("auth.register.checkingEmail")}
+														</p>
+													)}
+													{emailCheckStatus === "available" && (
+														<p className="text-xs text-green-600">
+															{t("auth.register.emailAvailable")}
+														</p>
+													)}
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										<FormField
+											control={form.control}
+											name="ownerPassword"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>{t("auth.register.password")}</FormLabel>
+													<div className="relative">
+														<FormControl>
+															<Input
+																type={showPassword ? "text" : "password"}
+																placeholder="********"
+																autoComplete="new-password"
+																className="pe-10"
+																{...field}
+															/>
+														</FormControl>
+														<Button
+															type="button"
+															variant="ghost"
+															size="icon"
+															className="absolute end-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+															onClick={() => setShowPassword((prev) => !prev)}
+															aria-label={
+																showPassword
+																	? t("auth.hidePassword")
+																	: t("auth.showPassword")
+															}
+														>
+															{showPassword ? (
+																<EyeOff className="h-4 w-4 text-muted-foreground" />
+															) : (
+																<Eye className="h-4 w-4 text-muted-foreground" />
+															)}
+														</Button>
+													</div>
+													<PasswordStrengthIndicator password={watchPassword || ""} />
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										<FormField
+											control={form.control}
+											name="ownerConfirmPassword"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>{t("auth.register.confirmPassword")}</FormLabel>
+													<div className="relative">
+														<FormControl>
+															<Input
+																type={showConfirmPassword ? "text" : "password"}
+																placeholder="********"
+																autoComplete="new-password"
+																className="pe-10"
+																{...field}
+															/>
+														</FormControl>
+														<Button
+															type="button"
+															variant="ghost"
+															size="icon"
+															className="absolute end-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+															onClick={() => setShowConfirmPassword((prev) => !prev)}
+															aria-label={
+																showConfirmPassword
+																	? t("auth.hidePassword")
+																	: t("auth.showPassword")
+															}
+														>
+															{showConfirmPassword ? (
+																<EyeOff className="h-4 w-4 text-muted-foreground" />
+															) : (
+																<Eye className="h-4 w-4 text-muted-foreground" />
+															)}
+														</Button>
+													</div>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</>
+								)}
+
+								{/* Step 2: Organization Information */}
+								{currentStep === 2 && (
+									<>
+										<FormField
+											control={form.control}
+											name="organizationNameEn"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>{t("auth.register.organizationNameEn")}</FormLabel>
+													<FormControl>
+														<Input
+															type="text"
+															placeholder="Your Company Name in English"
+															autoComplete="organization"
+															dir="ltr"
+															{...field}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										<FormField
+											control={form.control}
+											name="organizationNameAr"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>{t("auth.register.organizationNameAr")}</FormLabel>
+													<FormControl>
+														<Input
+															type="text"
+															placeholder="اسم الشركة بالعربية"
+															autoComplete="organization"
+															dir="rtl"
+															{...field}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										<FormField
+											control={form.control}
+											name="organizationIndustry"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>{t("auth.register.organizationIndustry")}</FormLabel>
+													<FormControl>
+														<Input
+															type="text"
+															placeholder="e.g., Technology, Manufacturing, Retail"
+															autoComplete="organization"
+															{...field}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										<FormField
+											control={form.control}
+											name="organizationType"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>{t("auth.register.organizationType")}</FormLabel>
+													<Select
+														onValueChange={field.onChange}
+														value={field.value}
+													>
+														<FormControl>
+															<SelectTrigger>
+																<SelectValue
+																	placeholder={t("auth.register.selectType")}
+																/>
+															</SelectTrigger>
+														</FormControl>
+														<SelectContent>
+															<SelectItem value="SUPPLIER">
+																{t("auth.register.supplier")}
+															</SelectItem>
+															<SelectItem value="BUYER">
+																{t("auth.register.buyer")}
+															</SelectItem>
+														</SelectContent>
+													</Select>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</>
+								)}
+
+								{/* Step 3: Review & Submit */}
+								{currentStep === 3 && (
+									<div className="space-y-6">
+										<ReviewSection
+											title={t("auth.register.reviewSection.accountInfo")}
+											onEdit={() => goToStep(1)}
+										>
+											<ReviewItem
+												label={t("auth.register.name.first")}
+												value={formValues.ownerFirstName}
+											/>
+											<ReviewItem
+												label={t("auth.register.name.last")}
+												value={formValues.ownerLastName}
+											/>
+											<ReviewItem
+												label={t("auth.register.email")}
+												value={formValues.ownerEmail}
+											/>
+											<ReviewItem
+												label={t("auth.register.password")}
+												value="••••••••"
+											/>
+										</ReviewSection>
+
+										<Separator />
+
+										<ReviewSection
+											title={t("auth.register.reviewSection.orgInfo")}
+											onEdit={() => goToStep(2)}
+										>
+											<ReviewItem
+												label={t("auth.register.organizationNameEn")}
+												value={formValues.organizationNameEn}
+											/>
+											<ReviewItem
+												label={t("auth.register.organizationNameAr")}
+												value={formValues.organizationNameAr}
+											/>
+											<ReviewItem
+												label={t("auth.register.organizationIndustry")}
+												value={formValues.organizationIndustry}
+											/>
+											<ReviewItem
+												label={t("auth.register.organizationType")}
+												value={formValues.organizationType ? t(`auth.register.${formValues.organizationType.toLowerCase()}`) : ""}
+											/>
+										</ReviewSection>
+									</div>
+								)}
+
+								{/* Navigation Buttons */}
+								<div className="flex justify-between pt-4 border-t">
+									<div>
+										{currentStep > 1 && (
+											<Button
+												type="button"
+												variant="outline"
+												onClick={handleBack}
+												disabled={isSubmitting}
+											>
+												{t("auth.register.back")}
+											</Button>
+										)}
+									</div>
+									<div>
+										{currentStep < steps.length ? (
+											<Button
+												type="button"
+												onClick={handleNext}
+												disabled={isSubmitting}
+											>
+												{t("auth.register.next")}
+											</Button>
+										) : (
+											<Button
+												type="button"
+												onClick={handleExplicitSubmit}
+												disabled={isSubmitting}
+											>
+												{isSubmitting ? (
+													<>
+														<Loader2 className="me-2 h-4 w-4 animate-spin" />
+														{t("auth.register.submitting")}
+													</>
+												) : (
+													t("auth.register.submit")
+												)}
+											</Button>
+										)}
+									</div>
+								</div>
+							</form>
+						</Form>
+					</CardContent>
+
+					<CardFooter className="flex flex-col space-y-4">
+						<div className="text-sm text-muted-foreground text-center">
+							{t("auth.register.hasAccount")}{" "}
+							<Link
+								to="/login"
+								className="text-primary hover:underline font-medium"
+							>
+								{t("auth.register.login")}
+							</Link>
+						</div>
+					</CardFooter>
+				</Card>
 			</div>
 		</div>
 	);
