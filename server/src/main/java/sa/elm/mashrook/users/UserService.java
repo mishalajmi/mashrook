@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sa.elm.mashrook.exceptions.UserAlreadyExistsException;
+import sa.elm.mashrook.exceptions.UserNotFoundException;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.users.domain.UserEntity;
 import sa.elm.mashrook.users.domain.UserStatus;
@@ -54,5 +55,20 @@ public class UserService {
         user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
         log.info("Activated user: {}", user.getEmail());
+    }
+
+    /**
+     * Find the first active user for an organization.
+     * Used as primary contact for notifications.
+     *
+     * @param organizationId the organization ID
+     * @return the first active user, if any
+     */
+    public Optional<UserEntity> findFirstActiveUserByOrganizationId(UUID organizationId) {
+        return userRepository.findFirstByOrganization_IdAndStatus(organizationId, UserStatus.ACTIVE);
+    }
+
+    public Optional<UserEntity> findByOrganizationId(UUID supplierId) {
+        return userRepository.findFirstByOrganization_IdAndStatus(supplierId, UserStatus.ACTIVE);
     }
 }

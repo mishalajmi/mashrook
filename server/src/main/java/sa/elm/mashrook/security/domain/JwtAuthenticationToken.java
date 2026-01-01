@@ -1,5 +1,6 @@
 package sa.elm.mashrook.security.domain;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -7,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 import java.util.UUID;
 
+@Getter
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     private final String token;
@@ -47,22 +49,6 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     @Override
     public JwtPrincipal getPrincipal() {
         return principal;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public UUID getUserId() {
-        return userId;
-    }
-
-    public UUID getOrganizationId() {
-        return organizationId;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
 }

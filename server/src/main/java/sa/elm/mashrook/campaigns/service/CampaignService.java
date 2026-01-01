@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sa.elm.mashrook.brackets.DiscountBracketService;
@@ -22,9 +23,15 @@ import sa.elm.mashrook.campaigns.dto.CampaignResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignUpdateRequest;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignValidationException;
+import sa.elm.mashrook.exceptions.OrganizationPendingVerificationException;
+import sa.elm.mashrook.notifications.NotificationService;
+import sa.elm.mashrook.notifications.email.dto.CampaignPublishedEmail;
 import sa.elm.mashrook.organizations.OrganizationService;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
+import sa.elm.mashrook.organizations.domain.OrganizationStatus;
 import sa.elm.mashrook.pledges.PledgeService;
+import sa.elm.mashrook.users.UserService;
+import sa.elm.mashrook.users.domain.UserEntity;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -42,6 +49,9 @@ public class CampaignService {
     private final DiscountBracketService discountBracketService;
     private final OrganizationService organizationService;
     private final PledgeService pledgeService;
+    private final UserService userService;
+    private final NotificationService notificationService;
+
 
     @Transactional
     public CampaignResponse createCampaign(CampaignCreateRequest request, UUID supplierId) {
@@ -56,7 +66,28 @@ public class CampaignService {
 
         List<DiscountBracketResponse> brackets = discountBracketService.saveBrackets(request.brackets(), saved);
 
+        // Send campaign published notification to the supplier
+        userService.findByOrganizationId(supplierId).ifPresent(user ->
+                notificationService.send(new CampaignPublishedEmail(
+                        user.getEmail(),
+                        user.getFirstName() + " " + user.getLastName(),
+                        saved.getTitle(),
+                        saved.getId(),
+                        user.getOrganization().getNameEn(),
+                        saved.getStartDate(),
+                        saved.getEndDate(),
+                        saved.getTargetQty()
+                ))
+        );
         return CampaignResponse.from(saved, brackets);
+    }
+
+    private OrganizationEntity validateOrganizationIsActive(UUID organizationId) {
+        OrganizationEntity organization = organizationService.findById(organizationId);
+        if (organization.getStatus() != OrganizationStatus.ACTIVE) {
+            throw new OrganizationPendingVerificationException();
+        }
+        return organization;
     }
 
     private static CampaignEntity createCampaignEntity(CampaignCreateRequest request, UUID supplierId, int durationDays) {

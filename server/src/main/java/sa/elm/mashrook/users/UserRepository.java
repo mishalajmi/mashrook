@@ -22,4 +22,10 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
      * Used when we need a primary contact for the organization.
      */
     Optional<UserEntity> findFirstByOrganization_IdAndStatus(UUID organizationId, UserStatus status);
+
+    /**
+     * Find all users for an organization.
+     * Used for sending notifications to organization members.
+     */
+    List<UserEntity> findAllByOrganization_IdAndStatus(UUID organizationId, UserStatus status);
 }

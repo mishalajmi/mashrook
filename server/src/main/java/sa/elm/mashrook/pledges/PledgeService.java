@@ -7,13 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
-import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.InvalidCampaignStateException;
 import sa.elm.mashrook.exceptions.InvalidPledgeStateException;
+import sa.elm.mashrook.exceptions.OrganizationPendingVerificationException;
 import sa.elm.mashrook.exceptions.PledgeAccessDeniedException;
 import sa.elm.mashrook.exceptions.PledgeAlreadyExistsException;
 import sa.elm.mashrook.exceptions.PledgeNotFoundException;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
+import sa.elm.mashrook.organizations.domain.OrganizationStatus;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
 import sa.elm.mashrook.pledges.dto.PledgeCreateRequest;
@@ -37,6 +38,7 @@ public class PledgeService {
     public PledgeResponse createPledge(CampaignEntity campaign,
                                        OrganizationEntity buyerOrg,
                                        PledgeCreateRequest request) {
+        validateOrganizationIsActive(buyerOrg);
         validateCampaignAcceptsPledges(campaign);
         validateNoDuplicatePledge(campaign.getId(), buyerOrg.getId());
 
@@ -47,6 +49,7 @@ public class PledgeService {
         pledge.setStatus(PledgeStatus.PENDING);
 
         PledgeEntity saved = pledgeRepository.save(pledge);
+
         return PledgeResponse.from(saved);
     }
 
@@ -116,9 +119,6 @@ public class PledgeService {
 
     public PledgeListResponse getCampaignPledges(CampaignEntity campaign, Pageable pageable) {
         Page<PledgeEntity> pledges = pledgeRepository.findAllByCampaignId(campaign.getId(), pageable);
-        if (pledges.getSize() <= 0) {
-            throw new PledgeNotFoundException(String.format("Pledge not found for campaign: %s", campaign.getId()));
-        }
         Page<PledgeResponse> responsePage = pledges.map(PledgeResponse::from);
         return PledgeListResponse.from(responsePage);
     }
@@ -127,6 +127,12 @@ public class PledgeService {
         return pledgeRepository.findById(pledgeId)
                 .orElseThrow(() -> new PledgeNotFoundException(
                         String.format("Pledge with id %s not found", pledgeId)));
+    }
+
+    private void validateOrganizationIsActive(OrganizationEntity organization) {
+        if (organization.getStatus() != OrganizationStatus.ACTIVE) {
+            throw new OrganizationPendingVerificationException();
+        }
     }
 
     private void validateCampaignAcceptsPledges(CampaignEntity campaign) {

@@ -66,7 +66,7 @@ public class OrganizationEntity {
         organization.setType(request.type());
         organization.setIndustry(request.industry());
         organization.setSlug(organization.generateSlug());
-        organization.setStatus(OrganizationStatus.INACTIVE);
+        organization.setStatus(OrganizationStatus.PENDING);
         organization.setCreatedAt(LocalDateTime.now());
         return organization;
     }
