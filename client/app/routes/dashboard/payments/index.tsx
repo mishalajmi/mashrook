@@ -10,6 +10,7 @@ import { useNavigate } from "react-router";
 import { Receipt, FileText } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/date";
 import {
 	Table,
 	TableBody,
@@ -67,17 +68,6 @@ const invoiceStatusConfig: Record<
 };
 
 type FilterStatus = InvoiceStatus | "ALL";
-
-/**
- * Format date for display
- */
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-}
 
 /**
  * Format price with currency symbol
