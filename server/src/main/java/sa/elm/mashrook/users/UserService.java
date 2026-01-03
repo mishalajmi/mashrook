@@ -8,9 +8,14 @@ import org.springframework.transaction.annotation.Transactional;
 import sa.elm.mashrook.exceptions.UserAlreadyExistsException;
 import sa.elm.mashrook.exceptions.UserNotFoundException;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
+import sa.elm.mashrook.security.domain.ResourcePermission;
+import sa.elm.mashrook.users.domain.OrganizationRole;
 import sa.elm.mashrook.users.domain.UserEntity;
 import sa.elm.mashrook.users.domain.UserStatus;
+import sa.elm.mashrook.users.dto.TeamMemberCreateRequest;
 import sa.elm.mashrook.users.dto.UserCreateRequest;
+
+import java.time.LocalDateTime;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -42,6 +47,34 @@ public class UserService {
         user.setOrganization(organization);
         user.setPassword(encoder.encode(request.password()));
         userRepository.save(user);
+        return user;
+    }
+
+    @Transactional
+    public UserEntity createTeamMember(TeamMemberCreateRequest request, OrganizationEntity organization) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("An account with this email already exists");
+        }
+
+        UserEntity user = new UserEntity();
+        user.setEmail(request.email());
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setPassword(encoder.encode(request.password()));
+        user.setOrganization(organization);
+        user.setOrganizationRole(OrganizationRole.MEMBER);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setCreatedAt(LocalDateTime.now());
+
+        // Add permissions from invitation
+        for (String permString : request.permissions()) {
+            ResourcePermission perm = ResourcePermission.fromString(permString);
+            user.addResourcePermission(perm, request.grantedBy());
+        }
+
+        user = userRepository.save(user);
+        log.info("Created team member {} for organization {}", user.getId(), organization.getId());
+
         return user;
     }
 

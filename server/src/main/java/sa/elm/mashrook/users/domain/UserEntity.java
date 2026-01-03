@@ -63,6 +63,10 @@ public class UserEntity {
     @Column(name = "status", nullable = false)
     private UserStatus status = UserStatus.INACTIVE;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "organization_role", nullable = false)
+    private OrganizationRole organizationRole = OrganizationRole.MEMBER;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AuthorityEntity> authorities = new HashSet<>();
 
@@ -81,6 +85,7 @@ public class UserEntity {
         user.setLastName(request.lastName());
         user.setUsername(request.firstName().substring(0, 2).toLowerCase() + request.lastName().toLowerCase());
         user.setStatus(UserStatus.INACTIVE);
+        user.setOrganizationRole(OrganizationRole.OWNER);
         user.addRole(request.role(), null);
         user.setCreatedAt(LocalDateTime.now());
         return user;
