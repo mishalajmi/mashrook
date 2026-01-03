@@ -43,6 +43,7 @@ import { campaignService, type CampaignResponse, type BracketRequest, type Campa
 import { pledgeService, type PledgeResponse } from "@/services/pledge.service";
 import type { DiscountBracket, CampaignPledgeSummary, DiscountBracketFormData, CampaignMedia } from "@/types/campaign";
 import { useResourceAuthorities } from "@/hooks/use-authority";
+import { formatDate } from "@/lib/date";
 
 /**
  * Format price with currency symbol
@@ -50,17 +51,6 @@ import { useResourceAuthorities } from "@/hooks/use-authority";
 function formatPrice(price: string): string {
 	const numericPrice = parseFloat(price);
 	return `$${numericPrice.toFixed(2)}`;
-}
-
-/**
- * Format date for display
- */
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
 }
 
 /**

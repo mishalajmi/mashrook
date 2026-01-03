@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/date";
 import {
 	Tooltip,
 	TooltipContent,
@@ -69,17 +70,6 @@ const pledgeStatusConfig: Record<
 };
 
 type FilterTab = "ALL" | PledgeStatus;
-
-/**
- * Format date for display
- */
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-}
 
 /**
  * Format price with currency symbol

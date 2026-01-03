@@ -37,32 +37,7 @@ import type {
 	CampaignPledgeSummary,
 	PledgeFormData,
 } from "@/types/campaign";
-
-/**
- * Format date for display
- */
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString("en-US", {
-		month: "long",
-		day: "numeric",
-		year: "numeric",
-	});
-}
-
-/**
- * Format date with time for display (used for lock date)
- */
-function formatDateWithTime(dateString: string): string {
-	return new Date(dateString).toLocaleDateString("en-US", {
-		weekday: "long",
-		month: "long",
-		day: "numeric",
-		year: "numeric",
-		hour: "numeric",
-		minute: "2-digit",
-		hour12: true,
-	});
-}
+import { formatLongDate, formatDateWithWeekdayAndTime } from "@/lib/date";
 
 /**
  * Convert API bracket response to UI discount bracket type
@@ -362,7 +337,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 							</p>
 							{campaign.gracePeriodEndDate && (
 								<p className="text-sm font-semibold text-amber-800 dark:text-amber-200 mt-1">
-									Locks on: {formatDateWithTime(campaign.gracePeriodEndDate)}
+									Locks on: {formatDateWithWeekdayAndTime(campaign.gracePeriodEndDate)}
 								</p>
 							)}
 						</div>
@@ -439,7 +414,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 								<Calendar className="h-5 w-5 text-muted-foreground" />
 								<div className="text-sm text-muted-foreground">
 									<span className="font-medium text-foreground">Campaign Period:</span>{" "}
-									{formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
+									{formatLongDate(campaign.startDate)} - {formatLongDate(campaign.endDate)}
 								</div>
 							</div>
 						</CardContent>

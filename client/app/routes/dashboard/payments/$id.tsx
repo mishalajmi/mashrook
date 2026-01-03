@@ -11,6 +11,7 @@ import { ArrowLeft, Building2, CreditCard, Copy, Check, Loader2 } from "lucide-r
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
+import { formatLongDateWithWeekday } from "@/lib/date";
 import {
 	Button,
 	Card,
@@ -70,18 +71,6 @@ const invoiceStatusConfig: Record<
 		className: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
 	},
 };
-
-/**
- * Format date for display
- */
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString("en-US", {
-		weekday: "long",
-		month: "long",
-		day: "numeric",
-		year: "numeric",
-	});
-}
 
 /**
  * Format price with currency symbol
@@ -307,13 +296,13 @@ export default function InvoiceDetailPage(): ReactNode {
 							<div>
 								<p className="text-sm text-muted-foreground">Issue Date</p>
 								<p data-testid="invoice-issue-date" className="font-medium">
-									{formatDate(invoice.issueDate)}
+									{formatLongDateWithWeekday(invoice.issueDate)}
 								</p>
 							</div>
 							<div>
 								<p className="text-sm text-muted-foreground">Due Date</p>
 								<p data-testid="invoice-due-date" className="font-medium">
-									{formatDate(invoice.dueDate)}
+									{formatLongDateWithWeekday(invoice.dueDate)}
 								</p>
 							</div>
 						</div>
@@ -323,7 +312,7 @@ export default function InvoiceDetailPage(): ReactNode {
 							<div>
 								<p className="text-sm text-muted-foreground">Paid Date</p>
 								<p data-testid="invoice-paid-date" className="font-medium text-green-600">
-									{formatDate(invoice.paidDate)}
+									{formatLongDateWithWeekday(invoice.paidDate)}
 								</p>
 							</div>
 						)}
