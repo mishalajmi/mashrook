@@ -81,6 +81,7 @@ public enum UserRole {
             ResourcePermission.of(Resource.TEAM, Permission.READ),
             ResourcePermission.of(Resource.TEAM, Permission.WRITE),
             ResourcePermission.of(Resource.TEAM, Permission.UPDATE),
+            ResourcePermission.of(Resource.TEAM, Permission.DELETE),
             // Orders
             ResourcePermission.of(Resource.ORDERS, Permission.READ),
             ResourcePermission.of(Resource.ORDERS, Permission.WRITE),
@@ -114,6 +115,7 @@ public enum UserRole {
             ResourcePermission.of(Resource.TEAM, Permission.READ),
             ResourcePermission.of(Resource.TEAM, Permission.WRITE),
             ResourcePermission.of(Resource.TEAM, Permission.UPDATE),
+            ResourcePermission.of(Resource.TEAM, Permission.DELETE),
             // Products
             ResourcePermission.of(Resource.PRODUCTS, Permission.READ),
             ResourcePermission.of(Resource.PRODUCTS, Permission.WRITE),
@@ -139,22 +141,10 @@ public enum UserRole {
         this.allAccess = allAccess;
     }
 
-    /**
-     * Returns the set of resource permissions for this role.
-     *
-     * @return immutable set of ResourcePermission objects
-     */
     public Set<ResourcePermission> getResourcePermissions() {
         return resourcePermissions;
     }
 
-    /**
-     * Returns the permissions as authority strings.
-     *
-     * <p>For SUPER_ADMIN, returns a set containing only the wildcard "*".</p>
-     *
-     * @return set of permission strings in "RESOURCE:PERMISSION" format
-     */
     public Set<String> getPermissions() {
         if (allAccess) {
             return Set.of("*");
@@ -164,24 +154,10 @@ public enum UserRole {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    /**
-     * Checks if this role has full system access (wildcard permission).
-     *
-     * @return true if this role has all access, false otherwise
-     */
     public boolean hasAllAccess() {
         return allAccess;
     }
 
-    /**
-     * Checks if this role has a specific permission for a resource.
-     *
-     * <p>SUPER_ADMIN always returns true due to wildcard access.</p>
-     *
-     * @param resource the resource to check
-     * @param permission the permission to check
-     * @return true if the role has the specified permission
-     */
     public boolean hasPermission(Resource resource, Permission permission) {
         if (allAccess) {
             return true;

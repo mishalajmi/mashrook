@@ -20,15 +20,6 @@ public record AuthResult(
         String refreshToken,
         long accessExpiresInMs
 ) {
-    /**
-     * Creates an AuthenticationResponse DTO from this result.
-     * <p>
-     * The refresh token is intentionally not included in the response
-     * as it should be set as an HTTP-only cookie instead.
-     * </p>
-     *
-     * @return AuthenticationResponse for the HTTP response body
-     */
     public AuthenticationResponse toResponse() {
         return AuthenticationResponse.of(accessToken, accessExpiresInMs);
     }

@@ -16,56 +16,27 @@ import {
 import {authService, type User, type RegisterRequest, type UserAuthority} from "@/services/auth.service";
 import { getAccessToken, clearTokens } from "@/lib/jwt";
 
-/**
- * Authentication context type definition
- */
 export interface AuthContextType {
-	/** Current authenticated user or null */
 	user: User | null;
-	/** Whether the user is currently authenticated */
 	isAuthenticated: boolean;
-	/** Whether the initial auth check is in progress */
 	isLoading: boolean;
-	/** Login with email and password */
 	login: (email: string, password: string) => Promise<void>;
-	/** Logout the current user */
 	logout: () => Promise<void>;
-	/** Register a new user */
 	register: (data: RegisterRequest) => Promise<void>;
 }
 
-/**
- * Auth context with undefined default value
- * Consumers must be wrapped in AuthProvider
- */
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/**
- * Props for AuthProvider component
- */
 interface AuthProviderProps {
 	children: ReactNode;
 }
 
-/**
- * Authentication Provider Component
- *
- * Wraps the application to provide authentication state and methods.
- * Handles initial auth state hydration from stored tokens.
- */
 export function AuthProvider({ children }: AuthProviderProps) {
 	const [user, setUser] = useState<User | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 
-	/**
-	 * Computed authentication state
-	 */
 	const isAuthenticated = user !== null;
 
-	/**
-	 * Hydrate auth state on mount
-	 * Checks for existing token and fetches user data if available
-	 */
 	useEffect(() => {
 		// SSR guard - only run in browser environment
 		if (typeof window === "undefined") return;
@@ -93,10 +64,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		hydrateAuth();
 	}, []);
 
-	/**
-	 * Login with email and password
-	 * Updates user state on successful login
-	 */
 	const login = useCallback(async (email: string, password: string) => {
 		await authService.login(email, password);
 		// Fetch user data after successful login (token is now stored)
@@ -104,10 +71,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		setUser(currentUser);
 	}, []);
 
-	/**
-	 * Logout the current user
-	 * Clears user state regardless of API success
-	 */
 	const logout = useCallback(async () => {
 		try {
 			await authService.logout();
@@ -118,14 +81,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		}
 	}, []);
 
-	/**
-	 * Register a new user
-	 * Note: Registration doesn't auto-login - user must verify email first
-	 */
+
 	const register = useCallback(async (data: RegisterRequest) => {
 		await authService.register(data);
-		// Registration requires email verification before login
-		// User will be set after they login post-verification
 	}, []);
 
 	const value: AuthContextType = {
@@ -140,12 +98,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-/**
- * Custom hook to access authentication context
- *
- * @throws Error if used outside of AuthProvider
- * @returns AuthContextType with user state and auth methods
- */
 export function useAuth(): AuthContextType {
 	const context = useContext(AuthContext);
 

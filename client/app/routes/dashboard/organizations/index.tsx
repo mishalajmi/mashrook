@@ -10,6 +10,7 @@ import { Building2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/date";
 import {
 	Button,
 	Table,
@@ -58,17 +59,6 @@ const statusConfig: Record<
 };
 
 type StatusFilter = OrganizationStatus | "ALL";
-
-/**
- * Format date for display
- */
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-}
 
 /**
  * OrganizationsPage - Admin organizations management

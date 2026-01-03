@@ -171,6 +171,7 @@ const sidebarItems: NavItem[] = [
         iconName: "Users",
         href: "/dashboard/team",
         priority: 7,
+        authorityResource: "teams",
     },
     {
         id: "user-management",

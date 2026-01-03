@@ -3,9 +3,10 @@
  *
  * Multi-step registration wizard with:
  * - Step 1: Account Information (name, email, password)
- * - Step 2: Organization Details (name, industry, type)
+ * - Step 2: Organization Details (name, industry, type) - Skipped for invitations
  * - Step 3: Review & Submit
  *
+ * Supports invitation mode when `?invitation=xxx` query parameter is present.
  * Uses react-hook-form with zod validation and password strength indicator.
  */
 
@@ -15,16 +16,20 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { Eye, EyeOff, Loader2, CheckCircle2, XCircle, Check, Pencil } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle2, XCircle, Check, Pencil, Building2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/i18n/language-context";
 import { authService } from "@/services/auth.service";
+import { teamService, type InvitationInfo } from "@/services/team.service";
 import { Header } from "@/components/landing/header";
 import {
 	registerSchema,
+	invitationRegisterSchema,
 	getPasswordStrength,
 	type RegisterFormData,
+	type InvitationRegisterFormData,
 } from "@/lib/validations/auth";
 import {
 	Button,
@@ -55,10 +60,15 @@ interface Step {
 	key: "account" | "organization" | "review";
 }
 
-const steps: Step[] = [
+const standardSteps: Step[] = [
 	{ id: 1, key: "account" },
 	{ id: 2, key: "organization" },
 	{ id: 3, key: "review" },
+];
+
+const invitationSteps: Step[] = [
+	{ id: 1, key: "account" },
+	{ id: 2, key: "review" },
 ];
 
 /**
@@ -100,7 +110,7 @@ function StepIndicator({
 								{currentStep > step.id ? (
 									<Check className="h-3 w-3" />
 								) : (
-									step.id
+									index + 1
 								)}
 							</span>
 							<span className="hidden sm:inline">
@@ -186,7 +196,7 @@ function ReviewSection({
 	children,
 }: {
 	title: string;
-	onEdit: () => void;
+	onEdit?: () => void;
 	children: ReactNode;
 }): ReactNode {
 	const { t } = useTranslation();
@@ -195,16 +205,18 @@ function ReviewSection({
 		<div className="space-y-3">
 			<div className="flex items-center justify-between">
 				<h3 className="text-sm font-semibold text-foreground">{title}</h3>
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					onClick={onEdit}
-					className="h-8 text-xs"
-				>
-					<Pencil className="h-3 w-3 me-1" />
-					{t("auth.register.reviewSection.edit")}
-				</Button>
+				{onEdit && (
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						onClick={onEdit}
+						className="h-8 text-xs"
+					>
+						<Pencil className="h-3 w-3 me-1" />
+						{t("auth.register.reviewSection.edit")}
+					</Button>
+				)}
 			</div>
 			<div className="space-y-2 text-sm">{children}</div>
 		</div>
@@ -224,14 +236,57 @@ function ReviewItem({ label, value }: { label: string; value: string }): ReactNo
 }
 
 /**
+ * Organization invitation banner
+ */
+function InvitationBanner({
+	invitationInfo,
+}: {
+	invitationInfo: InvitationInfo;
+}): ReactNode {
+	const { t } = useTranslation();
+
+	return (
+		<div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+			<div className="flex items-start gap-3">
+				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
+					<Building2 className="h-5 w-5" />
+				</div>
+				<div>
+					<p className="font-medium text-foreground">
+						{t("auth.register.invitation.joiningOrg", "You're joining {{organization}}", {
+							organization: invitationInfo.organizationName,
+						})}
+					</p>
+					<p className="text-sm text-muted-foreground">
+						{t("auth.register.invitation.invitedBy", "Invited by {{inviter}}", {
+							inviter: invitationInfo.inviterName,
+						})}
+					</p>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+/**
  * Registration page component
  */
 export default function RegisterPage(): ReactNode {
 	const { t } = useTranslation();
-	const { register } = useAuth();
+	const { register, login } = useAuth();
 	const { isRtl } = useLanguage();
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
+
+	// Invitation state
+	const invitationToken = searchParams.get("invitation");
+	const isInvitationMode = Boolean(invitationToken);
+	const [invitationInfo, setInvitationInfo] = useState<InvitationInfo | null>(null);
+	const [loadingInvitation, setLoadingInvitation] = useState(isInvitationMode);
+	const [invitationError, setInvitationError] = useState<string | null>(null);
+
+	// Determine steps based on mode
+	const steps = isInvitationMode ? invitationSteps : standardSteps;
 
 	const [currentStep, setCurrentStep] = useState(1);
 	const [showPassword, setShowPassword] = useState(false);
@@ -246,6 +301,40 @@ export default function RegisterPage(): ReactNode {
 		const isDarkMode = document.documentElement.classList.contains("dark");
 		setIsDark(isDarkMode);
 	}, []);
+
+	// Fetch invitation info when in invitation mode
+	useEffect(() => {
+		if (invitationToken) {
+			fetchInvitationInfo(invitationToken);
+		}
+	}, [invitationToken]);
+
+	const fetchInvitationInfo = async (token: string) => {
+		try {
+			setLoadingInvitation(true);
+			setInvitationError(null);
+			const info = await teamService.getInvitationInfo(token);
+
+			if (!info.valid) {
+				setInvitationError(t("auth.register.invitation.invalid", "This invitation is no longer valid."));
+				return;
+			}
+
+			if (info.expired) {
+				setInvitationError(t("auth.register.invitation.expired", "This invitation has expired."));
+				return;
+			}
+
+			setInvitationInfo(info);
+			// Pre-fill email in the form
+			form.setValue("ownerEmail", info.email);
+			setEmailCheckStatus("available"); // Email is valid since invitation exists
+		} catch {
+			setInvitationError(t("auth.register.invitation.loadError", "Failed to load invitation details."));
+		} finally {
+			setLoadingInvitation(false);
+		}
+	};
 
 	const handleThemeToggle = useCallback(() => {
 		setIsDark((prev) => {
@@ -262,7 +351,7 @@ export default function RegisterPage(): ReactNode {
 	}, []);
 
 	const form = useForm<RegisterFormData>({
-		resolver: zodResolver(registerSchema),
+		resolver: zodResolver(isInvitationMode ? invitationRegisterSchema : registerSchema),
 		defaultValues: {
 			ownerEmail: "",
 			ownerPassword: "",
@@ -281,16 +370,19 @@ export default function RegisterPage(): ReactNode {
 	const watchEmail = form.watch("ownerEmail");
 	const formValues = form.watch();
 
-	// Pre-fill organization type from URL parameter
+	// Pre-fill organization type from URL parameter (for standard registration)
 	useEffect(() => {
-		const typeParam = searchParams.get("type");
-		if (typeParam === "BUYER" || typeParam === "SUPPLIER") {
-			form.setValue("organizationType", typeParam);
+		if (!isInvitationMode) {
+			const typeParam = searchParams.get("type");
+			if (typeParam === "BUYER" || typeParam === "SUPPLIER") {
+				form.setValue("organizationType", typeParam);
+			}
 		}
-	}, [searchParams, form]);
+	}, [searchParams, form, isInvitationMode]);
 
-	// Debounced email availability check
+	// Debounced email availability check (only for standard registration)
 	const checkEmailAvailability = useCallback(async (email: string) => {
+		if (isInvitationMode) return; // Skip check for invitations
 		if (!email || !email.includes("@")) {
 			setEmailCheckStatus("idle");
 			return;
@@ -311,10 +403,12 @@ export default function RegisterPage(): ReactNode {
 		} catch {
 			setEmailCheckStatus("idle");
 		}
-	}, [form, t]);
+	}, [form, t, isInvitationMode]);
 
 	// Debounce email check
 	useEffect(() => {
+		if (isInvitationMode) return; // Skip for invitations
+
 		const timeoutId = setTimeout(() => {
 			if (watchEmail && watchEmail.includes("@")) {
 				checkEmailAvailability(watchEmail);
@@ -322,27 +416,35 @@ export default function RegisterPage(): ReactNode {
 		}, 500);
 
 		return () => clearTimeout(timeoutId);
-	}, [watchEmail, checkEmailAvailability]);
+	}, [watchEmail, checkEmailAvailability, isInvitationMode]);
 
 	// Validate current step fields
 	const validateStep = async (step: number): Promise<boolean> => {
 		let fieldsToValidate: (keyof RegisterFormData)[] = [];
 
-		switch (step) {
-			case 1:
+		if (isInvitationMode) {
+			// For invitations: step 1 = account, step 2 = review
+			if (step === 1) {
 				fieldsToValidate = ["ownerFirstName", "ownerLastName", "ownerEmail", "ownerPassword", "ownerConfirmPassword"];
-				break;
-			case 2:
-				fieldsToValidate = ["organizationNameEn", "organizationNameAr", "organizationIndustry", "organizationType"];
-				break;
-			default:
-				return true;
+			}
+		} else {
+			// Standard registration
+			switch (step) {
+				case 1:
+					fieldsToValidate = ["ownerFirstName", "ownerLastName", "ownerEmail", "ownerPassword", "ownerConfirmPassword"];
+					break;
+				case 2:
+					fieldsToValidate = ["organizationNameEn", "organizationNameAr", "organizationIndustry", "organizationType"];
+					break;
+				default:
+					return true;
+			}
 		}
 
 		const result = await form.trigger(fieldsToValidate);
 
-		// Additional check for email availability on step 1
-		if (step === 1 && emailCheckStatus === "taken") {
+		// Additional check for email availability on step 1 (only for standard registration)
+		if (step === 1 && !isInvitationMode && emailCheckStatus === "taken") {
 			return false;
 		}
 
@@ -384,33 +486,106 @@ export default function RegisterPage(): ReactNode {
 
 		const data = form.getValues();
 
-		if (emailCheckStatus === "taken") {
+		if (!isInvitationMode && emailCheckStatus === "taken") {
 			setError(t("auth.register.emailTaken"));
 			return;
 		}
+
 		setIsSubmitting(true);
 		setError(null);
 
 		try {
-			await register({
-				email: data.ownerEmail,
-				password: data.ownerPassword,
-				firstName: data.ownerFirstName,
-				lastName: data.ownerLastName,
-				organizationNameAr: data.organizationNameAr,
-				organizationNameEn: data.organizationNameEn,
-				organizationIndustry: data.organizationIndustry,
-				organizationType: data.organizationType,
-			});
-			navigate("/dashboard");
-		} catch {
-			setError(t("auth.register.error"));
+			if (isInvitationMode && invitationToken && invitationInfo) {
+				// Accept invitation flow
+				await teamService.acceptInvitation({
+					token: invitationToken,
+					firstName: data.ownerFirstName,
+					lastName: data.ownerLastName,
+					password: data.ownerPassword,
+				});
+
+				// Log the user in with their credentials
+				await login(invitationInfo.email, data.ownerPassword);
+				toast.success(t("auth.register.invitation.success", "Welcome to the team!"));
+				navigate("/dashboard");
+			} else {
+				// Standard registration flow
+				await register({
+					email: data.ownerEmail,
+					password: data.ownerPassword,
+					firstName: data.ownerFirstName,
+					lastName: data.ownerLastName,
+					organizationNameAr: data.organizationNameAr,
+					organizationNameEn: data.organizationNameEn,
+					organizationIndustry: data.organizationIndustry,
+					organizationType: data.organizationType,
+				});
+				navigate("/dashboard");
+			}
+		} catch (err) {
+			const message = err instanceof Error ? err.message : t("auth.register.error");
+			setError(message);
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
-	const getCurrentStepKey = () => steps.find(s => s.id === currentStep)?.key || "account";
+	const getCurrentStepKey = () => {
+		const step = steps.find(s => s.id === currentStep);
+		return step?.key || "account";
+	};
+
+	// Loading state for invitation
+	if (loadingInvitation) {
+		return (
+			<div
+				className="min-h-screen flex flex-col bg-background"
+				dir={isRtl ? "rtl" : "ltr"}
+			>
+				<Header isDark={isDark} onThemeToggle={handleThemeToggle} />
+				<div className="flex-1 flex items-center justify-center px-4 py-12 pt-24">
+					<Card className="w-full max-w-lg">
+						<CardContent className="flex flex-col items-center justify-center py-12">
+							<Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+							<p className="text-muted-foreground">
+								{t("auth.register.invitation.loading", "Loading invitation details...")}
+							</p>
+						</CardContent>
+					</Card>
+				</div>
+			</div>
+		);
+	}
+
+	// Error state for invitation
+	if (invitationError) {
+		return (
+			<div
+				className="min-h-screen flex flex-col bg-background"
+				dir={isRtl ? "rtl" : "ltr"}
+			>
+				<Header isDark={isDark} onThemeToggle={handleThemeToggle} />
+				<div className="flex-1 flex items-center justify-center px-4 py-12 pt-24">
+					<Card className="w-full max-w-lg">
+						<CardContent className="flex flex-col items-center justify-center py-12">
+							<div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive mb-4">
+								<AlertCircle className="h-6 w-6" />
+							</div>
+							<h2 className="text-lg font-semibold mb-2">
+								{t("auth.register.invitation.errorTitle", "Invalid Invitation")}
+							</h2>
+							<p className="text-muted-foreground text-center mb-6">
+								{invitationError}
+							</p>
+							<Button asChild>
+								<Link to="/login">{t("auth.register.login")}</Link>
+							</Button>
+						</CardContent>
+					</Card>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div
@@ -422,14 +597,23 @@ export default function RegisterPage(): ReactNode {
 				<Card className="w-full max-w-lg">
 					<CardHeader className="space-y-1 text-center">
 						<CardTitle className="text-2xl font-bold">
-							{t(`auth.register.stepTitles.${getCurrentStepKey()}`)}
+							{isInvitationMode
+								? t("auth.register.invitation.title", "Complete Your Registration")
+								: t(`auth.register.stepTitles.${getCurrentStepKey()}`)}
 						</CardTitle>
 						<CardDescription>
-							{t(`auth.register.stepDescriptions.${getCurrentStepKey()}`)}
+							{isInvitationMode
+								? t("auth.register.invitation.subtitle", "Enter your details to join the team")
+								: t(`auth.register.stepDescriptions.${getCurrentStepKey()}`)}
 						</CardDescription>
 					</CardHeader>
 
 					<CardContent>
+						{/* Invitation Banner */}
+						{isInvitationMode && invitationInfo && (
+							<InvitationBanner invitationInfo={invitationInfo} />
+						)}
+
 						{/* Step Indicator */}
 						<StepIndicator steps={steps} currentStep={currentStep} t={t} />
 
@@ -499,10 +683,11 @@ export default function RegisterPage(): ReactNode {
 																placeholder="name@example.com"
 																autoComplete="email"
 																className="pe-10"
+																disabled={isInvitationMode}
 																{...field}
 															/>
 														</FormControl>
-														{emailCheckStatus === "checking" && (
+														{!isInvitationMode && emailCheckStatus === "checking" && (
 															<div className="absolute end-0 top-0 h-full flex items-center px-3">
 																<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
 															</div>
@@ -512,20 +697,25 @@ export default function RegisterPage(): ReactNode {
 																<CheckCircle2 className="h-4 w-4 text-green-500" />
 															</div>
 														)}
-														{emailCheckStatus === "taken" && (
+														{!isInvitationMode && emailCheckStatus === "taken" && (
 															<div className="absolute end-0 top-0 h-full flex items-center px-3">
 																<XCircle className="h-4 w-4 text-destructive" />
 															</div>
 														)}
 													</div>
-													{emailCheckStatus === "checking" && (
+													{!isInvitationMode && emailCheckStatus === "checking" && (
 														<p className="text-xs text-muted-foreground">
 															{t("auth.register.checkingEmail")}
 														</p>
 													)}
-													{emailCheckStatus === "available" && (
+													{!isInvitationMode && emailCheckStatus === "available" && (
 														<p className="text-xs text-green-600">
 															{t("auth.register.emailAvailable")}
+														</p>
+													)}
+													{isInvitationMode && (
+														<p className="text-xs text-muted-foreground">
+															{t("auth.register.invitation.emailLocked", "Email is set from your invitation")}
 														</p>
 													)}
 													<FormMessage />
@@ -616,8 +806,8 @@ export default function RegisterPage(): ReactNode {
 									</>
 								)}
 
-								{/* Step 2: Organization Information */}
-								{currentStep === 2 && (
+								{/* Step 2: Organization Information (Standard registration only) */}
+								{!isInvitationMode && currentStep === 2 && (
 									<>
 										<FormField
 											control={form.control}
@@ -711,8 +901,8 @@ export default function RegisterPage(): ReactNode {
 									</>
 								)}
 
-								{/* Step 3: Review & Submit */}
-								{currentStep === 3 && (
+								{/* Review Step */}
+								{((isInvitationMode && currentStep === 2) || (!isInvitationMode && currentStep === 3)) && (
 									<div className="space-y-6">
 										<ReviewSection
 											title={t("auth.register.reviewSection.accountInfo")}
@@ -736,29 +926,54 @@ export default function RegisterPage(): ReactNode {
 											/>
 										</ReviewSection>
 
-										<Separator />
+										{!isInvitationMode && (
+											<>
+												<Separator />
 
-										<ReviewSection
-											title={t("auth.register.reviewSection.orgInfo")}
-											onEdit={() => goToStep(2)}
-										>
-											<ReviewItem
-												label={t("auth.register.organizationNameEn")}
-												value={formValues.organizationNameEn}
-											/>
-											<ReviewItem
-												label={t("auth.register.organizationNameAr")}
-												value={formValues.organizationNameAr}
-											/>
-											<ReviewItem
-												label={t("auth.register.organizationIndustry")}
-												value={formValues.organizationIndustry}
-											/>
-											<ReviewItem
-												label={t("auth.register.organizationType")}
-												value={formValues.organizationType ? t(`auth.register.${formValues.organizationType.toLowerCase()}`) : ""}
-											/>
-										</ReviewSection>
+												<ReviewSection
+													title={t("auth.register.reviewSection.orgInfo")}
+													onEdit={() => goToStep(2)}
+												>
+													<ReviewItem
+														label={t("auth.register.organizationNameEn")}
+														value={formValues.organizationNameEn}
+													/>
+													<ReviewItem
+														label={t("auth.register.organizationNameAr")}
+														value={formValues.organizationNameAr}
+													/>
+													<ReviewItem
+														label={t("auth.register.organizationIndustry")}
+														value={formValues.organizationIndustry}
+													/>
+													<ReviewItem
+														label={t("auth.register.organizationType")}
+														value={formValues.organizationType ? t(`auth.register.${formValues.organizationType.toLowerCase()}`) : ""}
+													/>
+												</ReviewSection>
+											</>
+										)}
+
+										{isInvitationMode && invitationInfo && (
+											<>
+												<Separator />
+
+												<ReviewSection
+													title={t("auth.register.reviewSection.orgInfo")}
+												>
+													<ReviewItem
+														label={t("auth.register.organizationName")}
+														value={invitationInfo.organizationName}
+													/>
+													<ReviewItem
+														label={t("auth.register.organizationType")}
+														value={invitationInfo.organizationType === "BUYER"
+															? t("auth.register.buyer")
+															: t("auth.register.supplier")}
+													/>
+												</ReviewSection>
+											</>
+										)}
 									</div>
 								)}
 
@@ -796,6 +1011,8 @@ export default function RegisterPage(): ReactNode {
 														<Loader2 className="me-2 h-4 w-4 animate-spin" />
 														{t("auth.register.submitting")}
 													</>
+												) : isInvitationMode ? (
+													t("auth.register.invitation.joinTeam", "Join Team")
 												) : (
 													t("auth.register.submit")
 												)}

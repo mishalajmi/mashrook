@@ -93,6 +93,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/v1/auth/resend-activation").permitAll()
                         // Public campaign discovery endpoints
                         .requestMatchers(HttpMethod.GET, "/v1/campaigns/public/**").permitAll()
+                        // Team invitation public endpoints
+                        .requestMatchers(HttpMethod.GET, "/v1/team/invitation-info").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/team/accept").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

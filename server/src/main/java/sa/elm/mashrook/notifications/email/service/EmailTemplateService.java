@@ -21,6 +21,7 @@ import sa.elm.mashrook.notifications.email.dto.PasswordResetEmail;
 import sa.elm.mashrook.notifications.email.dto.PaymentReceivedEmail;
 import sa.elm.mashrook.notifications.email.dto.PaymentReminderEmail;
 import sa.elm.mashrook.notifications.email.dto.PledgeConfirmedEmail;
+import sa.elm.mashrook.notifications.email.dto.TeamInvitationEmail;
 import sa.elm.mashrook.notifications.email.dto.WelcomeEmail;
 
 /**
@@ -164,6 +165,12 @@ public class EmailTemplateService {
             case OrganizationVerifiedEmail verified -> {
                 context.setVariable("recipientName", verified.recipientName());
                 context.setVariable("organizationName", verified.organizationName());
+            }
+            case TeamInvitationEmail invitation -> {
+                context.setVariable("organizationName", invitation.organizationName());
+                context.setVariable("inviterName", invitation.inviterName());
+                context.setVariable("invitationLink", invitation.invitationLink());
+                context.setVariable("expirationDays", invitation.expirationDays());
             }
             default -> {
                 log.warn("Unknown email notification type: {}", notification.getClass().getName());

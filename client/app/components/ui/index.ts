@@ -24,6 +24,7 @@ export {
 export { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 export { Badge, badgeVariants } from "./badge";
 export { Button, buttonVariants } from "./button";
+export { Checkbox } from "./checkbox";
 export {
 	Card,
 	CardHeader,
