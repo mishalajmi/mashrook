@@ -40,14 +40,7 @@ server:
 
 logging:
   level:
-    root: info
-    org.thymeleaf: DEBUG
-    org.thymeleaf.TemplateEngine: DEBUG
-    org.springframework.boot.autoconfigure.thymeleaf: DEBUG
-    sa:
-      elm:
-        mashrook:
-          auth: info
+    root: ${LOG_LEVEL:info}
 
 springdoc:
   api-docs:
