@@ -1,14 +1,15 @@
 CREATE TABLE IF NOT EXISTS users (
-    id              UUID                      PRIMARY KEY DEFAULT uuidv7(),
-    organization_id UUID            NOT NULL,
-    first_name      VARCHAR(255)    NOT NULL,
-    last_name       VARCHAR(255)    NOT NULL,
-    username        VARCHAR(255)    NOT NULL,
-    email           VARCHAR(255)    NOT NULL,
-    password        VARCHAR(255)    NOT NULL,
-    status          VARCHAR(255)    NOT NULL DEFAULT 'INACTIVE',
-    created_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP,
+    id                  UUID            PRIMARY KEY DEFAULT uuidv7(),
+    organization_id     UUID            NOT NULL,
+    first_name          VARCHAR(255)    NOT NULL,
+    last_name           VARCHAR(255)    NOT NULL,
+    username            VARCHAR(255)    NOT NULL,
+    email               VARCHAR(255)    NOT NULL,
+    password            VARCHAR(255)    NOT NULL,
+    status              VARCHAR(255)    NOT NULL DEFAULT 'INACTIVE',
+    organization_role   VARCHAR(50)     NOT NULL DEFAULT 'MEMBER',
+    created_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP,
 
     CONSTRAINT fk_users_organization_id
     FOREIGN KEY (organization_id)
