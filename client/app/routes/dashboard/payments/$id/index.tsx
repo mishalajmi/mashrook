@@ -324,13 +324,31 @@ export default function InvoiceDetailPage(): ReactNode {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						{/* Due Date */}
-						<div>
-							<p className="text-sm text-muted-foreground">Due Date</p>
-							<p data-testid="invoice-due-date" className="font-medium">
-								{formatLongDateWithWeekday(invoice.dueDate)}
-							</p>
+						{/* Dates */}
+						<div className="grid gap-4 sm:grid-cols-2">
+							<div>
+								<p className="text-sm text-muted-foreground">Issue Date</p>
+								<p data-testid="invoice-issue-date" className="font-medium">
+									{formatLongDateWithWeekday(invoice.issueDate)}
+								</p>
+							</div>
+							<div>
+								<p className="text-sm text-muted-foreground">Due Date</p>
+								<p data-testid="invoice-due-date" className="font-medium">
+									{formatLongDateWithWeekday(invoice.dueDate)}
+								</p>
+							</div>
 						</div>
+
+						{/* Paid Date (if paid) */}
+						{invoice.paidDate && (
+							<div>
+								<p className="text-sm text-muted-foreground">Paid Date</p>
+								<p data-testid="invoice-paid-date" className="font-medium text-green-600">
+									{formatLongDateWithWeekday(invoice.paidDate)}
+								</p>
+							</div>
+						)}
 
 						<Separator />
 
