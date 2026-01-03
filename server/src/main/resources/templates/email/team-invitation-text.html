@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<pre th:inline="text">
+You're Invited to Join a Team on Mashrook
+==========================================
+
+Hello,
+
+[[${inviterName}]] has invited you to join their team at [[${organizationName}]] on Mashrook.
+
+Organization: [[${organizationName}]]
+Invited by: [[${inviterName}]]
+
+To accept this invitation and create your account, click the link below:
+
+[[${invitationLink}]]
+
+IMPORTANT: This invitation will expire in [[${expirationDays}]] days.
+
+If you did not expect this invitation, you can safely ignore this email.
+
+---
+Mashrook - B2B Cooperative Procurement Platform
+</pre>
+</body>
+</html>

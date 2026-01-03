@@ -15,6 +15,7 @@ public sealed interface EmailNotification permits
         PaymentReceivedEmail,
         PaymentReminderEmail,
         PledgeConfirmedEmail,
+        TeamInvitationEmail,
         WelcomeEmail {
 
     String recipientEmail();

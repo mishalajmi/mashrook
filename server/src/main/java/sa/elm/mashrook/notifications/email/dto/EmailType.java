@@ -11,7 +11,8 @@ public enum EmailType {
     ACCOUNT_ACTIVATION("account-activation", "Activate Your Mashrook Account"),
     PASSWORD_RESET("password-reset", "Reset Your Mashrook Password"),
     WELCOME("welcome", "Welcome to Mashrook!"),
-    ORGANIZATION_VERIFIED("organization-verified", "Your Organization Has Been Verified");
+    ORGANIZATION_VERIFIED("organization-verified", "Your Organization Has Been Verified"),
+    TEAM_INVITATION("team-invitation", "You've Been Invited to Join a Team on Mashrook");
 
     private final String templateName;
     private final String subject;
