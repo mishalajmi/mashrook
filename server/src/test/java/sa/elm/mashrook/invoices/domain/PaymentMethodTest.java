@@ -39,9 +39,16 @@ class PaymentMethodTest {
         }
 
         @Test
-        @DisplayName("should have exactly 3 payment methods")
-        void shouldHaveExactlyThreePaymentMethods() {
-            assertThat(PaymentMethod.values()).hasSize(3);
+        @DisplayName("should have PAYMENT_GATEWAY method")
+        void shouldHavePaymentGatewayMethod() {
+            assertThat(PaymentMethod.PAYMENT_GATEWAY).isNotNull();
+            assertThat(PaymentMethod.PAYMENT_GATEWAY.getValue()).isEqualTo("payment_gateway");
+        }
+
+        @Test
+        @DisplayName("should have exactly 4 payment methods")
+        void shouldHaveExactlyFourPaymentMethods() {
+            assertThat(PaymentMethod.values()).hasSize(4);
         }
     }
 
@@ -68,6 +75,13 @@ class PaymentMethodTest {
         @DisplayName("should find CHECK method case-insensitively")
         void shouldFindCheckMethodCaseInsensitively(String value) {
             assertThat(PaymentMethod.fromValue(value)).isEqualTo(PaymentMethod.CHECK);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"payment_gateway", "PAYMENT_GATEWAY", "Payment_Gateway"})
+        @DisplayName("should find PAYMENT_GATEWAY method case-insensitively")
+        void shouldFindPaymentGatewayMethodCaseInsensitively(String value) {
+            assertThat(PaymentMethod.fromValue(value)).isEqualTo(PaymentMethod.PAYMENT_GATEWAY);
         }
 
         @Test
