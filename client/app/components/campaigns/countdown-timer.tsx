@@ -151,15 +151,15 @@ export function CountdownTimer({
 
 	// Determine styling based on grace period mode
 	const valueClass = isGracePeriod
-		? "text-3xl sm:text-4xl font-bold text-amber-600 dark:text-amber-500 tabular-nums"
+		? "text-3xl sm:text-4xl font-bold text-[var(--color-alert-warning-text)] tabular-nums"
 		: "text-2xl font-bold text-foreground tabular-nums";
 
 	const separatorClass = isGracePeriod
-		? "text-2xl sm:text-3xl text-amber-500 dark:text-amber-400"
+		? "text-2xl sm:text-3xl text-[var(--color-alert-warning-icon)]"
 		: "text-xl text-muted-foreground";
 
 	const labelClass = isGracePeriod
-		? "text-xs sm:text-sm text-amber-700 dark:text-amber-300 font-medium"
+		? "text-xs sm:text-sm text-[var(--color-alert-warning-text-muted)] font-medium"
 		: "text-xs text-muted-foreground";
 
 	return (
@@ -168,13 +168,13 @@ export function CountdownTimer({
 			data-grace-period={isGracePeriod ? "true" : undefined}
 			className={cn(
 				"flex flex-col items-center gap-3",
-				isGracePeriod && "p-4 bg-amber-50/50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800",
+				isGracePeriod && "p-4 rounded-lg border bg-[var(--color-alert-warning-bg)] border-[var(--color-alert-warning-border)]",
 				className
 			)}
 		>
 			{/* Grace Period Label */}
 			{isGracePeriod && (
-				<span className="text-sm font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide animate-pulse">
+				<span className="text-sm font-semibold text-[var(--color-alert-warning-text)] uppercase tracking-wide animate-pulse">
 					Final commitment window
 				</span>
 			)}

@@ -389,20 +389,20 @@ export default function PublicCampaignDetailPage(): ReactNode {
 			{isGracePeriod && (
 				<div
 					data-testid="grace-period-banner"
-					className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800"
+					className="border-b bg-[var(--color-alert-warning-bg)] border-[var(--color-alert-warning-border)]"
 				>
 					<div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
 						<div className="flex items-center gap-3">
-							<Clock className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+							<Clock className="h-5 w-5 text-[var(--color-alert-warning-icon)] flex-shrink-0" />
 							<div className="flex-1">
-								<p className="font-medium text-amber-800 dark:text-amber-200">
+								<p className="font-medium text-[var(--color-alert-warning-text)]">
 									Final Commitment Window - Campaign locks soon
 								</p>
-								<p className="text-sm text-amber-700 dark:text-amber-300">
+								<p className="text-sm text-[var(--color-alert-warning-text-muted)]">
 									The pledge period has ended. New commitments accepted until final lock.
 								</p>
 								{campaign.gracePeriodEndDate && (
-									<p className="text-sm font-semibold text-amber-800 dark:text-amber-200 mt-1">
+									<p className="text-sm font-semibold text-[var(--color-alert-warning-text)] mt-1">
 										Locks on: {formatDateWithWeekdayAndTime(campaign.gracePeriodEndDate)}
 									</p>
 								)}
@@ -449,24 +449,25 @@ export default function PublicCampaignDetailPage(): ReactNode {
 
 						{/* What happens when locked - shown only during grace period */}
 						{isGracePeriod && (
-							<Card data-testid="lock-info-box" className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
-								<CardContent className="pt-6">
-									<div className="flex gap-3">
-										<Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-										<div className="space-y-2">
-											<p className="font-medium text-blue-900 dark:text-blue-100">
-												What happens when the campaign locks?
-											</p>
-											<ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
-												<li>Final pricing is confirmed based on total pledged quantity</li>
-												<li>Invoices are generated for all committed participants</li>
-												<li>Payment collection begins for confirmed orders</li>
-												<li>No new pledges can be accepted after lock</li>
-											</ul>
-										</div>
+							<div
+								data-testid="lock-info-box"
+								className="rounded-lg border p-6 bg-[var(--color-alert-info-bg)] border-[var(--color-alert-info-border)]"
+							>
+								<div className="flex gap-3">
+									<Info className="h-5 w-5 text-[var(--color-alert-info-icon)] flex-shrink-0 mt-0.5" />
+									<div className="space-y-2">
+										<p className="font-medium text-[var(--color-alert-info-text)]">
+											What happens when the campaign locks?
+										</p>
+										<ul className="text-sm text-[var(--color-alert-info-text-muted)] space-y-1 list-disc list-inside">
+											<li>Final pricing is confirmed based on total pledged quantity</li>
+											<li>Invoices are generated for all committed participants</li>
+											<li>Payment collection begins for confirmed orders</li>
+											<li>No new pledges can be accepted after lock</li>
+										</ul>
 									</div>
-								</CardContent>
-							</Card>
+								</div>
+							</div>
 						)}
 
 						{/* Product Details */}

@@ -18,6 +18,7 @@ import {
 	CardTitle,
 	LoadingState,
 } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
 	CampaignStatusBadge,
@@ -324,19 +325,19 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 			{isGracePeriod && (
 				<div
 					data-testid="grace-period-banner"
-					className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4"
+					className="rounded-lg border p-4 bg-amber-50 border-amber-500 dark:bg-amber-100 dark:border-amber-600"
 				>
 					<div className="flex items-center gap-3">
-						<Clock className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+						<Clock className="h-5 w-5 text-amber-600 dark:!text-amber-700 flex-shrink-0" />
 						<div className="flex-1">
-							<p className="font-medium text-amber-800 dark:text-amber-200">
+							<p className="font-medium text-amber-900 dark:!text-amber-900">
 								Final Commitment Window - Campaign locks soon
 							</p>
-							<p className="text-sm text-amber-700 dark:text-amber-300">
+							<p className="text-sm text-amber-800 dark:!text-amber-800">
 								The pledge period has ended. New commitments accepted until final lock.
 							</p>
 							{campaign.gracePeriodEndDate && (
-								<p className="text-sm font-semibold text-amber-800 dark:text-amber-200 mt-1">
+								<p className="text-sm font-semibold text-amber-900 dark:!text-amber-900 mt-1">
 									Locks on: {formatDateWithWeekdayAndTime(campaign.gracePeriodEndDate)}
 								</p>
 							)}
@@ -361,9 +362,9 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 					</div>
 
 					{/* Countdown Timer */}
-					<Card className={isGracePeriod ? "border-amber-400 dark:border-amber-500" : ""}>
+					<Card className={isGracePeriod ? "border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/60 dark:border-amber-600" : ""}>
 						<CardHeader>
-							<CardTitle className="text-lg">
+							<CardTitle className={cn("text-lg", isGracePeriod && "text-amber-900 dark:text-amber-100")}>
 								{isGracePeriod ? "Grace Period Ends In" : "Time Remaining"}
 							</CardTitle>
 						</CardHeader>
@@ -374,27 +375,25 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 
 					{/* What happens when locked - shown only during grace period */}
 					{isGracePeriod && (
-						<Card
+						<div
 							data-testid="lock-info-box"
-							className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20"
+							className="rounded-lg border p-6 bg-slate-100 border-slate-500 dark:bg-sky-100 dark:border-sky-600"
 						>
-							<CardContent className="pt-6">
-								<div className="flex gap-3">
-									<Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-									<div className="space-y-2">
-										<p className="font-medium text-blue-900 dark:text-blue-100">
-											What happens when the campaign locks?
-										</p>
-										<ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
-											<li>Final pricing is confirmed based on total pledged quantity</li>
-											<li>Invoices are generated for all committed participants</li>
-											<li>Payment collection begins for confirmed orders</li>
-											<li>No new pledges can be accepted after lock</li>
-										</ul>
-									</div>
+							<div className="flex gap-3">
+								<Info className="h-5 w-5 text-blue-600 dark:!text-sky-700 flex-shrink-0 mt-0.5" />
+								<div className="space-y-2">
+									<p className="font-medium text-slate-900 dark:!text-sky-900">
+										What happens when the campaign locks?
+									</p>
+									<ul className="text-sm text-slate-700 dark:!text-sky-800 space-y-1 list-disc list-inside">
+										<li>Final pricing is confirmed based on total pledged quantity</li>
+										<li>Invoices are generated for all committed participants</li>
+										<li>Payment collection begins for confirmed orders</li>
+										<li>No new pledges can be accepted after lock</li>
+									</ul>
 								</div>
-							</CardContent>
-						</Card>
+							</div>
+						</div>
 					)}
 
 					{/* Product Details */}

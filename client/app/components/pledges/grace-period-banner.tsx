@@ -105,21 +105,21 @@ export function GracePeriodBanner({
 			role="alert"
 			className={cn(
 				"flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
-				"rounded-lg border border-amber-200 bg-amber-50 p-4",
-				"dark:border-amber-800 dark:bg-amber-950",
+				"rounded-lg border p-4",
+				"bg-[var(--color-alert-warning-bg)] border-[var(--color-alert-warning-border)]",
 				className
 			)}
 		>
 			<div className="flex items-start gap-3">
 				<AlertTriangle
 					data-testid="grace-period-icon"
-					className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"
+					className="h-5 w-5 text-[var(--color-alert-warning-icon)] shrink-0 mt-0.5"
 				/>
 				<div className="space-y-1">
-					<p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+					<p className="text-sm font-medium text-[var(--color-alert-warning-text)]">
 						{pledgeText}
 					</p>
-					<p className="text-sm text-amber-700 dark:text-amber-300">
+					<p className="text-sm text-[var(--color-alert-warning-text-muted)]">
 						Grace period ends in{" "}
 						<span
 							data-testid="grace-period-countdown"
@@ -134,7 +134,7 @@ export function GracePeriodBanner({
 				variant="outline"
 				size="sm"
 				onClick={onViewPending}
-				className="border-amber-300 bg-amber-100 text-amber-800 hover:bg-amber-200 hover:text-amber-900 dark:border-amber-700 dark:bg-amber-900 dark:text-amber-200 dark:hover:bg-amber-800"
+				className="border-[var(--color-alert-warning-border)] bg-[var(--color-alert-warning-bg)] text-[var(--color-alert-warning-text)] hover:opacity-80"
 			>
 				View Pending Confirmations
 			</Button>

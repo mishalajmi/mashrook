@@ -192,7 +192,7 @@ public class CampaignService {
 
     @Transactional(readOnly = true)
     public CampaignListResponse findActiveCampaigns(String search, UUID supplierId, Pageable pageable) {
-        List<CampaignEntity> activeCampaigns = campaignRepository.findAllByStatus(CampaignStatus.ACTIVE);
+        List<CampaignEntity> activeCampaigns = campaignRepository.findAllByStatus(CampaignStatus.GRACE_PERIOD);
 
         List<CampaignEntity> filtered = activeCampaigns.stream()
                 .filter(campaign -> filterBySearch(campaign, search))

@@ -46,9 +46,9 @@ const statusConfig: Record<CampaignStatus, StatusConfig> = {
 	},
 	grace_period: {
 		label: "Final Window",
-		styles: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+		styles: "bg-amber-600 text-white dark:bg-amber-900/40 dark:text-amber-300",
 		showDot: true,
-		dotStyles: "bg-amber-500",
+		dotStyles: "bg-white dark:bg-amber-600",
 		animated: true,
 	},
 	locked: {

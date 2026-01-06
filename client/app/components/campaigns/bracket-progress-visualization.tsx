@@ -191,7 +191,7 @@ export function BracketProgressVisualization({
 								className={cn(
 									"flex items-center gap-4 p-4 rounded-lg border transition-colors",
 									isCurrent && "border-primary bg-primary/5",
-									isAchieved && "border-green-500/30 bg-green-50/50 dark:bg-green-950/20",
+									isAchieved && "border-teal-800 bg-teal-700 dark:border-teal-800 dark:bg-teal-950/20",
 									isLocked && "border-border bg-muted/30"
 								)}
 							>
@@ -200,7 +200,7 @@ export function BracketProgressVisualization({
 									className={cn(
 										"flex items-center justify-center w-10 h-10 rounded-full shrink-0",
 										isCurrent && "bg-primary text-primary-foreground",
-										isAchieved && "bg-green-500 text-white",
+										isAchieved && "bg-white text-teal-700 dark:bg-teal-500 dark:text-white",
 										isLocked && "bg-muted text-muted-foreground"
 									)}
 								>
@@ -230,7 +230,7 @@ export function BracketProgressVisualization({
 											className={cn(
 												"font-semibold",
 												isCurrent && "text-primary",
-												isAchieved && "text-green-600 dark:text-green-400",
+												isAchieved && "text-white dark:text-teal-400",
 												isLocked && "text-muted-foreground"
 											)}
 										>
@@ -242,7 +242,10 @@ export function BracketProgressVisualization({
 											</span>
 										)}
 									</div>
-									<span className="text-sm text-muted-foreground">
+									<span className={cn(
+										"text-sm",
+										isAchieved ? "text-white/80 dark:text-muted-foreground" : "text-muted-foreground"
+									)}>
 										{formatQuantityRange(bracket)}
 									</span>
 								</div>
