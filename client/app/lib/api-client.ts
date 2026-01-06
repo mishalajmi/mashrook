@@ -155,12 +155,15 @@ function transformError(error: unknown, defaultMessage: string): ApiError {
 
 /**
  * Parse error response body
+ * Supports both standard error format (message) and RFC 7807 ProblemDetail format (detail)
  */
 async function parseErrorResponse(response: Response): Promise<{ message: string; code?: string }> {
 	try {
 		const data = await response.json();
+		// Support both standard error format (message) and RFC 7807 ProblemDetail format (detail)
+		const message = data.message || data.detail || response.statusText || "An error occurred";
 		return {
-			message: data.message || response.statusText,
+			message,
 			code: data.code,
 		};
 	} catch {
