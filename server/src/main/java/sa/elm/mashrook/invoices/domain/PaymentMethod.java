@@ -1,12 +1,10 @@
 package sa.elm.mashrook.invoices.domain;
 
-/**
- * Represents the method used for payment collection.
- */
 public enum PaymentMethod {
     BANK_TRANSFER("bank_transfer"),
     CASH("cash"),
-    CHECK("check");
+    CHECK("check"),
+    PAYMENT_GATEWAY("payment_gateway");
 
     private final String value;
 

@@ -4,6 +4,7 @@ public enum EmailType {
     INVOICE_GENERATED("invoice-generated", "Your Invoice from Mashrook Campaign"),
     PAYMENT_REMINDER("payment-reminder", "Payment Reminder: Invoice Due Soon"),
     PAYMENT_RECEIVED("payment-received", "Payment Confirmation - Thank You"),
+    PAYMENT_FAILED("payment-failed", "Action Required: Your Payment Needs Attention"),
     CAMPAIGN_LOCKED("campaign-locked", "Campaign Locked - Your Final Order Details"),
     CAMPAIGN_PUBLISHED("campaign-published", "New Campaign Available on Mashrook"),
     PLEDGE_CONFIRMED("pledge-confirmed", "Your Pledge Has Been Confirmed"),

@@ -168,7 +168,7 @@ public class PledgeService {
 
     private void validateOrganizationIsActive(OrganizationEntity organization) {
         if (organization.getStatus() != OrganizationStatus.ACTIVE) {
-            throw new OrganizationPendingVerificationException();
+            throw new OrganizationPendingVerificationException("Organization is not active");
         }
     }
 

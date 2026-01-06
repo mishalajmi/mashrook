@@ -5,7 +5,8 @@ import jakarta.validation.constraints.Positive;
 import sa.elm.mashrook.invoices.domain.PaymentMethod;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Request DTO for marking an invoice as paid.
@@ -19,7 +20,9 @@ public record MarkAsPaidRequest(
         PaymentMethod paymentMethod,
 
         @NotNull(message = "Payment date is required")
-        LocalDate paymentDate,
+        LocalDateTime paymentDate,
 
-        String notes
+        String notes,
+
+        UUID buyerId  // Optional: the user who made the payment (null if unknown)
 ) {}

@@ -156,7 +156,7 @@ public class CampaignEvaluationJob {
 
         // Find the first bracket (original price)
         BigDecimal originalPrice = allBrackets.stream()
-                .filter(b -> b.getBracketOrder() == 0)
+                .filter(b -> b.getBracketOrder() == 1)
                 .findFirst()
                 .map(DiscountBracketEntity::getUnitPrice)
                 .orElse(finalUnitPrice);

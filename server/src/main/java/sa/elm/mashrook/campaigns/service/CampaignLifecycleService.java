@@ -14,10 +14,10 @@ import sa.elm.mashrook.exceptions.InvalidCampaignStateTransitionException;
 import sa.elm.mashrook.fulfillments.CampaignFulfillmentService;
 import sa.elm.mashrook.fulfillments.domain.CampaignFulfillmentEntity;
 import sa.elm.mashrook.fulfillments.domain.DeliveryStatus;
+import sa.elm.mashrook.invoices.domain.InvoiceEntity;
+import sa.elm.mashrook.invoices.domain.InvoiceRepository;
+import sa.elm.mashrook.invoices.domain.InvoiceStatus;
 import sa.elm.mashrook.invoices.service.InvoiceService;
-import sa.elm.mashrook.payments.intents.PaymentIntentService;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
 import sa.elm.mashrook.pledges.PledgeService;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
@@ -36,17 +36,12 @@ public class CampaignLifecycleService {
     private final CampaignRepository campaignRepository;
     private final DiscountBracketService discountBracketService;
     private final PledgeService pledgeService;
-    private final PaymentIntentService paymentIntentService;
     private final CampaignFulfillmentService campaignFulfillmentService;
     private final InvoiceService invoiceService;
+    private final InvoiceRepository invoiceRepository;
 
     @Value("${mashrook.campaign.grace-period-days:3}")
     private int gracePeriodDays;
-
-    private static final Set<PaymentIntentStatus> SUCCESSFUL_PAYMENT_STATUSES = Set.of(
-            PaymentIntentStatus.SUCCEEDED,
-            PaymentIntentStatus.COLLECTED_VIA_AR
-    );
 
     @Transactional
     public CampaignEntity publishCampaign(UUID campaignId) {
@@ -98,12 +93,11 @@ public class CampaignLifecycleService {
             campaign.setStatus(CampaignStatus.LOCKED);
             CampaignEntity savedCampaign = campaignRepository.save(campaign);
 
-            // Generate payment intents and invoices
+            // Generate invoices for committed pledges
             DiscountBracketEntity finalBracket = discountBracketService
                     .getCurrentBracket(campaignId, totalPledged)
                     .orElseThrow(() -> new CampaignValidationException("No applicable bracket found"));
 
-            paymentIntentService.generatePaymentIntents(campaignId, finalBracket);
             invoiceService.generateInvoicesForCampaign(campaignId, finalBracket);
 
             log.info("Campaign {} locked - minimum met ({} >= {}), pending pledges withdrawn, invoices generated",
@@ -141,12 +135,11 @@ public class CampaignLifecycleService {
         campaign.setStatus(CampaignStatus.LOCKED);
         CampaignEntity savedCampaign = campaignRepository.save(campaign);
 
-        // Generate payment intents and invoices
+        // Generate invoices for committed pledges
         DiscountBracketEntity finalBracket = discountBracketService
                 .getCurrentBracket(campaignId, totalPledged)
                 .orElseThrow(() -> new CampaignValidationException("No applicable bracket found"));
 
-        paymentIntentService.generatePaymentIntents(campaignId, finalBracket);
         invoiceService.generateInvoicesForCampaign(campaignId, finalBracket);
 
         log.info("Locked campaign {} (total pledged: {}), invoices generated", campaignId, totalPledged);
@@ -216,27 +209,28 @@ public class CampaignLifecycleService {
     private void validateCampaignForCompletion(UUID campaignId) {
         List<PledgeEntity> committedPledges = pledgeService
                 .findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED);
-        
+
         Set<UUID> pledgeIds = committedPledges.stream()
                 .map(PledgeEntity::getId)
                 .collect(Collectors.toSet());
-        
-        List<PaymentIntentEntity> payments = paymentIntentService.findAllByCampaignId(campaignId);
-        boolean allPaymentsCollected = pledgeIds.stream()
-                .allMatch(pledgeId -> payments.stream()
-                        .filter(p -> p.getPledge().getId().equals(pledgeId))
-                        .anyMatch(p -> SUCCESSFUL_PAYMENT_STATUSES.contains(p.getStatus())));
-        
-        if (!allPaymentsCollected) {
-            throw new CampaignValidationException("Cannot complete campaign: not all payments have been collected");
+
+        // Check all invoices are paid
+        List<InvoiceEntity> invoices = invoiceRepository.findAllByCampaign_Id(campaignId);
+        boolean allInvoicesPaid = pledgeIds.stream()
+                .allMatch(pledgeId -> invoices.stream()
+                        .filter(inv -> inv.getPledge().getId().equals(pledgeId))
+                        .anyMatch(inv -> inv.getStatus() == InvoiceStatus.PAID));
+
+        if (!allInvoicesPaid) {
+            throw new CampaignValidationException("Cannot complete campaign: not all invoices have been paid");
         }
-        
+
         List<CampaignFulfillmentEntity> fulfillments = campaignFulfillmentService.findAllByCampaignId(campaignId);
         boolean allFulfillmentsComplete = pledgeIds.stream()
                 .allMatch(pledgeId -> fulfillments.stream()
                         .filter(f -> f.getPledgeId().equals(pledgeId))
                         .anyMatch(f -> f.getDeliveryStatus() == DeliveryStatus.DELIVERED));
-        
+
         if (!allFulfillmentsComplete) {
             throw new CampaignValidationException("Cannot complete campaign: fulfillment is not complete for all pledges");
         }

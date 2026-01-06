@@ -20,7 +20,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
+import sa.elm.mashrook.pledges.domain.PledgeEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -42,11 +42,11 @@ public class InvoiceEntity {
     private CampaignEntity campaign;
 
     @OneToOne
-    @JoinColumn(nullable = false, referencedColumnName = "id")
-    private PaymentIntentEntity paymentIntent;
+    @JoinColumn(nullable = false, name = "pledge_id", referencedColumnName = "id")
+    private PledgeEntity pledge;
 
     @ManyToOne
-    @JoinColumn(nullable = false, name = "buyer_org_id")
+    @JoinColumn(nullable = false, name = "organization_id")
     private OrganizationEntity organization;
 
     @Column(nullable = false, unique = true, name = "invoice_number")
@@ -68,14 +68,8 @@ public class InvoiceEntity {
     @Column(nullable = false, name = "status")
     private InvoiceStatus status = InvoiceStatus.DRAFT;
 
-    @Column(nullable = false, name = "issue_date")
-    private LocalDate issueDate;
-
     @Column(nullable = false, name = "due_date")
     private LocalDate dueDate;
-
-    @Column(name = "paid_date")
-    private LocalDate paidDate;
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
