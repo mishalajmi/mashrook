@@ -96,6 +96,8 @@ public class SecurityConfig {
                         // Team invitation public endpoints
                         .requestMatchers(HttpMethod.GET, "/v1/team/invitation-info").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/team/accept").permitAll()
+                        // Stub payment gateway (simulates external payment provider)
+                        .requestMatchers("/stub-gateway/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
