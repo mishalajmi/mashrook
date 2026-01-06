@@ -12,6 +12,7 @@ public sealed interface EmailNotification permits
         InvoiceGeneratedEmail,
         OrganizationVerifiedEmail,
         PasswordResetEmail,
+        PaymentFailedNotificationEmail,
         PaymentReceivedEmail,
         PaymentReminderEmail,
         PledgeConfirmedEmail,

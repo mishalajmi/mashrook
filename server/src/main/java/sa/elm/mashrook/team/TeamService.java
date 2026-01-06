@@ -9,9 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import sa.elm.mashrook.auth.AuthenticationService;
 import sa.elm.mashrook.auth.dto.AuthResult;
 import sa.elm.mashrook.exceptions.*;
-import sa.elm.mashrook.notifications.EmailNotificationService;
+import sa.elm.mashrook.notifications.NotificationService;
 import sa.elm.mashrook.notifications.email.dto.TeamInvitationEmail;
 import sa.elm.mashrook.organizations.OrganizationService;
+import sa.elm.mashrook.security.domain.UserRole;
 import sa.elm.mashrook.users.UserService;
 import sa.elm.mashrook.users.dto.TeamMemberCreateRequest;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
@@ -50,10 +51,10 @@ public class TeamService {
     private final UserService userService;
     private final OrganizationService organizationService;
     private final AuthenticationService authenticationService;
-    private final EmailNotificationService emailService;
+    private final NotificationService notificationService;
     private final StringRedisTemplate redisTemplate;
 
-    @Value("${app.frontend-url:http://localhost:5173}")
+    @Value("${mashrook.auth.verification.frontendBaseUrl:http://localhost:5173}")
     private String frontendUrl;
 
     private final SecureRandom secureRandom = new SecureRandom();
@@ -183,13 +184,7 @@ public class TeamService {
         log.info("Removed member {} from org {} by user {}", memberId, organizationId, requestedBy);
     }
 
-    // =====================================================
-    // Invitations
-    // =====================================================
 
-    /**
-     * List pending invitations for an organization.
-     */
     @Transactional(readOnly = true)
     public List<TeamInvitationResponse> listPendingInvitations(UUID organizationId) {
         List<TeamInvitationEntity> invitations = invitationRepository
@@ -200,9 +195,6 @@ public class TeamService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Invite a new member to the organization.
-     */
     @Transactional
     public TeamInvitationResponse inviteMember(UUID organizationId, TeamInviteRequest request, UUID invitedBy) {
         OrganizationEntity org = organizationService.findByOrganizationId(organizationId);
@@ -211,7 +203,6 @@ public class TeamService {
 
         String email = request.email().toLowerCase().trim();
 
-        // Check if user already exists in the organization
         if (userRepository.existsByEmail(email)) {
             UserEntity existingUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -220,19 +211,15 @@ public class TeamService {
             }
         }
 
-        // Check for pending invitation
         if (invitationRepository.existsByOrganization_IdAndEmailAndStatus(
                 organizationId, email, InvitationStatus.PENDING)) {
             throw new DuplicateInvitationException("A pending invitation already exists for this email");
         }
 
-        // Validate permissions
         validatePermissions(request.permissions(), org.getType());
 
-        // Generate secure token
         String token = generateSecureToken();
 
-        // Create invitation
         TeamInvitationEntity invitation = TeamInvitationEntity.builder()
                 .organization(org)
                 .email(email)
@@ -245,10 +232,8 @@ public class TeamService {
 
         invitation = invitationRepository.save(invitation);
 
-        // Cache token in Redis
         cacheInvitationToken(token, invitation.getId().toString());
 
-        // Send invitation email
         sendInvitationEmail(invitation, org, inviter);
 
         log.info("Created invitation {} for {} to org {} by {}",
@@ -257,9 +242,6 @@ public class TeamService {
         return TeamInvitationResponse.from(invitation);
     }
 
-    /**
-     * Resend an invitation email.
-     */
     @Transactional
     public void resendInvitation(UUID invitationId, UUID organizationId, UUID requestedBy) {
         TeamInvitationEntity invitation = invitationRepository.findByIdAndOrganization_Id(invitationId, organizationId)
@@ -269,17 +251,14 @@ public class TeamService {
             throw new InvalidInvitationException("Can only resend pending invitations");
         }
 
-        // Generate new token and extend expiration
         String newToken = generateSecureToken();
         invitation.setToken(newToken);
         invitation.setExpiresAt(Instant.now().plus(INVITATION_TTL));
 
         invitationRepository.save(invitation);
 
-        // Update Redis cache
         cacheInvitationToken(newToken, invitation.getId().toString());
 
-        // Resend email
         UserEntity inviter = userRepository.findUserEntityById(requestedBy)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         sendInvitationEmail(invitation, invitation.getOrganization(), inviter);
@@ -287,9 +266,6 @@ public class TeamService {
         log.info("Resent invitation {} by user {}", invitationId, requestedBy);
     }
 
-    /**
-     * Cancel an invitation.
-     */
     @Transactional
     public void cancelInvitation(UUID invitationId, UUID organizationId, UUID cancelledBy) {
         TeamInvitationEntity invitation = invitationRepository.findByIdAndOrganization_Id(invitationId, organizationId)
@@ -328,16 +304,6 @@ public class TeamService {
         );
     }
 
-    /**
-     * Validates and consumes an invitation token.
-     * This method is called by AuthenticationService to validate the invitation
-     * before creating the user account.
-     *
-     * @param token the invitation token
-     * @return the invitation details for user creation
-     * @throws TeamInvitationNotFoundException if the token is invalid
-     * @throws InvalidInvitationException if the invitation is expired or already used
-     */
     @Transactional
     public InvitationDetails validateAndConsumeInvitation(String token) {
         TeamInvitationEntity invitation = invitationRepository.findByToken(token)
@@ -352,11 +318,9 @@ public class TeamService {
             throw new InvalidInvitationException("This invitation is no longer valid");
         }
 
-        // Mark invitation as accepted
         invitation.accept();
         invitationRepository.save(invitation);
 
-        // Remove from Redis
         redisTemplate.delete(getRedisKey(invitation.getToken()));
 
         log.info("Invitation {} validated and consumed for email {}",
@@ -365,22 +329,10 @@ public class TeamService {
         return InvitationDetails.from(invitation);
     }
 
-    /**
-     * Accepts an invitation and creates a new user account.
-     * This method coordinates the entire invitation acceptance flow:
-     * 1. Validates and consumes the invitation token
-     * 2. Creates the user with the permissions from the invitation
-     * 3. Generates authentication tokens
-     *
-     * @param request the invitation acceptance request
-     * @return authentication result with tokens
-     */
     @Transactional
     public AuthResult acceptInvitation(AcceptInvitationRequest request) {
-        // Validate and consume the invitation
         InvitationDetails invitation = validateAndConsumeInvitation(request.token());
 
-        // Create the team member via UserService
         TeamMemberCreateRequest memberRequest = TeamMemberCreateRequest.builder()
                 .email(invitation.email())
                 .firstName(request.firstName())
@@ -392,7 +344,6 @@ public class TeamService {
 
         UserEntity user = userService.createTeamMember(memberRequest, invitation.organization());
 
-        // Generate tokens via AuthenticationService
         AuthResult result = authenticationService.generateTokensForUser(user, "accept-invitation");
 
         log.info("User {} accepted invitation {} and joined organization {}",
@@ -401,13 +352,6 @@ public class TeamService {
         return result;
     }
 
-    // =====================================================
-    // Ownership Transfer
-    // =====================================================
-
-    /**
-     * Transfer ownership to another member.
-     */
     @Transactional
     public void transferOwnership(UUID organizationId, TransferOwnershipRequest request, UUID currentOwnerId) {
         UserEntity currentOwner = userRepository.findUserEntityById(currentOwnerId)
@@ -456,10 +400,6 @@ public class TeamService {
         log.info("Ownership transferred from {} to {} in org {}",
                 currentOwnerId, request.newOwnerId(), organizationId);
     }
-
-    // =====================================================
-    // Helper Methods
-    // =====================================================
 
     private boolean isOwner(UserEntity user) {
         return user.getOrganizationRole() == OrganizationRole.OWNER;
@@ -531,58 +471,9 @@ public class TeamService {
     }
 
     private Set<ResourcePermission> getOwnerPermissions(OrganizationType orgType) {
-        // Return the full owner permissions based on org type
         return orgType == OrganizationType.BUYER
-                ? Set.of(
-                        ResourcePermission.of(Resource.ORGANIZATIONS, Permission.READ),
-                        ResourcePermission.of(Resource.ORGANIZATIONS, Permission.WRITE),
-                        ResourcePermission.of(Resource.ORGANIZATIONS, Permission.UPDATE),
-                        ResourcePermission.of(Resource.PLEDGES, Permission.READ),
-                        ResourcePermission.of(Resource.PLEDGES, Permission.WRITE),
-                        ResourcePermission.of(Resource.PLEDGES, Permission.UPDATE),
-                        ResourcePermission.of(Resource.PLEDGES, Permission.DELETE),
-                        ResourcePermission.of(Resource.PAYMENTS, Permission.READ),
-                        ResourcePermission.of(Resource.PAYMENTS, Permission.WRITE),
-                        ResourcePermission.of(Resource.DASHBOARD, Permission.READ),
-                        ResourcePermission.of(Resource.TEAM, Permission.READ),
-                        ResourcePermission.of(Resource.TEAM, Permission.WRITE),
-                        ResourcePermission.of(Resource.TEAM, Permission.UPDATE),
-                        ResourcePermission.of(Resource.ORDERS, Permission.READ),
-                        ResourcePermission.of(Resource.ORDERS, Permission.WRITE),
-                        ResourcePermission.of(Resource.ORDERS, Permission.UPDATE),
-                        ResourcePermission.of(Resource.ANALYTICS, Permission.READ),
-                        ResourcePermission.of(Resource.CAMPAIGNS, Permission.READ),
-                        ResourcePermission.of(Resource.SETTINGS, Permission.READ),
-                        ResourcePermission.of(Resource.SETTINGS, Permission.UPDATE)
-                )
-                : Set.of(
-                        ResourcePermission.of(Resource.ORGANIZATIONS, Permission.READ),
-                        ResourcePermission.of(Resource.ORGANIZATIONS, Permission.WRITE),
-                        ResourcePermission.of(Resource.ORGANIZATIONS, Permission.UPDATE),
-                        ResourcePermission.of(Resource.CAMPAIGNS, Permission.READ),
-                        ResourcePermission.of(Resource.CAMPAIGNS, Permission.WRITE),
-                        ResourcePermission.of(Resource.CAMPAIGNS, Permission.UPDATE),
-                        ResourcePermission.of(Resource.CAMPAIGNS, Permission.DELETE),
-                        ResourcePermission.of(Resource.BRACKETS, Permission.READ),
-                        ResourcePermission.of(Resource.BRACKETS, Permission.WRITE),
-                        ResourcePermission.of(Resource.BRACKETS, Permission.UPDATE),
-                        ResourcePermission.of(Resource.BRACKETS, Permission.DELETE),
-                        ResourcePermission.of(Resource.DASHBOARD, Permission.READ),
-                        ResourcePermission.of(Resource.TEAM, Permission.READ),
-                        ResourcePermission.of(Resource.TEAM, Permission.WRITE),
-                        ResourcePermission.of(Resource.TEAM, Permission.UPDATE),
-                        ResourcePermission.of(Resource.PRODUCTS, Permission.READ),
-                        ResourcePermission.of(Resource.PRODUCTS, Permission.WRITE),
-                        ResourcePermission.of(Resource.PRODUCTS, Permission.UPDATE),
-                        ResourcePermission.of(Resource.PRODUCTS, Permission.DELETE),
-                        ResourcePermission.of(Resource.ORDERS, Permission.READ),
-                        ResourcePermission.of(Resource.ORDERS, Permission.WRITE),
-                        ResourcePermission.of(Resource.ORDERS, Permission.UPDATE),
-                        ResourcePermission.of(Resource.ANALYTICS, Permission.READ),
-                        ResourcePermission.of(Resource.PLEDGES, Permission.READ),
-                        ResourcePermission.of(Resource.SETTINGS, Permission.READ),
-                        ResourcePermission.of(Resource.SETTINGS, Permission.UPDATE)
-                );
+                ? UserRole.BUYER_OWNER.getResourcePermissions()
+                : UserRole.SUPPLIER_OWNER.getResourcePermissions();
     }
 
     private String generateSecureToken() {
@@ -615,6 +506,6 @@ public class TeamService {
                 "7"
         );
 
-        emailService.send(email);
+        notificationService.send(email);
     }
 }

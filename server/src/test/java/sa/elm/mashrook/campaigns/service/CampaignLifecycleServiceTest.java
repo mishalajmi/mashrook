@@ -20,10 +20,10 @@ import sa.elm.mashrook.exceptions.InvalidCampaignStateTransitionException;
 import sa.elm.mashrook.fulfillments.CampaignFulfillmentService;
 import sa.elm.mashrook.fulfillments.domain.CampaignFulfillmentEntity;
 import sa.elm.mashrook.fulfillments.domain.DeliveryStatus;
+import sa.elm.mashrook.invoices.domain.InvoiceEntity;
+import sa.elm.mashrook.invoices.domain.InvoiceRepository;
+import sa.elm.mashrook.invoices.domain.InvoiceStatus;
 import sa.elm.mashrook.invoices.service.InvoiceService;
-import sa.elm.mashrook.payments.intents.PaymentIntentService;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
 import sa.elm.mashrook.pledges.PledgeService;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
@@ -56,13 +56,13 @@ class CampaignLifecycleServiceTest {
     private PledgeService pledgeService;
 
     @Mock
-    private PaymentIntentService paymentIntentService;
-
-    @Mock
     private CampaignFulfillmentService campaignFulfillmentService;
 
     @Mock
     private InvoiceService invoiceService;
+
+    @Mock
+    private InvoiceRepository invoiceRepository;
 
     private CampaignLifecycleService campaignLifecycleService;
 
@@ -75,9 +75,9 @@ class CampaignLifecycleServiceTest {
                 campaignRepository,
                 discountBracketService,
                 pledgeService,
-                paymentIntentService,
                 campaignFulfillmentService,
-                invoiceService
+                invoiceService,
+                invoiceRepository
         );
         ReflectionTestUtils.setField(campaignLifecycleService, "gracePeriodDays", 3);
         campaignId = UuidGeneratorUtil.generateUuidV7();
@@ -126,6 +126,20 @@ class CampaignLifecycleServiceTest {
         pledge.setQuantity(quantity);
         pledge.setStatus(status);
         return pledge;
+    }
+
+    private InvoiceEntity createInvoice(CampaignEntity campaign, PledgeEntity pledge, InvoiceStatus status) {
+        OrganizationEntity org = new OrganizationEntity();
+        org.setId(UuidGeneratorUtil.generateUuidV7());
+
+        InvoiceEntity invoice = new InvoiceEntity();
+        invoice.setId(UuidGeneratorUtil.generateUuidV7());
+        invoice.setCampaign(campaign);
+        invoice.setPledge(pledge);
+        invoice.setOrganization(org);
+        invoice.setInvoiceNumber("INV-TEST-001");
+        invoice.setStatus(status);
+        return invoice;
     }
 
     @Nested
@@ -289,7 +303,6 @@ class CampaignLifecycleServiceTest {
 
             assertThat(result.getStatus()).isEqualTo(CampaignStatus.LOCKED);
             verify(campaignRepository).save(campaign);
-            verify(paymentIntentService).generatePaymentIntents(campaignId, bracket);
             verify(invoiceService).generateInvoicesForCampaign(campaignId, bracket);
         }
 
@@ -374,7 +387,6 @@ class CampaignLifecycleServiceTest {
 
             assertThat(result.getStatus()).isEqualTo(CampaignStatus.LOCKED);
             verify(campaignRepository).save(campaign);
-            verify(paymentIntentService).generatePaymentIntents(campaignId, bracket);
             verify(invoiceService).generateInvoicesForCampaign(campaignId, bracket);
         }
 
@@ -394,7 +406,6 @@ class CampaignLifecycleServiceTest {
 
             assertThat(result.getStatus()).isEqualTo(CampaignStatus.LOCKED);
             verify(campaignRepository).save(campaign);
-            verify(paymentIntentService).generatePaymentIntents(campaignId, bracket);
             verify(invoiceService).generateInvoicesForCampaign(campaignId, bracket);
         }
 
@@ -518,7 +529,7 @@ class CampaignLifecycleServiceTest {
     class CompleteCampaign {
 
         @Test
-        @DisplayName("should transition campaign from LOCKED to DONE when all payments collected and fulfillment complete")
+        @DisplayName("should transition campaign from LOCKED to DONE when all invoices paid and fulfillment complete")
         void shouldTransitionFromLockedToDone() {
             campaign.setStatus(CampaignStatus.LOCKED);
             UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
@@ -526,11 +537,7 @@ class CampaignLifecycleServiceTest {
             PledgeEntity pledge = createPledge(campaignId, 10, PledgeStatus.COMMITTED);
             pledge.setId(pledgeId);
 
-            PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
-            paymentIntent.setCampaign(campaign);
-            paymentIntent.setPledge(pledge);
-            paymentIntent.setStatus(PaymentIntentStatus.SUCCEEDED);
+            InvoiceEntity invoice = createInvoice(campaign, pledge, InvoiceStatus.PAID);
 
             CampaignFulfillmentEntity fulfillment = new CampaignFulfillmentEntity();
             fulfillment.setId(UuidGeneratorUtil.generateUuidV7());
@@ -541,8 +548,8 @@ class CampaignLifecycleServiceTest {
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge));
-            when(paymentIntentService.findAllByCampaignId(campaignId))
-                    .thenReturn(List.of(paymentIntent));
+            when(invoiceRepository.findAllByCampaign_Id(campaignId))
+                    .thenReturn(List.of(invoice));
             when(campaignFulfillmentService.findAllByCampaignId(campaignId))
                     .thenReturn(List.of(fulfillment));
             when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
@@ -573,29 +580,25 @@ class CampaignLifecycleServiceTest {
         }
 
         @Test
-        @DisplayName("should throw CampaignValidationException when payments not all collected")
-        void shouldThrowWhenPaymentsNotCollected() {
+        @DisplayName("should throw CampaignValidationException when not all invoices are paid")
+        void shouldThrowWhenInvoicesNotPaid() {
             campaign.setStatus(CampaignStatus.LOCKED);
             UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
 
             PledgeEntity pledge = createPledge(campaignId, 10, PledgeStatus.COMMITTED);
             pledge.setId(pledgeId);
 
-            PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
-            paymentIntent.setCampaign(campaign);
-            paymentIntent.setPledge(pledge);
-            paymentIntent.setStatus(PaymentIntentStatus.PENDING);
+            InvoiceEntity invoice = createInvoice(campaign, pledge, InvoiceStatus.SENT);
 
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge));
-            when(paymentIntentService.findAllByCampaignId(campaignId))
-                    .thenReturn(List.of(paymentIntent));
+            when(invoiceRepository.findAllByCampaign_Id(campaignId))
+                    .thenReturn(List.of(invoice));
 
             assertThatThrownBy(() -> campaignLifecycleService.completeCampaign(campaignId))
                     .isInstanceOf(CampaignValidationException.class)
-                    .hasMessageContaining("payment");
+                    .hasMessageContaining("invoices have been paid");
         }
 
         @Test
@@ -607,11 +610,7 @@ class CampaignLifecycleServiceTest {
             PledgeEntity pledge = createPledge(campaignId, 10, PledgeStatus.COMMITTED);
             pledge.setId(pledgeId);
 
-            PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
-            paymentIntent.setCampaign(campaign);
-            paymentIntent.setPledge(pledge);
-            paymentIntent.setStatus(PaymentIntentStatus.SUCCEEDED);
+            InvoiceEntity invoice = createInvoice(campaign, pledge, InvoiceStatus.PAID);
 
             CampaignFulfillmentEntity fulfillment = new CampaignFulfillmentEntity();
             fulfillment.setId(UuidGeneratorUtil.generateUuidV7());
@@ -622,8 +621,8 @@ class CampaignLifecycleServiceTest {
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge));
-            when(paymentIntentService.findAllByCampaignId(campaignId))
-                    .thenReturn(List.of(paymentIntent));
+            when(invoiceRepository.findAllByCampaign_Id(campaignId))
+                    .thenReturn(List.of(invoice));
             when(campaignFulfillmentService.findAllByCampaignId(campaignId))
                     .thenReturn(List.of(fulfillment));
 
@@ -633,8 +632,8 @@ class CampaignLifecycleServiceTest {
         }
 
         @Test
-        @DisplayName("should allow completion when payments are in terminal success states")
-        void shouldAllowCompletionWithVariousSuccessfulPaymentStates() {
+        @DisplayName("should allow completion when all invoices are paid")
+        void shouldAllowCompletionWithAllPaidInvoices() {
             campaign.setStatus(CampaignStatus.LOCKED);
             UUID pledgeId1 = UuidGeneratorUtil.generateUuidV7();
             UUID pledgeId2 = UuidGeneratorUtil.generateUuidV7();
@@ -644,15 +643,8 @@ class CampaignLifecycleServiceTest {
             PledgeEntity pledge2 = createPledge(campaignId, 5, PledgeStatus.COMMITTED);
             pledge2.setId(pledgeId2);
 
-            PaymentIntentEntity payment1 = new PaymentIntentEntity();
-            payment1.setCampaign(campaign);
-            payment1.setPledge(pledge1);
-            payment1.setStatus(PaymentIntentStatus.SUCCEEDED);
-
-            PaymentIntentEntity payment2 = new PaymentIntentEntity();
-            payment2.setCampaign(campaign);
-            payment2.setPledge(pledge2);
-            payment2.setStatus(PaymentIntentStatus.COLLECTED_VIA_AR);
+            InvoiceEntity invoice1 = createInvoice(campaign, pledge1, InvoiceStatus.PAID);
+            InvoiceEntity invoice2 = createInvoice(campaign, pledge2, InvoiceStatus.PAID);
 
             CampaignFulfillmentEntity fulfillment1 = new CampaignFulfillmentEntity();
             fulfillment1.setCampaignId(campaignId);
@@ -667,8 +659,8 @@ class CampaignLifecycleServiceTest {
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge1, pledge2));
-            when(paymentIntentService.findAllByCampaignId(campaignId))
-                    .thenReturn(List.of(payment1, payment2));
+            when(invoiceRepository.findAllByCampaign_Id(campaignId))
+                    .thenReturn(List.of(invoice1, invoice2));
             when(campaignFulfillmentService.findAllByCampaignId(campaignId))
                     .thenReturn(List.of(fulfillment1, fulfillment2));
             when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));

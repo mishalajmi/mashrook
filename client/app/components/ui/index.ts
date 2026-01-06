@@ -129,3 +129,4 @@ export {
 	TooltipContent,
 	TooltipProvider,
 } from "./tooltip";
+export { RadioGroup, RadioGroupItem } from "./radio-group";

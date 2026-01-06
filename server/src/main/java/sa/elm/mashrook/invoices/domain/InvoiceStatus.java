@@ -15,7 +15,8 @@ public enum InvoiceStatus {
     SENT("sent"),
     PAID("paid"),
     OVERDUE("overdue"),
-    CANCELLED("cancelled");
+    CANCELLED("cancelled"),
+    PENDING_CONFIRMATION("pending confirmation");
 
     private final String value;
 

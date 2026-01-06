@@ -27,9 +27,7 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, UUID> {
 
     Page<InvoiceEntity> findAllByStatus(InvoiceStatus status, Pageable pageable);
 
-    boolean existsByPaymentIntent_Pledge_Id(UUID pledgeId);
-
-    Optional<InvoiceEntity> findByPaymentIntent_Pledge_Id(UUID pledgeId);
+    boolean existsByPledge_Id(UUID pledgeId);
 
     /**
      * Find the maximum invoice number with the given prefix.
@@ -54,4 +52,25 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, UUID> {
      * Used for marking invoices as overdue.
      */
     List<InvoiceEntity> findByStatusAndDueDateBefore(InvoiceStatus status, LocalDate date);
+
+    /**
+     * Find unpaid invoices (SENT or OVERDUE) that have at least one failed or expired payment.
+     * Used for sending payment failure notification emails.
+     */
+    @Query("""
+        SELECT DISTINCT i FROM InvoiceEntity i
+        JOIN PaymentEntity p ON p.invoice = i
+        WHERE i.status IN ('SENT', 'OVERDUE')
+        AND p.status IN ('FAILED', 'EXPIRED')
+        AND p.updatedAt > :since
+        """)
+    List<InvoiceEntity> findUnpaidWithRecentFailedPayments(@Param("since") java.time.LocalDateTime since);
+
+    @Query("""
+           SELECT i FROM InvoiceEntity i
+           JOIN PaymentEntity p ON p.invoice = i
+           WHERE i.id = :invoiceId
+           AND p.paymentMethod = 'BANK_TRANSFER'
+           """)
+    Optional<InvoiceEntity> findOfflinePayment(UUID invoiceId);
 }

@@ -161,18 +161,13 @@ public class VerificationTokenService {
         return deleted;
     }
 
-    /**
-     * Generates a cryptographically secure random token.
-     */
+
     private String generateSecureToken() {
         byte[] bytes = new byte[TOKEN_LENGTH];
         secureRandom.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    /**
-     * Gets the TTL for a token type from configuration or uses default.
-     */
     private Duration getTtlForTokenType(VerificationTokenType tokenType) {
         // Check if there's a configured TTL, otherwise use default
         var tokenConfig = authConfig.verification();

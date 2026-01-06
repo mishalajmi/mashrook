@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 
 import java.math.BigDecimal;
@@ -47,15 +46,15 @@ class InvoiceEntityTest {
         }
 
         @Test
-        @DisplayName("should store paymentIntent as PaymentIntentEntity reference")
-        void shouldStorePaymentIntentAsEntity() {
+        @DisplayName("should store pledge as PledgeEntity reference")
+        void shouldStorePledgeAsEntity() {
             InvoiceEntity invoice = new InvoiceEntity();
-            PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
+            PledgeEntity pledge = new PledgeEntity();
+            pledge.setId(UuidGeneratorUtil.generateUuidV7());
 
-            invoice.setPaymentIntent(paymentIntent);
+            invoice.setPledge(pledge);
 
-            assertThat(invoice.getPaymentIntent()).isEqualTo(paymentIntent);
+            assertThat(invoice.getPledge()).isEqualTo(pledge);
         }
 
         @Test
@@ -125,17 +124,6 @@ class InvoiceEntityTest {
         }
 
         @Test
-        @DisplayName("should store issueDate as LocalDate")
-        void shouldStoreIssueDateAsLocalDate() {
-            InvoiceEntity invoice = new InvoiceEntity();
-            LocalDate issueDate = LocalDate.of(2025, 1, 15);
-
-            invoice.setIssueDate(issueDate);
-
-            assertThat(invoice.getIssueDate()).isEqualTo(issueDate);
-        }
-
-        @Test
         @DisplayName("should store dueDate as LocalDate")
         void shouldStoreDueDateAsLocalDate() {
             InvoiceEntity invoice = new InvoiceEntity();
@@ -144,27 +132,6 @@ class InvoiceEntityTest {
             invoice.setDueDate(dueDate);
 
             assertThat(invoice.getDueDate()).isEqualTo(dueDate);
-        }
-
-        @Test
-        @DisplayName("should store paidDate as nullable LocalDate")
-        void shouldStorePaidDateAsNullableLocalDate() {
-            InvoiceEntity invoice = new InvoiceEntity();
-            LocalDate paidDate = LocalDate.of(2025, 2, 10);
-
-            invoice.setPaidDate(paidDate);
-
-            assertThat(invoice.getPaidDate()).isEqualTo(paidDate);
-        }
-
-        @Test
-        @DisplayName("should allow null paidDate")
-        void shouldAllowNullPaidDate() {
-            InvoiceEntity invoice = new InvoiceEntity();
-
-            invoice.setPaidDate(null);
-
-            assertThat(invoice.getPaidDate()).isNull();
         }
 
         @Test
@@ -231,8 +198,8 @@ class InvoiceEntityTest {
             UUID id = UuidGeneratorUtil.generateUuidV7();
             CampaignEntity campaign = new CampaignEntity();
             campaign.setId(UuidGeneratorUtil.generateUuidV7());
-            PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-            paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
+            PledgeEntity pledge = new PledgeEntity();
+            pledge.setId(UuidGeneratorUtil.generateUuidV7());
             OrganizationEntity organization = new OrganizationEntity();
             organization.setId(UuidGeneratorUtil.generateUuidV7());
             String invoiceNumber = "INV-202501-0042";
@@ -240,34 +207,31 @@ class InvoiceEntityTest {
             BigDecimal taxAmount = new BigDecimal("750.00");
             BigDecimal totalAmount = new BigDecimal("5750.00");
             InvoiceStatus status = InvoiceStatus.SENT;
-            LocalDate issueDate = LocalDate.of(2025, 1, 15);
             LocalDate dueDate = LocalDate.of(2025, 2, 14);
             String notes = "Bulk laptop purchase";
 
             InvoiceEntity invoice = new InvoiceEntity();
             invoice.setId(id);
             invoice.setCampaign(campaign);
-            invoice.setPaymentIntent(paymentIntent);
+            invoice.setPledge(pledge);
             invoice.setOrganization(organization);
             invoice.setInvoiceNumber(invoiceNumber);
             invoice.setSubtotal(subtotal);
             invoice.setTaxAmount(taxAmount);
             invoice.setTotalAmount(totalAmount);
             invoice.setStatus(status);
-            invoice.setIssueDate(issueDate);
             invoice.setDueDate(dueDate);
             invoice.setNotes(notes);
 
             assertThat(invoice.getId()).isEqualTo(id);
             assertThat(invoice.getCampaign()).isEqualTo(campaign);
-            assertThat(invoice.getPaymentIntent()).isEqualTo(paymentIntent);
+            assertThat(invoice.getPledge()).isEqualTo(pledge);
             assertThat(invoice.getOrganization()).isEqualTo(organization);
             assertThat(invoice.getInvoiceNumber()).isEqualTo(invoiceNumber);
             assertThat(invoice.getSubtotal()).isEqualTo(subtotal);
             assertThat(invoice.getTaxAmount()).isEqualTo(taxAmount);
             assertThat(invoice.getTotalAmount()).isEqualTo(totalAmount);
             assertThat(invoice.getStatus()).isEqualTo(status);
-            assertThat(invoice.getIssueDate()).isEqualTo(issueDate);
             assertThat(invoice.getDueDate()).isEqualTo(dueDate);
             assertThat(invoice.getNotes()).isEqualTo(notes);
         }

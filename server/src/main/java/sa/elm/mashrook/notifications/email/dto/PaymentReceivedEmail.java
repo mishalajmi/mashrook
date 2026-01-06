@@ -12,7 +12,6 @@ public record PaymentReceivedEmail(
         String invoiceNumber,
         UUID invoiceId,
         BigDecimal amountPaid,
-        LocalDate paymentDate,
         String paymentMethod
 ) implements EmailNotification {
 

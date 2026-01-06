@@ -111,6 +111,10 @@ mashrook:
     iban: ${BANK_IBAN:SA0000000000000000000000}
     swift-code: ${BANK_SWIFT:NCBKSAJE}
     account-name: ${BANK_ACCOUNT_NAME:Mashrook Trading LLC}
+  payment:
+    active-gateway: ${PAYMENT_ACTIVE_GATEWAY:}
+    return-url-base: ${PAYMENT_RETURN_URL:http://localhost:5173/dashboard/payments}
+    webhook-url-base: ${PAYMENT_WEBHOOK_URL:http://localhost:8080/api/v1/webhooks/payments}
   notifications:
     email:
       from-address: ${EMAIL_FROM_ADDRESS:noreply@mashrook.io}

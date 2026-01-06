@@ -28,6 +28,7 @@ import {
 	type InvoiceResponse,
 	type InvoiceListResponse,
 	type InvoiceStatus,
+	type MarkAsPaidRequest,
 } from "./invoice.service";
 
 // Helper to create mock API error
@@ -59,9 +60,7 @@ describe("Invoice Service", () => {
 					subtotal: "250.00",
 					taxAmount: "25.00",
 					totalAmount: "275.00",
-					issueDate: "2024-01-01T00:00:00Z",
 					dueDate: "2024-01-15T00:00:00Z",
-					paidDate: null,
 					status: "ISSUED",
 					createdAt: "2024-01-01T00:00:00Z",
 					updatedAt: "2024-01-01T00:00:00Z",
@@ -75,9 +74,7 @@ describe("Invoice Service", () => {
 					subtotal: "500.00",
 					taxAmount: "50.00",
 					totalAmount: "550.00",
-					issueDate: "2024-01-05T00:00:00Z",
 					dueDate: "2024-01-20T00:00:00Z",
-					paidDate: "2024-01-18T00:00:00Z",
 					status: "PAID",
 					createdAt: "2024-01-05T00:00:00Z",
 					updatedAt: "2024-01-18T00:00:00Z",
@@ -157,9 +154,7 @@ describe("Invoice Service", () => {
 			subtotal: "250.00",
 			taxAmount: "25.00",
 			totalAmount: "275.00",
-			issueDate: "2024-01-01T00:00:00Z",
 			dueDate: "2024-01-15T00:00:00Z",
-			paidDate: null,
 			status: "ISSUED",
 			createdAt: "2024-01-01T00:00:00Z",
 			updatedAt: "2024-01-01T00:00:00Z",
@@ -206,7 +201,7 @@ describe("Invoice Service", () => {
 		});
 	});
 
-	describe("invoiceService.markAsPaid(id) - POST /v1/invoices/{id}/mark-paid", () => {
+	describe("invoiceService.markAsPaid(id, request) - PATCH /v1/invoices/{id}/mark-paid", () => {
 		const mockInvoiceResponse: InvoiceResponse = {
 			id: "invoice-1",
 			invoiceNumber: "INV-2024-001",
@@ -216,26 +211,34 @@ describe("Invoice Service", () => {
 			subtotal: "250.00",
 			taxAmount: "25.00",
 			totalAmount: "275.00",
-			issueDate: "2024-01-01T00:00:00Z",
 			dueDate: "2024-01-15T00:00:00Z",
-			paidDate: null,
 			status: "PENDING_CONFIRMATION",
 			createdAt: "2024-01-01T00:00:00Z",
 			updatedAt: "2024-01-10T00:00:00Z",
 		};
 
-		it("should make POST request to /v1/invoices/{id}/mark-paid", async () => {
-			(apiClient.post as Mock).mockResolvedValueOnce(mockInvoiceResponse);
+		const mockRequest: MarkAsPaidRequest = {
+			amount: "275.00",
+			paymentMethod: "BANK_TRANSFER",
+			paymentDate: "2024-01-10T14:30:00Z",
+			notes: "Payment via online banking",
+		};
 
-			await invoiceService.markAsPaid("invoice-1");
+		it("should make PATCH request to /v1/invoices/{id}/mark-paid with request body", async () => {
+			(apiClient.patch as Mock).mockResolvedValueOnce(mockInvoiceResponse);
 
-			expect(apiClient.post).toHaveBeenCalledWith("/v1/invoices/invoice-1/mark-paid");
+			await invoiceService.markAsPaid("invoice-1", mockRequest);
+
+			expect(apiClient.patch).toHaveBeenCalledWith(
+				"/v1/invoices/invoice-1/mark-paid",
+				mockRequest
+			);
 		});
 
 		it("should return updated invoice with pending confirmation status", async () => {
-			(apiClient.post as Mock).mockResolvedValueOnce(mockInvoiceResponse);
+			(apiClient.patch as Mock).mockResolvedValueOnce(mockInvoiceResponse);
 
-			const result = await invoiceService.markAsPaid("invoice-1");
+			const result = await invoiceService.markAsPaid("invoice-1", mockRequest);
 
 			expect(result.id).toBe("invoice-1");
 			expect(result.status).toBe("PENDING_CONFIRMATION");
@@ -243,9 +246,9 @@ describe("Invoice Service", () => {
 
 		it("should throw error when invoice not found", async () => {
 			const apiError = createApiError("Invoice not found", 404, "NOT_FOUND");
-			(apiClient.post as Mock).mockRejectedValueOnce(apiError);
+			(apiClient.patch as Mock).mockRejectedValueOnce(apiError);
 
-			await expect(invoiceService.markAsPaid("non-existent")).rejects.toThrow(
+			await expect(invoiceService.markAsPaid("non-existent", mockRequest)).rejects.toThrow(
 				"Invoice not found"
 			);
 		});
@@ -256,18 +259,18 @@ describe("Invoice Service", () => {
 				400,
 				"BAD_REQUEST"
 			);
-			(apiClient.post as Mock).mockRejectedValueOnce(apiError);
+			(apiClient.patch as Mock).mockRejectedValueOnce(apiError);
 
-			await expect(invoiceService.markAsPaid("invoice-1")).rejects.toThrow(
+			await expect(invoiceService.markAsPaid("invoice-1", mockRequest)).rejects.toThrow(
 				"Invoice is already paid"
 			);
 		});
 
 		it("should throw error when not authorized", async () => {
 			const apiError = createApiError("Access denied", 403, "FORBIDDEN");
-			(apiClient.post as Mock).mockRejectedValueOnce(apiError);
+			(apiClient.patch as Mock).mockRejectedValueOnce(apiError);
 
-			await expect(invoiceService.markAsPaid("invoice-1")).rejects.toThrow(
+			await expect(invoiceService.markAsPaid("invoice-1", mockRequest)).rejects.toThrow(
 				"Access denied"
 			);
 		});
@@ -298,9 +301,7 @@ describe("Invoice Service", () => {
 				subtotal: "100.00",
 				taxAmount: "10.00",
 				totalAmount: "110.00",
-				issueDate: "2024-01-01T00:00:00Z",
 				dueDate: "2024-01-15T00:00:00Z",
-				paidDate: null,
 				status: "ISSUED",
 				createdAt: "2024-01-01T00:00:00Z",
 				updatedAt: "2024-01-01T00:00:00Z",

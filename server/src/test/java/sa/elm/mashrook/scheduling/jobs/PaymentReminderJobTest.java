@@ -19,7 +19,6 @@ import sa.elm.mashrook.invoices.domain.InvoiceEntity;
 import sa.elm.mashrook.invoices.domain.InvoiceRepository;
 import sa.elm.mashrook.invoices.domain.InvoiceStatus;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.users.UserRepository;
 import sa.elm.mashrook.users.domain.UserEntity;
@@ -110,18 +109,11 @@ class PaymentReminderJobTest {
         PledgeEntity pledge = new PledgeEntity();
         pledge.setId(UuidGeneratorUtil.generateUuidV7());
 
-        PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-        paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
-        paymentIntent.setPledge(pledge);
-        paymentIntent.setCampaign(campaign);
-        paymentIntent.setBuyerOrg(org);
-        paymentIntent.setAmount(new BigDecimal("1150.00"));
-
         InvoiceEntity invoice = new InvoiceEntity();
         invoice.setId(UuidGeneratorUtil.generateUuidV7());
         invoice.setCampaign(campaign);
         invoice.setOrganization(org);
-        invoice.setPaymentIntent(paymentIntent);
+        invoice.setPledge(pledge);
         invoice.setInvoiceNumber("INV-202501-0001");
         invoice.setTotalAmount(new BigDecimal("1150.00"));
         invoice.setDueDate(dueDate);

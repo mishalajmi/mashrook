@@ -12,12 +12,30 @@ import { apiClient } from "@/lib/api-client";
  */
 export type InvoiceStatus =
 	| "DRAFT"
-	| "ISSUED"
-	| "PARTIALLY_PAID"
+	| "SENT"
 	| "PAID"
 	| "OVERDUE"
 	| "CANCELLED"
 	| "PENDING_CONFIRMATION";
+
+/**
+ * Payment method types matching backend PaymentMethod enum
+ */
+export type PaymentMethod = "BANK_TRANSFER" | "PAYMENT_GATEWAY";
+
+/**
+ * Request payload for marking an invoice as paid
+ */
+export interface MarkAsPaidRequest {
+	/** Payment amount - must match invoice total */
+	amount: string;
+	/** Method of payment */
+	paymentMethod: PaymentMethod;
+	/** Date and time when payment was made (ISO 8601 format) */
+	paymentDate: string;
+	/** Optional notes about the payment */
+	notes?: string;
+}
 
 /**
  * Response from invoice API endpoints
@@ -31,9 +49,7 @@ export interface InvoiceResponse {
 	subtotal: string;
 	taxAmount: string;
 	totalAmount: string;
-	issueDate: string;
 	dueDate: string;
-	paidDate: string | null;
 	status: InvoiceStatus;
 	createdAt: string;
 	updatedAt: string;
@@ -113,10 +129,11 @@ export const invoiceService = {
 	 * This sets the status to PENDING_CONFIRMATION until admin confirms
 	 *
 	 * @param id - Invoice ID
+	 * @param request - Payment details including amount, method, and date
 	 * @returns Updated invoice with pending confirmation status
 	 * @throws Error if invoice not found, already paid, or not authorized
 	 */
-	async markAsPaid(id: string): Promise<InvoiceResponse> {
-		return apiClient.post<InvoiceResponse>(`/v1/invoices/${id}/mark-paid`);
+	async markAsPaid(id: string, request: MarkAsPaidRequest): Promise<InvoiceResponse> {
+		return apiClient.patch<InvoiceResponse>(`/v1/invoices/${id}/mark-paid`, request);
 	},
 };

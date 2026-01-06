@@ -114,6 +114,7 @@ function mapUserAuthorities(authorities: Array<string> | undefined): Array<UserA
                 userAuthority.read = true;
                 break;
             case "write":
+            case "create":
                 userAuthority.write = true;
                 break;
             case "update":

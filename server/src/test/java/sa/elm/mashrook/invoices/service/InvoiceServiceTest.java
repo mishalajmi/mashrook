@@ -15,13 +15,10 @@ import sa.elm.mashrook.campaigns.domain.CampaignEntity;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
 import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.exceptions.InvoiceNotFoundException;
-import sa.elm.mashrook.exceptions.InvoiceValidationException;
 import sa.elm.mashrook.exceptions.InvalidInvoiceStatusTransitionException;
 import sa.elm.mashrook.invoices.config.BankAccountConfigProperties;
 import sa.elm.mashrook.invoices.config.InvoiceConfigProperties;
 import sa.elm.mashrook.invoices.domain.InvoiceEntity;
-import sa.elm.mashrook.invoices.domain.InvoicePaymentEntity;
-import sa.elm.mashrook.invoices.domain.InvoicePaymentRepository;
 import sa.elm.mashrook.invoices.domain.InvoiceRepository;
 import sa.elm.mashrook.invoices.domain.InvoiceStatus;
 import sa.elm.mashrook.invoices.domain.PaymentMethod;
@@ -29,17 +26,16 @@ import sa.elm.mashrook.invoices.dto.BankAccountDetails;
 import sa.elm.mashrook.invoices.dto.InvoiceResponse;
 import sa.elm.mashrook.invoices.dto.MarkAsPaidRequest;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
-import sa.elm.mashrook.payments.intents.PaymentIntentService;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
 import sa.elm.mashrook.pledges.PledgeService;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
 import sa.elm.mashrook.notifications.NotificationService;
+import sa.elm.mashrook.payments.service.PaymentService;
 import sa.elm.mashrook.users.UserRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +44,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -61,16 +58,10 @@ class InvoiceServiceTest {
     private InvoiceRepository invoiceRepository;
 
     @Mock
-    private InvoicePaymentRepository invoicePaymentRepository;
-
-    @Mock
     private InvoiceNumberGenerator invoiceNumberGenerator;
 
     @Mock
     private PledgeService pledgeService;
-
-    @Mock
-    private PaymentIntentService paymentIntentService;
 
     @Mock
     private UserRepository userRepository;
@@ -78,11 +69,11 @@ class InvoiceServiceTest {
     @Mock
     private NotificationService notificationService;
 
-    @Captor
-    private ArgumentCaptor<InvoiceEntity> invoiceCaptor;
+    @Mock
+    private PaymentService paymentService;
 
     @Captor
-    private ArgumentCaptor<InvoicePaymentEntity> paymentCaptor;
+    private ArgumentCaptor<InvoiceEntity> invoiceCaptor;
 
     private InvoiceService invoiceService;
 
@@ -102,14 +93,13 @@ class InvoiceServiceTest {
 
         invoiceService = new InvoiceService(
                 invoiceRepository,
-                invoicePaymentRepository,
                 invoiceNumberGenerator,
                 invoiceConfig,
                 bankAccountConfig,
                 pledgeService,
-                paymentIntentService,
                 userRepository,
-                notificationService
+                notificationService,
+                paymentService
         );
     }
 
@@ -124,14 +114,10 @@ class InvoiceServiceTest {
             DiscountBracketEntity bracket = createBracket(campaignId, new BigDecimal("100.00"));
             PledgeEntity pledge1 = createPledge(campaignId, 5);
             PledgeEntity pledge2 = createPledge(campaignId, 10);
-            PaymentIntentEntity paymentIntent1 = createPaymentIntent(pledge1.getId(), PaymentIntentStatus.PENDING);
-            PaymentIntentEntity paymentIntent2 = createPaymentIntent(pledge2.getId(), PaymentIntentStatus.PENDING);
 
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge1, pledge2));
-            when(invoiceRepository.existsByPaymentIntent_Pledge_Id(any(UUID.class))).thenReturn(false);
-            when(paymentIntentService.findByPledgeId(pledge1.getId())).thenReturn(Optional.of(paymentIntent1));
-            when(paymentIntentService.findByPledgeId(pledge2.getId())).thenReturn(Optional.of(paymentIntent2));
+            when(invoiceRepository.existsByPledge_Id(any(UUID.class))).thenReturn(false);
             when(invoiceNumberGenerator.generateNextInvoiceNumber())
                     .thenReturn("INV-202501-0001", "INV-202501-0002");
             when(invoiceRepository.save(any(InvoiceEntity.class)))
@@ -149,12 +135,10 @@ class InvoiceServiceTest {
             UUID campaignId = UuidGeneratorUtil.generateUuidV7();
             DiscountBracketEntity bracket = createBracket(campaignId, new BigDecimal("100.00"));
             PledgeEntity pledge = createPledge(campaignId, 10);
-            PaymentIntentEntity paymentIntent = createPaymentIntent(pledge.getId(), PaymentIntentStatus.PENDING);
 
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge));
-            when(invoiceRepository.existsByPaymentIntent_Pledge_Id(any(UUID.class))).thenReturn(false);
-            when(paymentIntentService.findByPledgeId(pledge.getId())).thenReturn(Optional.of(paymentIntent));
+            when(invoiceRepository.existsByPledge_Id(any(UUID.class))).thenReturn(false);
             when(invoiceNumberGenerator.generateNextInvoiceNumber()).thenReturn("INV-202501-0001");
             when(invoiceRepository.save(any(InvoiceEntity.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
@@ -177,12 +161,10 @@ class InvoiceServiceTest {
             UUID campaignId = UuidGeneratorUtil.generateUuidV7();
             DiscountBracketEntity bracket = createBracket(campaignId, new BigDecimal("100.00"));
             PledgeEntity pledge = createPledge(campaignId, 5);
-            PaymentIntentEntity paymentIntent = createPaymentIntent(pledge.getId(), PaymentIntentStatus.PENDING);
 
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge));
-            when(invoiceRepository.existsByPaymentIntent_Pledge_Id(any(UUID.class))).thenReturn(false);
-            when(paymentIntentService.findByPledgeId(pledge.getId())).thenReturn(Optional.of(paymentIntent));
+            when(invoiceRepository.existsByPledge_Id(any(UUID.class))).thenReturn(false);
             when(invoiceNumberGenerator.generateNextInvoiceNumber()).thenReturn("INV-202501-0001");
             when(invoiceRepository.save(any(InvoiceEntity.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
@@ -190,7 +172,6 @@ class InvoiceServiceTest {
             List<InvoiceEntity> result = invoiceService.generateInvoicesForCampaign(campaignId, bracket);
 
             InvoiceEntity invoice = result.getFirst();
-            assertThat(invoice.getIssueDate()).isEqualTo(LocalDate.now());
             assertThat(invoice.getDueDate()).isEqualTo(LocalDate.now().plusDays(DUE_DAYS));
         }
 
@@ -201,13 +182,11 @@ class InvoiceServiceTest {
             DiscountBracketEntity bracket = createBracket(campaignId, new BigDecimal("100.00"));
             PledgeEntity existingPledge = createPledge(campaignId, 5);
             PledgeEntity newPledge = createPledge(campaignId, 10);
-            PaymentIntentEntity paymentIntent = createPaymentIntent(newPledge.getId(), PaymentIntentStatus.PENDING);
 
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(existingPledge, newPledge));
-            when(invoiceRepository.existsByPaymentIntent_Pledge_Id(existingPledge.getId())).thenReturn(true);
-            when(invoiceRepository.existsByPaymentIntent_Pledge_Id(newPledge.getId())).thenReturn(false);
-            when(paymentIntentService.findByPledgeId(newPledge.getId())).thenReturn(Optional.of(paymentIntent));
+            when(invoiceRepository.existsByPledge_Id(existingPledge.getId())).thenReturn(true);
+            when(invoiceRepository.existsByPledge_Id(newPledge.getId())).thenReturn(false);
             when(invoiceNumberGenerator.generateNextInvoiceNumber()).thenReturn("INV-202501-0001");
             when(invoiceRepository.save(any(InvoiceEntity.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
@@ -250,6 +229,7 @@ class InvoiceServiceTest {
 
             assertThat(result.id()).isEqualTo(invoiceId);
             assertThat(result.status()).isEqualTo(InvoiceStatus.DRAFT);
+            assertThat(result.campaignTitle()).isEqualTo("Test Campaign");
         }
 
         @Test
@@ -335,13 +315,10 @@ class InvoiceServiceTest {
     class MarkAsPaid {
 
         @Test
-        @DisplayName("should update invoice status to PAID")
-        void shouldUpdateInvoiceStatusToPaid() {
+        @DisplayName("should delegate payment recording to PaymentService and update status to PENDING_CONFIRMATION")
+        void shouldDelegateToPaymentServiceAndUpdateStatusToPendingConfirmation() {
             UUID invoiceId = UuidGeneratorUtil.generateUuidV7();
-            UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
-            PaymentIntentEntity paymentIntent = createPaymentIntent(pledgeId, PaymentIntentStatus.PENDING);
             InvoiceEntity invoice = createInvoice(invoiceId, InvoiceStatus.SENT);
-            invoice.setPaymentIntent(paymentIntent);
             invoice.setTotalAmount(new BigDecimal("1150.00"));
 
             UserEntity user = createUser();
@@ -349,8 +326,9 @@ class InvoiceServiceTest {
             MarkAsPaidRequest request = new MarkAsPaidRequest(
                     new BigDecimal("1150.00"),
                     PaymentMethod.BANK_TRANSFER,
-                    LocalDate.now(),
-                    "Payment received"
+                    LocalDateTime.now(),
+                    "Payment received",
+                    null  // buyerId is optional
             );
 
             when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
@@ -359,87 +337,30 @@ class InvoiceServiceTest {
 
             InvoiceResponse result = invoiceService.markAsPaid(invoiceId, request, user);
 
-            assertThat(result.status()).isEqualTo(InvoiceStatus.PAID);
-            verify(invoicePaymentRepository).save(paymentCaptor.capture());
-            assertThat(paymentCaptor.getValue().getPaymentMethod()).isEqualTo(PaymentMethod.BANK_TRANSFER);
+            assertThat(result.status()).isEqualTo(InvoiceStatus.PENDING_CONFIRMATION);
+            verify(paymentService).recordOfflinePayment(any(), eq(user.getId()));
         }
 
         @Test
-        @DisplayName("should throw exception when payment amount does not match")
-        void shouldThrowExceptionWhenPaymentAmountDoesNotMatch() {
+        @DisplayName("should throw InvalidInvoiceStatusTransitionException when status transition is invalid")
+        void shouldThrowExceptionWhenStatusTransitionIsInvalid() {
             UUID invoiceId = UuidGeneratorUtil.generateUuidV7();
-            InvoiceEntity invoice = createInvoice(invoiceId, InvoiceStatus.SENT);
+            InvoiceEntity invoice = createInvoice(invoiceId, InvoiceStatus.PAID);
             invoice.setTotalAmount(new BigDecimal("1150.00"));
             UserEntity user = createUser();
 
             MarkAsPaidRequest request = new MarkAsPaidRequest(
-                    new BigDecimal("1000.00"),
+                    new BigDecimal("1150.00"),
                     PaymentMethod.BANK_TRANSFER,
-                    LocalDate.now(),
-                    null
+                    LocalDateTime.now(),
+                    null,
+                    null  // buyerId is optional
             );
 
             when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
 
             assertThatThrownBy(() -> invoiceService.markAsPaid(invoiceId, request, user))
-                    .isInstanceOf(InvoiceValidationException.class)
-                    .hasMessageContaining("does not match");
-        }
-
-        @Test
-        @DisplayName("should update PaymentIntent status to SUCCEEDED when PENDING")
-        void shouldUpdatePaymentIntentStatusToSucceededWhenPending() {
-            UUID invoiceId = UuidGeneratorUtil.generateUuidV7();
-            UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
-            PaymentIntentEntity paymentIntent = createPaymentIntent(pledgeId, PaymentIntentStatus.PENDING);
-            InvoiceEntity invoice = createInvoice(invoiceId, InvoiceStatus.SENT);
-            invoice.setPaymentIntent(paymentIntent);
-            invoice.setTotalAmount(new BigDecimal("1150.00"));
-
-            UserEntity user = createUser();
-
-            MarkAsPaidRequest request = new MarkAsPaidRequest(
-                    new BigDecimal("1150.00"),
-                    PaymentMethod.BANK_TRANSFER,
-                    LocalDate.now(),
-                    null
-            );
-
-            when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
-            when(invoiceRepository.save(any(InvoiceEntity.class)))
-                    .thenAnswer(invocation -> invocation.getArgument(0));
-
-            invoiceService.markAsPaid(invoiceId, request, user);
-
-            verify(paymentIntentService).updatePaymentStatus(paymentIntent.getId(), PaymentIntentStatus.SUCCEEDED);
-        }
-
-        @Test
-        @DisplayName("should update PaymentIntent status to COLLECTED_VIA_AR when SENT_TO_AR")
-        void shouldUpdatePaymentIntentStatusToCollectedViaArWhenSentToAr() {
-            UUID invoiceId = UuidGeneratorUtil.generateUuidV7();
-            UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
-            PaymentIntentEntity paymentIntent = createPaymentIntent(pledgeId, PaymentIntentStatus.SENT_TO_AR);
-            InvoiceEntity invoice = createInvoice(invoiceId, InvoiceStatus.OVERDUE);
-            invoice.setPaymentIntent(paymentIntent);
-            invoice.setTotalAmount(new BigDecimal("1150.00"));
-
-            UserEntity user = createUser();
-
-            MarkAsPaidRequest request = new MarkAsPaidRequest(
-                    new BigDecimal("1150.00"),
-                    PaymentMethod.CASH,
-                    LocalDate.now(),
-                    "Collected offline"
-            );
-
-            when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
-            when(invoiceRepository.save(any(InvoiceEntity.class)))
-                    .thenAnswer(invocation -> invocation.getArgument(0));
-
-            invoiceService.markAsPaid(invoiceId, request, user);
-
-            verify(paymentIntentService).updatePaymentStatus(paymentIntent.getId(), PaymentIntentStatus.COLLECTED_VIA_AR);
+                    .isInstanceOf(InvalidInvoiceStatusTransitionException.class);
         }
     }
 
@@ -590,14 +511,12 @@ class InvoiceServiceTest {
     private InvoiceEntity createInvoice(UUID id, InvoiceStatus status) {
         CampaignEntity campaign = new CampaignEntity();
         campaign.setId(UuidGeneratorUtil.generateUuidV7());
+        campaign.setTitle("Test Campaign");
         campaign.setStatus(CampaignStatus.LOCKED);
 
         PledgeEntity pledge = new PledgeEntity();
         pledge.setId(UuidGeneratorUtil.generateUuidV7());
-
-        PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-        paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
-        paymentIntent.setPledge(pledge);
+        pledge.setQuantity(10);
 
         OrganizationEntity organization = new OrganizationEntity();
         organization.setId(UuidGeneratorUtil.generateUuidV7());
@@ -605,28 +524,15 @@ class InvoiceServiceTest {
         InvoiceEntity invoice = new InvoiceEntity();
         invoice.setId(id);
         invoice.setCampaign(campaign);
-        invoice.setPaymentIntent(paymentIntent);
+        invoice.setPledge(pledge);
         invoice.setOrganization(organization);
         invoice.setInvoiceNumber("INV-202501-0001");
         invoice.setSubtotal(new BigDecimal("1000.00"));
         invoice.setTaxAmount(new BigDecimal("150.00"));
         invoice.setTotalAmount(new BigDecimal("1150.00"));
         invoice.setStatus(status);
-        invoice.setIssueDate(LocalDate.now());
         invoice.setDueDate(LocalDate.now().plusDays(30));
         return invoice;
-    }
-
-    private PaymentIntentEntity createPaymentIntent(UUID pledgeId, PaymentIntentStatus status) {
-        PledgeEntity pledge = new PledgeEntity();
-        pledge.setId(pledgeId);
-
-        PaymentIntentEntity paymentIntent = new PaymentIntentEntity();
-        paymentIntent.setId(UuidGeneratorUtil.generateUuidV7());
-        paymentIntent.setPledge(pledge);
-        paymentIntent.setStatus(status);
-        paymentIntent.setAmount(new BigDecimal("1150.00"));
-        return paymentIntent;
     }
 
     private UserEntity createUser() {

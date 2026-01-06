@@ -18,7 +18,7 @@ import sa.elm.mashrook.exceptions.InvalidInvitationException;
 import sa.elm.mashrook.exceptions.TeamInvitationNotFoundException;
 import sa.elm.mashrook.exceptions.TeamOperationException;
 import sa.elm.mashrook.exceptions.UserNotFoundException;
-import sa.elm.mashrook.notifications.EmailNotificationService;
+import sa.elm.mashrook.notifications.NotificationService;
 import sa.elm.mashrook.organizations.OrganizationService;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationStatus;
@@ -70,7 +70,7 @@ class TeamServiceTest {
     private AuthenticationService authenticationService;
 
     @Mock
-    private EmailNotificationService emailService;
+    private NotificationService notificationService;
 
     @Mock
     private StringRedisTemplate redisTemplate;
@@ -95,7 +95,7 @@ class TeamServiceTest {
                 userService,
                 organizationService,
                 authenticationService,
-                emailService,
+                notificationService,
                 redisTemplate
         );
 
@@ -240,7 +240,7 @@ class TeamServiceTest {
             assertThat(result.email()).isEqualTo(email);
             assertThat(result.status()).isEqualTo("PENDING");
             verify(invitationRepository).save(any(TeamInvitationEntity.class));
-            verify(emailService).send(any());
+            verify(notificationService).send(any());
         }
 
         @Test
@@ -538,7 +538,7 @@ class TeamServiceTest {
             teamService.resendInvitation(invitationId, organizationId, ownerId);
 
             verify(invitationRepository).save(argThat(inv -> !inv.getToken().equals(originalToken)));
-            verify(emailService).send(any());
+            verify(notificationService).send(any());
         }
 
         @Test

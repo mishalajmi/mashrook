@@ -16,6 +16,7 @@ import java.util.UUID;
 public record InvoiceResponse(
         UUID id,
         UUID campaignId,
+        String campaignTitle,
         UUID pledgeId,
         UUID buyerOrgId,
         String invoiceNumber,
@@ -23,9 +24,7 @@ public record InvoiceResponse(
         BigDecimal taxAmount,
         BigDecimal totalAmount,
         InvoiceStatus status,
-        LocalDate issueDate,
         LocalDate dueDate,
-        LocalDate paidDate,
         String notes,
         BankAccountDetails bankDetails,
         LocalDateTime createdAt,
@@ -35,16 +34,15 @@ public record InvoiceResponse(
         return InvoiceResponse.builder()
                 .id(entity.getId())
                 .campaignId(entity.getCampaign().getId())
-                .pledgeId(entity.getPaymentIntent().getPledge().getId())
+                .campaignTitle(entity.getCampaign().getTitle())
+                .pledgeId(entity.getPledge().getId())
                 .buyerOrgId(entity.getOrganization().getId())
                 .invoiceNumber(entity.getInvoiceNumber())
                 .subtotal(entity.getSubtotal())
                 .taxAmount(entity.getTaxAmount())
                 .totalAmount(entity.getTotalAmount())
                 .status(entity.getStatus())
-                .issueDate(entity.getIssueDate())
                 .dueDate(entity.getDueDate())
-                .paidDate(entity.getPaidDate())
                 .notes(entity.getNotes())
                 .bankDetails(bankDetails)
                 .createdAt(entity.getCreatedAt())

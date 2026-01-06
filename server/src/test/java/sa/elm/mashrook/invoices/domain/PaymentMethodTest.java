@@ -25,23 +25,16 @@ class PaymentMethodTest {
         }
 
         @Test
-        @DisplayName("should have CASH method")
-        void shouldHaveCashMethod() {
-            assertThat(PaymentMethod.CASH).isNotNull();
-            assertThat(PaymentMethod.CASH.getValue()).isEqualTo("cash");
+        @DisplayName("should have PAYMENT_GATEWAY method")
+        void shouldHavePaymentGatewayMethod() {
+            assertThat(PaymentMethod.PAYMENT_GATEWAY).isNotNull();
+            assertThat(PaymentMethod.PAYMENT_GATEWAY.getValue()).isEqualTo("payment_gateway");
         }
 
         @Test
-        @DisplayName("should have CHECK method")
-        void shouldHaveCheckMethod() {
-            assertThat(PaymentMethod.CHECK).isNotNull();
-            assertThat(PaymentMethod.CHECK.getValue()).isEqualTo("check");
-        }
-
-        @Test
-        @DisplayName("should have exactly 3 payment methods")
-        void shouldHaveExactlyThreePaymentMethods() {
-            assertThat(PaymentMethod.values()).hasSize(3);
+        @DisplayName("should have exactly 4 payment methods")
+        void shouldHaveExactlyFourPaymentMethods() {
+            assertThat(PaymentMethod.values()).hasSize(4);
         }
     }
 
@@ -57,17 +50,10 @@ class PaymentMethodTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"cash", "CASH", "Cash"})
-        @DisplayName("should find CASH method case-insensitively")
-        void shouldFindCashMethodCaseInsensitively(String value) {
-            assertThat(PaymentMethod.fromValue(value)).isEqualTo(PaymentMethod.CASH);
-        }
-
-        @ParameterizedTest
-        @ValueSource(strings = {"check", "CHECK", "Check"})
-        @DisplayName("should find CHECK method case-insensitively")
-        void shouldFindCheckMethodCaseInsensitively(String value) {
-            assertThat(PaymentMethod.fromValue(value)).isEqualTo(PaymentMethod.CHECK);
+        @ValueSource(strings = {"payment_gateway", "PAYMENT_GATEWAY", "Payment_Gateway"})
+        @DisplayName("should find PAYMENT_GATEWAY method case-insensitively")
+        void shouldFindPaymentGatewayMethodCaseInsensitively(String value) {
+            assertThat(PaymentMethod.fromValue(value)).isEqualTo(PaymentMethod.PAYMENT_GATEWAY);
         }
 
         @Test

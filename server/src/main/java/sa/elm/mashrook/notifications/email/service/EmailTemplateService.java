@@ -107,7 +107,6 @@ public class EmailTemplateService {
                 context.setVariable("invoiceNumber", received.invoiceNumber());
                 context.setVariable("invoiceId", received.invoiceId());
                 context.setVariable("amountPaid", received.amountPaid());
-                context.setVariable("paymentDate", received.paymentDate());
                 context.setVariable("paymentMethod", received.paymentMethod());
             }
             case CampaignLockedEmail locked -> {

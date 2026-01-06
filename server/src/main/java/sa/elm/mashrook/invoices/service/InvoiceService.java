@@ -12,27 +12,20 @@ import sa.elm.mashrook.users.domain.UserStatus;
 import sa.elm.mashrook.users.UserRepository;
 import sa.elm.mashrook.brackets.domain.DiscountBracketEntity;
 import sa.elm.mashrook.exceptions.InvoiceNotFoundException;
-import sa.elm.mashrook.exceptions.InvoiceValidationException;
 import sa.elm.mashrook.exceptions.InvalidInvoiceStatusTransitionException;
-import sa.elm.mashrook.invoices.domain.PaymentMethod;
 import sa.elm.mashrook.notifications.NotificationService;
 import sa.elm.mashrook.notifications.email.dto.InvoiceGeneratedEmail;
-import sa.elm.mashrook.notifications.email.dto.PaymentReceivedEmail;
-import sa.elm.mashrook.exceptions.PaymentIntentNotFoundException;
 import sa.elm.mashrook.invoices.config.BankAccountConfigProperties;
 import sa.elm.mashrook.invoices.config.InvoiceConfigProperties;
 import sa.elm.mashrook.invoices.domain.InvoiceEntity;
-import sa.elm.mashrook.invoices.domain.InvoicePaymentEntity;
-import sa.elm.mashrook.invoices.domain.InvoicePaymentRepository;
 import sa.elm.mashrook.invoices.domain.InvoiceRepository;
 import sa.elm.mashrook.invoices.domain.InvoiceStatus;
+import sa.elm.mashrook.payments.dto.RecordOfflinePaymentRequest;
+import sa.elm.mashrook.payments.service.PaymentService;
 import sa.elm.mashrook.invoices.dto.BankAccountDetails;
 import sa.elm.mashrook.invoices.dto.InvoiceListResponse;
 import sa.elm.mashrook.invoices.dto.InvoiceResponse;
 import sa.elm.mashrook.invoices.dto.MarkAsPaidRequest;
-import sa.elm.mashrook.payments.intents.PaymentIntentService;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentEntity;
-import sa.elm.mashrook.payments.intents.domain.PaymentIntentStatus;
 import sa.elm.mashrook.pledges.PledgeService;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
@@ -55,21 +48,20 @@ import java.util.UUID;
 public class InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
-    private final InvoicePaymentRepository invoicePaymentRepository;
     private final InvoiceNumberGenerator invoiceNumberGenerator;
     private final InvoiceConfigProperties invoiceConfig;
     private final BankAccountConfigProperties bankAccountConfig;
     private final PledgeService pledgeService;
-    private final PaymentIntentService paymentIntentService;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final PaymentService paymentService;
 
     /**
      * Valid invoice status transitions.
      */
     private static final Map<InvoiceStatus, Set<InvoiceStatus>> VALID_TRANSITIONS = Map.of(
             InvoiceStatus.DRAFT, Set.of(InvoiceStatus.SENT, InvoiceStatus.CANCELLED),
-            InvoiceStatus.SENT, Set.of(InvoiceStatus.PAID, InvoiceStatus.OVERDUE, InvoiceStatus.CANCELLED),
+            InvoiceStatus.SENT, Set.of(InvoiceStatus.PAID, InvoiceStatus.PENDING_CONFIRMATION, InvoiceStatus.OVERDUE, InvoiceStatus.CANCELLED),
             InvoiceStatus.OVERDUE, Set.of(InvoiceStatus.PAID, InvoiceStatus.CANCELLED),
             InvoiceStatus.PAID, Set.of(),
             InvoiceStatus.CANCELLED, Set.of()
@@ -94,13 +86,8 @@ public class InvoiceService {
         LocalDate dueDate = issueDate.plusDays(invoiceConfig.dueDays());
 
         List<InvoiceEntity> generatedInvoices = committedPledges.stream()
-                .filter(pledge -> !invoiceRepository.existsByPaymentIntent_Pledge_Id(pledge.getId()))
-                .map(pledge -> {
-                    PaymentIntentEntity paymentIntent = paymentIntentService.findByPledgeId(pledge.getId())
-                            .orElseThrow(() -> new PaymentIntentNotFoundException(
-                                    String.format("No payment intent found for pledge: %s", pledge.getId())));
-                    return createInvoice(pledge, paymentIntent, finalBracket, issueDate, dueDate);
-                })
+                .filter(pledge -> !invoiceRepository.existsByPledge_Id(pledge.getId()))
+                .map(pledge -> createInvoice(pledge, finalBracket, issueDate, dueDate))
                 .toList();
 
         log.info("Generated {} invoices for campaign {}", generatedInvoices.size(), campaignId);
@@ -119,7 +106,7 @@ public class InvoiceService {
             UUID buyerOrgId = invoice.getOrganization().getId();
             userRepository.findFirstByOrganization_IdAndStatus(buyerOrgId, UserStatus.ACTIVE)
                     .ifPresent(buyerUser -> {
-                        int quantity = invoice.getPaymentIntent().getPledge().getQuantity();
+                        int quantity = invoice.getPledge().getQuantity();
                         notificationService.send(new InvoiceGeneratedEmail(
                                 buyerUser.getEmail(),
                                 buyerUser.getFirstName() + " " + buyerUser.getLastName(),
@@ -206,93 +193,29 @@ public class InvoiceService {
     @Transactional
     public InvoiceResponse markAsPaid(UUID invoiceId, MarkAsPaidRequest request, UserEntity recordedBy) {
         InvoiceEntity invoice = findInvoiceOrThrow(invoiceId);
-        validateStatusTransition(invoice.getStatus(), InvoiceStatus.PAID);
+        validateStatusTransition(invoice.getStatus(), InvoiceStatus.PENDING_CONFIRMATION);
 
-        // Validate payment amount matches invoice total
-        if (request.amount().compareTo(invoice.getTotalAmount()) != 0) {
-            throw new InvoiceValidationException(
-                    String.format("Payment amount %s does not match invoice total %s",
-                            request.amount(), invoice.getTotalAmount()));
-        }
+        // Delegate payment recording to PaymentService
+        RecordOfflinePaymentRequest paymentRequest = new RecordOfflinePaymentRequest(
+                invoiceId,
+                request.amount(),
+                request.paymentMethod(),
+                request.paymentDate().toLocalDate(),
+                request.notes(),
+                request.buyerId()  // Optional: may be null if buyer is unknown
+        );
+        paymentService.recordOfflinePayment(paymentRequest, recordedBy.getId());
 
-        // Update invoice status
-        invoice.setStatus(InvoiceStatus.PAID);
-        invoice.setPaidDate(request.paymentDate());
+        // Update invoice status to PENDING_CONFIRMATION (PaymentService will mark as PAID when payment succeeds)
+        invoice.setStatus(InvoiceStatus.PENDING_CONFIRMATION);
         if (request.notes() != null) {
             invoice.setNotes(request.notes());
         }
 
-        // Record the payment details
-        InvoicePaymentEntity payment = new InvoicePaymentEntity(
-                invoice,
-                request.amount(),
-                request.paymentMethod(),
-                request.paymentDate(),
-                request.notes(),
-                recordedBy
-        );
-        invoicePaymentRepository.save(payment);
-
-        // Update corresponding PaymentIntent
-        updatePaymentIntentOnPayment(invoice);
-
         InvoiceEntity saved = invoiceRepository.save(invoice);
-        log.info("Invoice {} marked as PAID", invoice.getInvoiceNumber());
-
-        // Send payment received notifications
-        sendPaymentReceivedNotifications(payment, saved);
+        log.info("Invoice {} marked as PENDING_CONFIRMATION", invoice.getInvoiceNumber());
 
         return InvoiceResponse.from(saved, getBankAccountDetails());
-    }
-
-    /**
-     * Sends payment received notifications to the buyer and supplier.
-     */
-    private void sendPaymentReceivedNotifications(InvoicePaymentEntity payment, InvoiceEntity invoice) {
-        try {
-            // Notify the buyer
-            UUID buyerOrgId = invoice.getOrganization().getId();
-            userRepository.findFirstByOrganization_IdAndStatus(buyerOrgId, UserStatus.ACTIVE)
-                    .ifPresent(buyerUser ->
-                            notificationService.send(new PaymentReceivedEmail(
-                                    buyerUser.getEmail(),
-                                    buyerUser.getFirstName() + " " + buyerUser.getLastName(),
-                                    invoice.getOrganization().getNameEn(),
-                                    invoice.getCampaign().getTitle(),
-                                    invoice.getInvoiceNumber(),
-                                    invoice.getId(),
-                                    payment.getAmount(),
-                                    payment.getPaymentDate(),
-                                    formatPaymentMethod(payment.getPaymentMethod())
-                            )));
-
-            // Notify the supplier
-            UUID supplierOrgId = invoice.getCampaign().getSupplierId();
-            userRepository.findFirstByOrganization_IdAndStatus(supplierOrgId, UserStatus.ACTIVE)
-                    .ifPresent(supplierUser ->
-                            notificationService.send(new PaymentReceivedEmail(
-                                    supplierUser.getEmail(),
-                                    supplierUser.getFirstName() + " " + supplierUser.getLastName(),
-                                    invoice.getOrganization().getNameEn(),
-                                    invoice.getCampaign().getTitle(),
-                                    invoice.getInvoiceNumber(),
-                                    invoice.getId(),
-                                    payment.getAmount(),
-                                    payment.getPaymentDate(),
-                                    formatPaymentMethod(payment.getPaymentMethod())
-                            )));
-        } catch (Exception e) {
-            log.error("Failed to send payment received notifications for invoice {}: {}",
-                    invoice.getInvoiceNumber(), e.getMessage(), e);
-        }
-    }
-
-    private String formatPaymentMethod(PaymentMethod method) {
-        return switch (method) {
-            case BANK_TRANSFER -> "Bank Transfer";
-            case CASH -> "Cash";
-            case CHECK -> "Check";
-        };
     }
 
     @Transactional
@@ -329,8 +252,8 @@ public class InvoiceService {
 
     // --- Private Helper Methods ---
 
-    private InvoiceEntity createInvoice(PledgeEntity pledge, PaymentIntentEntity paymentIntent,
-                                         DiscountBracketEntity bracket, LocalDate issueDate, LocalDate dueDate) {
+    private InvoiceEntity createInvoice(PledgeEntity pledge, DiscountBracketEntity bracket,
+                                         LocalDate issueDate, LocalDate dueDate) {
         BigDecimal subtotal = bracket.getUnitPrice()
                 .multiply(BigDecimal.valueOf(pledge.getQuantity()));
         BigDecimal taxAmount = subtotal.multiply(invoiceConfig.vatRate());
@@ -338,14 +261,13 @@ public class InvoiceService {
 
         InvoiceEntity invoice = new InvoiceEntity();
         invoice.setCampaign(pledge.getCampaign());
-        invoice.setPaymentIntent(paymentIntent);
+        invoice.setPledge(pledge);
         invoice.setOrganization(pledge.getOrganization());
         invoice.setInvoiceNumber(invoiceNumberGenerator.generateNextInvoiceNumber());
         invoice.setSubtotal(subtotal);
         invoice.setTaxAmount(taxAmount);
         invoice.setTotalAmount(totalAmount);
-        invoice.setStatus(InvoiceStatus.DRAFT);
-        invoice.setIssueDate(issueDate);
+        invoice.setStatus(InvoiceStatus.SENT);
         invoice.setDueDate(dueDate);
 
         InvoiceEntity saved = invoiceRepository.save(invoice);
@@ -365,21 +287,5 @@ public class InvoiceService {
         if (!validNextStatuses.contains(targetStatus)) {
             throw new InvalidInvoiceStatusTransitionException(currentStatus, targetStatus);
         }
-    }
-
-    private void updatePaymentIntentOnPayment(InvoiceEntity invoice) {
-        PaymentIntentEntity paymentIntent = invoice.getPaymentIntent();
-
-        // Determine target status based on current PaymentIntent status
-        PaymentIntentStatus targetStatus = switch (paymentIntent.getStatus()) {
-            case PENDING, PROCESSING -> PaymentIntentStatus.SUCCEEDED;
-            case SENT_TO_AR -> PaymentIntentStatus.COLLECTED_VIA_AR;
-            default -> throw new InvoiceValidationException(
-                    String.format("Cannot mark payment as collected from PaymentIntent status: %s",
-                            paymentIntent.getStatus()));
-        };
-
-        paymentIntentService.updatePaymentStatus(paymentIntent.getId(), targetStatus);
-        log.info("Updated PaymentIntent {} to status {}", paymentIntent.getId(), targetStatus);
     }
 }

@@ -43,10 +43,8 @@ describe("PaymentsPage", () => {
 			subtotal: "250.00",
 			taxAmount: "25.00",
 			totalAmount: "275.00",
-			issueDate: "2024-01-01T00:00:00Z",
 			dueDate: "2024-01-15T00:00:00Z",
-			paidDate: null,
-			status: "ISSUED" as const,
+			status: "SENT" as const,
 			createdAt: "2024-01-01T00:00:00Z",
 			updatedAt: "2024-01-01T00:00:00Z",
 		},
@@ -59,9 +57,7 @@ describe("PaymentsPage", () => {
 			subtotal: "500.00",
 			taxAmount: "50.00",
 			totalAmount: "550.00",
-			issueDate: "2024-01-05T00:00:00Z",
 			dueDate: "2024-01-20T00:00:00Z",
-			paidDate: "2024-01-18T00:00:00Z",
 			status: "PAID" as const,
 			createdAt: "2024-01-05T00:00:00Z",
 			updatedAt: "2024-01-18T00:00:00Z",
@@ -75,9 +71,7 @@ describe("PaymentsPage", () => {
 			subtotal: "180.00",
 			taxAmount: "18.00",
 			totalAmount: "198.00",
-			issueDate: "2023-12-01T00:00:00Z",
 			dueDate: "2023-12-15T00:00:00Z",
-			paidDate: null,
 			status: "OVERDUE" as const,
 			createdAt: "2023-12-01T00:00:00Z",
 			updatedAt: "2023-12-01T00:00:00Z",
@@ -204,7 +198,7 @@ describe("PaymentsPage", () => {
 	});
 
 	describe("Status Badges", () => {
-		it("should display ISSUED status with info/blue colors", async () => {
+		it("should display SENT status with info/blue colors", async () => {
 			renderWithRouter(<PaymentsPage />);
 
 			await waitFor(() => {
@@ -237,6 +231,41 @@ describe("PaymentsPage", () => {
 					badge.textContent?.toLowerCase().includes("overdue")
 				);
 				expect(overdueBadge).toHaveClass("bg-red-100", "text-red-700");
+			});
+		});
+
+		it("should display PENDING_CONFIRMATION status with amber/yellow colors", async () => {
+			const mockInvoicesWithPendingConfirmation = {
+				content: [
+					{
+						id: "invoice-4",
+						invoiceNumber: "INV-2024-004",
+						campaignId: "campaign-4",
+						campaignTitle: "Specialty Honey",
+						buyerOrgId: "buyer-org-1",
+						subtotal: "300.00",
+						taxAmount: "30.00",
+						totalAmount: "330.00",
+						dueDate: "2024-02-01T00:00:00Z",
+						status: "PENDING_CONFIRMATION" as const,
+						createdAt: "2024-01-10T00:00:00Z",
+						updatedAt: "2024-01-10T00:00:00Z",
+					},
+				],
+				page: 0,
+				size: 20,
+				totalElements: 1,
+				totalPages: 1,
+			};
+			(invoiceService.getMyInvoices as ReturnType<typeof vi.fn>).mockResolvedValue(
+				mockInvoicesWithPendingConfirmation
+			);
+			renderWithRouter(<PaymentsPage />);
+
+			await waitFor(() => {
+				const badge = screen.getByTestId("invoice-status-badge");
+				expect(badge).toHaveTextContent("Pending Confirmation");
+				expect(badge).toHaveClass("bg-amber-100", "text-amber-700");
 			});
 		});
 	});
