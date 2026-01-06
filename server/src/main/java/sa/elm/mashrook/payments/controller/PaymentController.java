@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import sa.elm.mashrook.payments.dto.GatewayStatusResponse;
 import sa.elm.mashrook.payments.dto.InitiateOnlinePaymentResponse;
 import sa.elm.mashrook.payments.dto.PaymentHistoryResponse;
 import sa.elm.mashrook.payments.dto.PaymentResponse;
 import sa.elm.mashrook.payments.dto.RecordOfflinePaymentRequest;
+import sa.elm.mashrook.payments.gateway.PaymentGatewayFactory;
 import sa.elm.mashrook.payments.service.PaymentService;
 import sa.elm.mashrook.security.domain.JwtPrincipal;
 
@@ -32,6 +34,7 @@ import java.util.UUID;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final PaymentGatewayFactory gatewayFactory;
 
     @PostMapping("/invoices/{invoiceId}/pay")
     @PreAuthorize("hasAuthority('invoices:read')")
@@ -99,5 +102,13 @@ public class PaymentController {
                 .map(PaymentResponse::from)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/gateway/status")
+    public GatewayStatusResponse getGatewayStatus() {
+        return new GatewayStatusResponse(
+                gatewayFactory.isOnlinePaymentAvailable(),
+                gatewayFactory.getActiveProvider().getValue()
+        );
     }
 }

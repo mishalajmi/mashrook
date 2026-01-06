@@ -9,7 +9,12 @@ export type PaymentStatus =
 	| "EXPIRED"
 	| "REFUNDED";
 
-export type PaymentProvider = "TAB" | "STUB";
+export type PaymentProvider = "TAB" | "NONE";
+
+export interface GatewayStatusResponse {
+	onlinePaymentAvailable: boolean;
+	activeProvider: string;
+}
 
 export interface PaymentResponse {
 	id: string;
@@ -73,5 +78,9 @@ export const paymentService = {
 		return apiClient.get<PaymentResponse>(
 			`/v1/payments/return?checkout_id=${checkoutId}`
 		);
+	},
+
+	async getGatewayStatus(): Promise<GatewayStatusResponse> {
+		return apiClient.get<GatewayStatusResponse>("/v1/payments/gateway/status");
 	},
 };

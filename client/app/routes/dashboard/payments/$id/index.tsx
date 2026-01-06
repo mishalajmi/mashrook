@@ -23,6 +23,7 @@ import {
 	type InvoiceStatus,
 	type MarkAsPaidRequest,
 } from "@/services/invoice.service";
+import { paymentService } from "@/services/payment.service";
 
 // Bank details - in production these would come from application config
 const BANK_DETAILS = {
@@ -157,6 +158,7 @@ export default function InvoiceDetailPage(): ReactNode {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [isMarkingPaid, setIsMarkingPaid] = useState(false);
+	const [isOnlineAvailable, setIsOnlineAvailable] = useState<boolean | null>(null);
 
 	const handlePayNow = () => {
 		if (id) {
@@ -185,6 +187,19 @@ export default function InvoiceDetailPage(): ReactNode {
 	useEffect(() => {
 		fetchInvoice();
 	}, [fetchInvoice]);
+
+	// Check gateway availability
+	useEffect(() => {
+		const checkGatewayStatus = async () => {
+			try {
+				const status = await paymentService.getGatewayStatus();
+				setIsOnlineAvailable(status.onlinePaymentAvailable);
+			} catch {
+				setIsOnlineAvailable(false);
+			}
+		};
+		checkGatewayStatus();
+	}, []);
 
 	// Handle mark as paid
 	const handleMarkAsPaid = async () => {
@@ -251,7 +266,7 @@ export default function InvoiceDetailPage(): ReactNode {
 
 	const statusConfig = invoiceStatusConfig[invoice.status];
 	const showMarkAsPaidButton = canMarkAsPaid(invoice.status);
-	const showPayNowButton = canPayOnline(invoice.status);
+	const showPayNowButton = canPayOnline(invoice.status) && isOnlineAvailable === true;
 
 	return (
 		<div data-testid="invoice-detail-page" className="flex flex-col gap-6 p-6">

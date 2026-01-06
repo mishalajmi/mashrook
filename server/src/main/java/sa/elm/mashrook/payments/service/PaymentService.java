@@ -186,10 +186,10 @@ public class PaymentService {
                             request.amount(), invoice.getTotalAmount()));
         }
 
-        // Look up buyer only if buyerId is provided, otherwise null (acceptable for offline B2B payments)
+        // Look up buyer if buyerId is provided, otherwise use the recording user as the buyer
         UserEntity buyer = request.buyerId() != null
-                ? userRepository.findById(request.buyerId()).orElse(null)
-                : null;
+                ? userRepository.findById(request.buyerId()).orElse(admin)
+                : admin;
 
         PaymentEntity payment = PaymentEntity.createOfflinePayment(
                 invoice,
@@ -361,8 +361,6 @@ public class PaymentService {
     private String formatPaymentMethod(PaymentEntity payment) {
         return switch (payment.getPaymentMethod()) {
             case BANK_TRANSFER -> "Bank Transfer";
-            case CASH -> "Cash";
-            case CHECK -> "Check";
             case PAYMENT_GATEWAY -> "Online Payment via " +
                     (payment.getPaymentProvider() != null ? payment.getPaymentProvider().name() : "Gateway");
         };

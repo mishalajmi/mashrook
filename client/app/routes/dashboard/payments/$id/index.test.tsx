@@ -12,6 +12,7 @@ import { MemoryRouter, Routes, Route } from "react-router";
 
 import InvoiceDetailPage from "./index";
 import { invoiceService } from "@/services/invoice.service";
+import { paymentService } from "@/services/payment.service";
 
 // Mock useNavigate
 const mockNavigate = vi.fn();
@@ -29,6 +30,13 @@ vi.mock("@/services/invoice.service", () => ({
 		getMyInvoices: vi.fn(),
 		getInvoice: vi.fn(),
 		markAsPaid: vi.fn(),
+	},
+}));
+
+// Mock payment service
+vi.mock("@/services/payment.service", () => ({
+	paymentService: {
+		getGatewayStatus: vi.fn(),
 	},
 }));
 
@@ -68,6 +76,10 @@ describe("InvoiceDetailPage", () => {
 		(invoiceService.getInvoice as ReturnType<typeof vi.fn>).mockResolvedValue(
 			mockInvoice
 		);
+		(paymentService.getGatewayStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
+			onlinePaymentAvailable: true,
+			activeProvider: "tab",
+		});
 	});
 
 	const renderWithRouter = (invoiceId: string = "invoice-1") => {
@@ -389,6 +401,56 @@ describe("InvoiceDetailPage", () => {
 				expect(badge).toHaveTextContent("Pending Confirmation");
 				expect(badge).toHaveClass("bg-amber-100", "text-amber-700");
 			});
+		});
+	});
+
+	describe("Pay Now Button Gateway Availability", () => {
+		it("should display Pay Now button when gateway is available and invoice is unpaid", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("pay-now-button")).toBeInTheDocument();
+			});
+		});
+
+		it("should hide Pay Now button when gateway is unavailable", async () => {
+			(paymentService.getGatewayStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
+				onlinePaymentAvailable: false,
+				activeProvider: "none",
+			});
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-detail-page")).toBeInTheDocument();
+			});
+
+			expect(screen.queryByTestId("pay-now-button")).not.toBeInTheDocument();
+		});
+
+		it("should hide Pay Now button when gateway status check fails", async () => {
+			(paymentService.getGatewayStatus as ReturnType<typeof vi.fn>).mockRejectedValue(
+				new Error("Failed to check gateway")
+			);
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-detail-page")).toBeInTheDocument();
+			});
+
+			expect(screen.queryByTestId("pay-now-button")).not.toBeInTheDocument();
+		});
+
+		it("should hide Pay Now button for paid invoices even when gateway is available", async () => {
+			(invoiceService.getInvoice as ReturnType<typeof vi.fn>).mockResolvedValue(
+				mockPaidInvoice
+			);
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.getByTestId("invoice-detail-page")).toBeInTheDocument();
+			});
+
+			expect(screen.queryByTestId("pay-now-button")).not.toBeInTheDocument();
 		});
 	});
 });

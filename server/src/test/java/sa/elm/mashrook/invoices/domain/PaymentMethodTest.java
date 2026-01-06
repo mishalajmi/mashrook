@@ -25,20 +25,6 @@ class PaymentMethodTest {
         }
 
         @Test
-        @DisplayName("should have CASH method")
-        void shouldHaveCashMethod() {
-            assertThat(PaymentMethod.CASH).isNotNull();
-            assertThat(PaymentMethod.CASH.getValue()).isEqualTo("cash");
-        }
-
-        @Test
-        @DisplayName("should have CHECK method")
-        void shouldHaveCheckMethod() {
-            assertThat(PaymentMethod.CHECK).isNotNull();
-            assertThat(PaymentMethod.CHECK.getValue()).isEqualTo("check");
-        }
-
-        @Test
         @DisplayName("should have PAYMENT_GATEWAY method")
         void shouldHavePaymentGatewayMethod() {
             assertThat(PaymentMethod.PAYMENT_GATEWAY).isNotNull();
@@ -61,20 +47,6 @@ class PaymentMethodTest {
         @DisplayName("should find BANK_TRANSFER method case-insensitively")
         void shouldFindBankTransferMethodCaseInsensitively(String value) {
             assertThat(PaymentMethod.fromValue(value)).isEqualTo(PaymentMethod.BANK_TRANSFER);
-        }
-
-        @ParameterizedTest
-        @ValueSource(strings = {"cash", "CASH", "Cash"})
-        @DisplayName("should find CASH method case-insensitively")
-        void shouldFindCashMethodCaseInsensitively(String value) {
-            assertThat(PaymentMethod.fromValue(value)).isEqualTo(PaymentMethod.CASH);
-        }
-
-        @ParameterizedTest
-        @ValueSource(strings = {"check", "CHECK", "Check"})
-        @DisplayName("should find CHECK method case-insensitively")
-        void shouldFindCheckMethodCaseInsensitively(String value) {
-            assertThat(PaymentMethod.fromValue(value)).isEqualTo(PaymentMethod.CHECK);
         }
 
         @ParameterizedTest

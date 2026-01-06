@@ -21,11 +21,7 @@ export type InvoiceStatus =
 /**
  * Payment method types matching backend PaymentMethod enum
  */
-export type PaymentMethod =
-	| "BANK_TRANSFER"
-	| "CASH"
-	| "CHECK"
-	| "PAYMENT_GATEWAY";
+export type PaymentMethod = "BANK_TRANSFER" | "PAYMENT_GATEWAY";
 
 /**
  * Request payload for marking an invoice as paid

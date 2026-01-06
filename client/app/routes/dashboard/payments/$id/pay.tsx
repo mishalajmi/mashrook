@@ -83,6 +83,7 @@ export default function PaymentMethodPage(): ReactNode {
 	const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>("card");
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [showBankDetails, setShowBankDetails] = useState(false);
+	const [isOnlineAvailable, setIsOnlineAvailable] = useState<boolean | null>(null);
 
 	const fetchInvoice = useCallback(async () => {
 		if (!id) return;
@@ -104,6 +105,26 @@ export default function PaymentMethodPage(): ReactNode {
 	useEffect(() => {
 		fetchInvoice();
 	}, [fetchInvoice]);
+
+	useEffect(() => {
+		const checkGatewayStatus = async () => {
+			try {
+				const status = await paymentService.getGatewayStatus();
+				setIsOnlineAvailable(status.onlinePaymentAvailable);
+				if (!status.onlinePaymentAvailable) {
+					setSelectedMethod("bank_transfer");
+				}
+			} catch {
+				setIsOnlineAvailable(false);
+				setSelectedMethod("bank_transfer");
+			}
+		};
+		checkGatewayStatus();
+	}, []);
+
+	const availableMethods = isOnlineAvailable
+		? PAYMENT_METHODS
+		: PAYMENT_METHODS.filter((m) => !m.isOnline);
 
 	const handlePayNow = async () => {
 		if (!id || !invoice) return;
@@ -167,7 +188,7 @@ export default function PaymentMethodPage(): ReactNode {
 		);
 	}
 
-	const selectedMethodOption = PAYMENT_METHODS.find(
+	const selectedMethodOption = availableMethods.find(
 		(m) => m.id === selectedMethod
 	);
 
@@ -221,13 +242,21 @@ export default function PaymentMethodPage(): ReactNode {
 					<CardContent className="space-y-6">
 						{!showBankDetails ? (
 							<>
+								{isOnlineAvailable === false && (
+									<div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
+										<p>
+											Online payment options are currently unavailable. Please
+											use bank transfer.
+										</p>
+									</div>
+								)}
 								<RadioGroup
 									data-testid="payment-method-selector"
 									value={selectedMethod}
 									onValueChange={(value) => setSelectedMethod(value as PaymentMethod)}
 									className="space-y-3"
 								>
-									{PAYMENT_METHODS.map((method) => {
+									{availableMethods.map((method) => {
 										const Icon = method.icon;
 										return (
 											<div key={method.id}>

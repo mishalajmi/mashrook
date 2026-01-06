@@ -2,7 +2,7 @@ package sa.elm.mashrook.payments.domain;
 
 public enum PaymentProvider {
     TAB("tab"),
-    STUB("stub");
+    NONE("none");
 
     private final String value;
 
@@ -14,12 +14,19 @@ public enum PaymentProvider {
         return value;
     }
 
+    public boolean isAvailable() {
+        return this != NONE;
+    }
+
     public static PaymentProvider fromValue(String value) {
+        if (value == null || value.isBlank()) {
+            return NONE;
+        }
         for (PaymentProvider provider : PaymentProvider.values()) {
             if (provider.value.equalsIgnoreCase(value) || provider.name().equalsIgnoreCase(value)) {
                 return provider;
             }
         }
-        throw new IllegalArgumentException(value + " is not a valid payment provider");
+        return NONE;
     }
 }

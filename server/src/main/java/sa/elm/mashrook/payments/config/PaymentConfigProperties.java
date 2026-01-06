@@ -12,7 +12,7 @@ public record PaymentConfigProperties(
 ) {
     public PaymentConfigProperties {
         if (activeGateway == null) {
-            activeGateway = PaymentProvider.STUB;
+            activeGateway = PaymentProvider.NONE;
         }
         if (returnUrlBase == null) {
             returnUrlBase = "http://localhost:5173/dashboard/payments";

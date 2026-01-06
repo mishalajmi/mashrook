@@ -25,6 +25,7 @@ vi.mock("@/services/invoice.service", () => ({
 vi.mock("@/services/payment.service", () => ({
 	paymentService: {
 		initiateOnlinePayment: vi.fn(),
+		getGatewayStatus: vi.fn(),
 	},
 }));
 
@@ -57,6 +58,10 @@ describe("PaymentMethodPage", () => {
 		(invoiceService.getInvoice as ReturnType<typeof vi.fn>).mockResolvedValue(
 			mockInvoice
 		);
+		(paymentService.getGatewayStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
+			onlinePaymentAvailable: true,
+			activeProvider: "tab",
+		});
 	});
 
 	const renderWithRouter = (invoiceId: string = "invoice-1") => {
@@ -310,6 +315,44 @@ describe("PaymentMethodPage", () => {
 
 			await waitFor(() => {
 				expect(screen.getByTestId("bank-details-section")).toBeInTheDocument();
+			});
+		});
+	});
+
+	describe("Gateway Unavailable", () => {
+		beforeEach(() => {
+			(paymentService.getGatewayStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
+				onlinePaymentAvailable: false,
+				activeProvider: "none",
+			});
+		});
+
+		it("should hide online payment options when gateway unavailable", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(screen.queryByText("Credit/Debit Card")).not.toBeInTheDocument();
+				expect(screen.queryByText("Mada")).not.toBeInTheDocument();
+				expect(screen.getByText("Bank Transfer")).toBeInTheDocument();
+			});
+		});
+
+		it("should show message about unavailable online payments", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(
+					screen.getByText(/online payment options are currently unavailable/i)
+				).toBeInTheDocument();
+			});
+		});
+
+		it("should have bank transfer selected by default when gateway unavailable", async () => {
+			renderWithRouter();
+
+			await waitFor(() => {
+				const bankOption = screen.getByRole("radio", { name: /bank transfer/i });
+				expect(bankOption).toBeChecked();
 			});
 		});
 	});

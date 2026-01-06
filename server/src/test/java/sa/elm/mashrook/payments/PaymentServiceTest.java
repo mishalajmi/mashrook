@@ -90,7 +90,7 @@ class PaymentServiceTest {
     @BeforeEach
     void setUp() {
         PaymentConfigProperties config = new PaymentConfigProperties(
-                PaymentProvider.STUB,
+                PaymentProvider.TAB,
                 RETURN_URL_BASE,
                 WEBHOOK_URL_BASE,
                 SERVER_BASE_URL
@@ -118,14 +118,14 @@ class PaymentServiceTest {
             InvoiceEntity invoice = createInvoice(invoiceId, InvoiceStatus.SENT);
             UserEntity buyer = createUser(buyerId);
 
-            String checkoutId = "stub_checkout_123";
+            String checkoutId = "tab_checkout_123";
             String redirectUrl = "/api/stub-gateway/checkout/" + checkoutId;
 
             when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
             when(userRepository.findById(buyerId)).thenReturn(Optional.of(buyer));
             when(paymentRepository.findByIdempotencyKey(any())).thenReturn(Optional.empty());
             when(gatewayFactory.getActiveGateway()).thenReturn(paymentGateway);
-            when(paymentGateway.getProvider()).thenReturn(PaymentProvider.STUB);
+            when(paymentGateway.getProvider()).thenReturn(PaymentProvider.TAB);
             when(paymentRepository.save(any(PaymentEntity.class)))
                     .thenAnswer(invocation -> {
                         PaymentEntity p = invocation.getArgument(0);
@@ -148,7 +148,7 @@ class PaymentServiceTest {
             verify(paymentRepository, times(2)).save(paymentCaptor.capture());
             List<PaymentEntity> savedPayments = paymentCaptor.getAllValues();
             PaymentEntity finalPayment = savedPayments.getLast();
-            assertThat(finalPayment.getPaymentProvider()).isEqualTo(PaymentProvider.STUB);
+            assertThat(finalPayment.getPaymentProvider()).isEqualTo(PaymentProvider.TAB);
             assertThat(finalPayment.getProviderCheckoutId()).isEqualTo(checkoutId);
         }
 
@@ -237,7 +237,7 @@ class PaymentServiceTest {
             );
 
             when(paymentRepository.findByProviderCheckoutId(checkoutId)).thenReturn(Optional.of(payment));
-            when(gatewayFactory.getGateway(PaymentProvider.STUB)).thenReturn(paymentGateway);
+            when(gatewayFactory.getGateway(PaymentProvider.TAB)).thenReturn(paymentGateway);
             when(paymentGateway.getPaymentStatus(checkoutId)).thenReturn(gatewayStatus);
             when(paymentRepository.save(any(PaymentEntity.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
@@ -262,7 +262,7 @@ class PaymentServiceTest {
             );
 
             when(paymentRepository.findByProviderCheckoutId(checkoutId)).thenReturn(Optional.of(payment));
-            when(gatewayFactory.getGateway(PaymentProvider.STUB)).thenReturn(paymentGateway);
+            when(gatewayFactory.getGateway(PaymentProvider.TAB)).thenReturn(paymentGateway);
             when(paymentGateway.getPaymentStatus(checkoutId)).thenReturn(gatewayStatus);
             when(paymentRepository.save(any(PaymentEntity.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
@@ -312,7 +312,7 @@ class PaymentServiceTest {
             when(userRepository.findById(buyerId)).thenReturn(Optional.of(buyer));
             when(paymentRepository.findByIdempotencyKey(any())).thenReturn(Optional.empty());
             when(gatewayFactory.getActiveGateway()).thenReturn(paymentGateway);
-            when(paymentGateway.getProvider()).thenReturn(PaymentProvider.STUB);
+            when(paymentGateway.getProvider()).thenReturn(PaymentProvider.TAB);
             when(paymentRepository.save(any(PaymentEntity.class)))
                     .thenAnswer(invocation -> {
                         PaymentEntity p = invocation.getArgument(0);
@@ -491,7 +491,7 @@ class PaymentServiceTest {
             RecordOfflinePaymentRequest request = new RecordOfflinePaymentRequest(
                     invoiceId,
                     new BigDecimal("1000.00"),
-                    PaymentMethod.CASH,
+                    PaymentMethod.BANK_TRANSFER,
                     LocalDate.now(),
                     null,
                     buyerId  // Explicitly provide buyer ID
@@ -531,7 +531,7 @@ class PaymentServiceTest {
             RecordOfflinePaymentRequest request = new RecordOfflinePaymentRequest(
                     invoiceId,
                     new BigDecimal("1000.00"),
-                    PaymentMethod.CASH,
+                    PaymentMethod.BANK_TRANSFER,
                     LocalDate.now(),
                     null,
                     null  // buyerId not provided
@@ -577,14 +577,14 @@ class PaymentServiceTest {
                     checkoutId, "txn_456", PaymentStatus.SUCCEEDED, "00", "OK", LocalDateTime.now()
             );
 
-            when(gatewayFactory.getGateway(PaymentProvider.STUB)).thenReturn(paymentGateway);
+            when(gatewayFactory.getGateway(PaymentProvider.TAB)).thenReturn(paymentGateway);
             when(paymentGateway.verifyWebhookSignature(payload, signature)).thenReturn(true);
             when(paymentGateway.parseWebhookPayload(payload)).thenReturn(status);
             when(paymentRepository.findByProviderCheckoutId(checkoutId)).thenReturn(Optional.of(payment));
             when(paymentRepository.save(any(PaymentEntity.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
-            paymentService.handleWebhook(PaymentProvider.STUB, payload, signature);
+            paymentService.handleWebhook(PaymentProvider.TAB, payload, signature);
 
             verify(paymentRepository).save(paymentCaptor.capture());
             assertThat(paymentCaptor.getValue().getStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
@@ -596,10 +596,10 @@ class PaymentServiceTest {
             String payload = "{}";
             String signature = "invalid";
 
-            when(gatewayFactory.getGateway(PaymentProvider.STUB)).thenReturn(paymentGateway);
+            when(gatewayFactory.getGateway(PaymentProvider.TAB)).thenReturn(paymentGateway);
             when(paymentGateway.verifyWebhookSignature(payload, signature)).thenReturn(false);
 
-            assertThatThrownBy(() -> paymentService.handleWebhook(PaymentProvider.STUB, payload, signature))
+            assertThatThrownBy(() -> paymentService.handleWebhook(PaymentProvider.TAB, payload, signature))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Invalid webhook signature");
         }
@@ -651,7 +651,7 @@ class PaymentServiceTest {
         PaymentEntity payment = new PaymentEntity();
         payment.setId(id);
         payment.setStatus(status);
-        payment.setPaymentProvider(PaymentProvider.STUB);
+        payment.setPaymentProvider(PaymentProvider.TAB);
         payment.setPaymentMethod(PaymentMethod.PAYMENT_GATEWAY);
         payment.setAmount(new BigDecimal("1150.00"));
         return payment;

@@ -2,8 +2,6 @@ package sa.elm.mashrook.invoices.domain;
 
 public enum PaymentMethod {
     BANK_TRANSFER("bank_transfer"),
-    CASH("cash"),
-    CHECK("check"),
     PAYMENT_GATEWAY("payment_gateway");
 
     private final String value;
