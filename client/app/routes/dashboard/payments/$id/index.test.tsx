@@ -10,7 +10,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router";
 
-import InvoiceDetailPage from "./$id";
+import InvoiceDetailPage from "./index";
 import { invoiceService } from "@/services/invoice.service";
 
 // Mock useNavigate
@@ -50,10 +50,8 @@ describe("InvoiceDetailPage", () => {
 		subtotal: "250.00",
 		taxAmount: "25.00",
 		totalAmount: "275.00",
-		issueDate: "2024-01-01T00:00:00Z",
 		dueDate: "2024-01-15T00:00:00Z",
-		paidDate: null,
-		status: "ISSUED" as const,
+		status: "SENT" as const,
 		createdAt: "2024-01-01T00:00:00Z",
 		updatedAt: "2024-01-01T00:00:00Z",
 	};
@@ -62,7 +60,6 @@ describe("InvoiceDetailPage", () => {
 		...mockInvoice,
 		id: "invoice-2",
 		status: "PAID" as const,
-		paidDate: "2024-01-10T00:00:00Z",
 	};
 
 	beforeEach(() => {
@@ -176,14 +173,6 @@ describe("InvoiceDetailPage", () => {
 			});
 		});
 
-		it("should display issue date", async () => {
-			renderWithRouter();
-
-			await waitFor(() => {
-				expect(screen.getByTestId("invoice-issue-date")).toBeInTheDocument();
-			});
-		});
-
 		it("should display due date", async () => {
 			renderWithRouter();
 
@@ -260,11 +249,11 @@ describe("InvoiceDetailPage", () => {
 			});
 		});
 
-		it("should call markAsPaid when button is clicked", async () => {
+		it("should call markAsPaid with payment details when button is clicked", async () => {
 			const user = userEvent.setup();
 			(invoiceService.markAsPaid as ReturnType<typeof vi.fn>).mockResolvedValue({
 				...mockInvoice,
-				status: "PENDING_CONFIRMATION",
+				status: "PAID",
 			});
 
 			renderWithRouter();
@@ -279,7 +268,14 @@ describe("InvoiceDetailPage", () => {
 			await user.click(button);
 
 			await waitFor(() => {
-				expect(invoiceService.markAsPaid).toHaveBeenCalledWith("invoice-1");
+				expect(invoiceService.markAsPaid).toHaveBeenCalledWith(
+					"invoice-1",
+					expect.objectContaining({
+						amount: "275.00",
+						paymentMethod: "BANK_TRANSFER",
+						paymentDate: expect.any(String),
+					})
+				);
 			});
 		});
 
@@ -302,6 +298,56 @@ describe("InvoiceDetailPage", () => {
 
 			await waitFor(() => {
 				expect(button).toBeDisabled();
+			});
+		});
+
+		it("should show error toast with message when marking as paid fails", async () => {
+			const { toast } = await import("sonner");
+			const user = userEvent.setup();
+			const errorMessage = "Invoice has already been marked as paid";
+			(invoiceService.markAsPaid as ReturnType<typeof vi.fn>).mockRejectedValue(
+				new Error(errorMessage)
+			);
+
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /i've made payment/i })
+				).toBeInTheDocument();
+			});
+
+			const button = screen.getByRole("button", { name: /i've made payment/i });
+			await user.click(button);
+
+			await waitFor(() => {
+				expect(toast.error).toHaveBeenCalledWith(errorMessage);
+			});
+		});
+
+		it("should show success toast when marking as paid succeeds", async () => {
+			const { toast } = await import("sonner");
+			const user = userEvent.setup();
+			(invoiceService.markAsPaid as ReturnType<typeof vi.fn>).mockResolvedValue({
+				...mockInvoice,
+				status: "PENDING_CONFIRMATION",
+			});
+
+			renderWithRouter();
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /i've made payment/i })
+				).toBeInTheDocument();
+			});
+
+			const button = screen.getByRole("button", { name: /i've made payment/i });
+			await user.click(button);
+
+			await waitFor(() => {
+				expect(toast.success).toHaveBeenCalledWith(
+					"Payment marked as complete. Awaiting admin confirmation."
+				);
 			});
 		});
 	});
@@ -327,14 +373,21 @@ describe("InvoiceDetailPage", () => {
 			});
 		});
 
-		it("should display paid date for paid invoices", async () => {
+		it("should display PENDING_CONFIRMATION status with amber colors", async () => {
+			const mockPendingConfirmationInvoice = {
+				...mockInvoice,
+				id: "invoice-3",
+				status: "PENDING_CONFIRMATION" as const,
+			};
 			(invoiceService.getInvoice as ReturnType<typeof vi.fn>).mockResolvedValue(
-				mockPaidInvoice
+				mockPendingConfirmationInvoice
 			);
-			renderWithRouter();
+			renderWithRouter("invoice-3");
 
 			await waitFor(() => {
-				expect(screen.getByTestId("invoice-paid-date")).toBeInTheDocument();
+				const badge = screen.getByTestId("invoice-status-badge");
+				expect(badge).toHaveTextContent("Pending Confirmation");
+				expect(badge).toHaveClass("bg-amber-100", "text-amber-700");
 			});
 		});
 	});
