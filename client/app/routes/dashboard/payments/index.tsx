@@ -41,12 +41,12 @@ const invoiceStatusConfig: Record<
 		label: "Draft",
 		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 	},
-	ISSUED: {
-		label: "Pending",
+	SENT: {
+		label: "Pending Payment",
 		className: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
 	},
-	PARTIALLY_PAID: {
-		label: "Partially Paid",
+	PENDING_CONFIRMATION: {
+		label: "Pending Confirmation",
 		className: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
 	},
 	PAID: {
@@ -60,10 +60,6 @@ const invoiceStatusConfig: Record<
 	CANCELLED: {
 		label: "Cancelled",
 		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-	},
-	PENDING_CONFIRMATION: {
-		label: "Awaiting Confirmation",
-		className: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
 	},
 };
 
@@ -196,11 +192,9 @@ export default function PaymentsPage(): ReactNode {
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="ALL">All Invoices</SelectItem>
-						<SelectItem value="ISSUED">Pending</SelectItem>
+						<SelectItem value="SENT">Pending Payment</SelectItem>
 						<SelectItem value="PAID">Paid</SelectItem>
 						<SelectItem value="OVERDUE">Overdue</SelectItem>
-						<SelectItem value="PARTIALLY_PAID">Partially Paid</SelectItem>
-						<SelectItem value="PENDING_CONFIRMATION">Awaiting Confirmation</SelectItem>
 						<SelectItem value="CANCELLED">Cancelled</SelectItem>
 					</SelectContent>
 				</Select>
