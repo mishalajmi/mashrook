@@ -11,10 +11,7 @@ import java.util.UUID;
 public record CampaignMediaResponse(
         UUID id,
         UUID campaignId,
-        String storageKey,
-        String originalFilename,
         String contentType,
-        Long sizeBytes,
         MediaType mediaType,
         Integer mediaOrder,
         String presignedUrl,
@@ -29,10 +26,7 @@ public record CampaignMediaResponse(
         return CampaignMediaResponse.builder()
                 .id(entity.getId())
                 .campaignId(entity.getCampaignId())
-                .storageKey(entity.getStorageKey())
-                .originalFilename(entity.getOriginalFilename())
                 .contentType(entity.getContentType())
-                .sizeBytes(entity.getSizeBytes())
                 .mediaType(entity.getMediaType())
                 .mediaOrder(entity.getMediaOrder())
                 .presignedUrl(presignedUrl)

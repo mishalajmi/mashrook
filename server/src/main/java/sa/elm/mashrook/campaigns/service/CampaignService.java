@@ -18,6 +18,7 @@ import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
 import sa.elm.mashrook.campaigns.dto.CampaignCreateRequest;
 import sa.elm.mashrook.campaigns.dto.CampaignListResponse;
+import sa.elm.mashrook.campaigns.dto.CampaignMediaResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignPublicResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignUpdateRequest;
@@ -52,6 +53,7 @@ public class CampaignService {
     private final PledgeService pledgeService;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final CampaignMediaService campaignMediaService;
 
 
     @Transactional
@@ -236,6 +238,8 @@ public class CampaignService {
                 .map(DiscountBracketDto::from)
                 .toList();
 
+        List<CampaignMediaResponse> media = campaignMediaService.getMediaForCampaign(campaignId);
+
         return CampaignPublicResponse.builder()
                 .id(campaign.getId())
                 .title(campaign.getTitle())
@@ -250,6 +254,7 @@ public class CampaignService {
                 .totalPledged(totalPledged)
                 .status(campaign.getStatus().getValue())
                 .brackets(bracketDtos)
+                .media(media)
                 .build();
     }
 

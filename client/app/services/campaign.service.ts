@@ -182,6 +182,7 @@ export interface PublicCampaignResponse {
 	gracePeriodEndDate?: string;
 	status: CampaignStatus;
 	brackets: BracketResponse[];
+	media: CampaignMediaResponse[];
 }
 
 /**

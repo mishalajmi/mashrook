@@ -172,6 +172,24 @@ export default function PublicCampaignDetailPage(): ReactNode {
 			setError(null);
 			const data = await campaignService.getPublicCampaign(id);
 			setCampaign(data);
+			// Set media from the public response (included by backend)
+			if (data.media) {
+				setMedia(
+					data.media.map((m) => ({
+						id: m.id,
+						campaignId: m.campaignId,
+						storageKey: m.storageKey,
+						originalFilename: m.originalFilename,
+						contentType: m.contentType,
+						sizeBytes: m.sizeBytes,
+						mediaType: m.mediaType,
+						mediaOrder: m.mediaOrder,
+						presignedUrl: m.presignedUrl,
+						createdAt: m.createdAt,
+						updatedAt: m.updatedAt,
+					}))
+				);
+			}
 		} catch (err) {
 			const message = err instanceof Error ? err.message : "Failed to load campaign";
 			setError(message);
@@ -190,33 +208,6 @@ export default function PublicCampaignDetailPage(): ReactNode {
 		} catch (err) {
 			// Bracket progress might not be available - ok for public view
 			console.error("Failed to fetch bracket progress:", err);
-		}
-	}, [id]);
-
-	// Fetch media for the campaign (public endpoint - no auth required)
-	const fetchMedia = useCallback(async () => {
-		if (!id) return;
-
-		try {
-			const mediaResponse = await campaignService.listMedia(id);
-			// Convert CampaignMediaResponse to CampaignMedia
-			const mediaItems: CampaignMedia[] = mediaResponse.map((m) => ({
-				id: m.id,
-				campaignId: m.campaignId,
-				storageKey: m.storageKey,
-				originalFilename: m.originalFilename,
-				contentType: m.contentType,
-				sizeBytes: m.sizeBytes,
-				mediaType: m.mediaType,
-				mediaOrder: m.mediaOrder,
-				presignedUrl: m.presignedUrl,
-				createdAt: m.createdAt,
-				updatedAt: m.updatedAt,
-			}));
-			setMedia(mediaItems);
-		} catch (err) {
-			// Media fetch might fail - ok for public view
-			console.error("Failed to fetch media:", err);
 		}
 	}, [id]);
 
@@ -251,8 +242,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 	useEffect(() => {
 		fetchCampaign();
 		fetchBracketProgress();
-		fetchMedia();
-	}, [fetchCampaign, fetchBracketProgress, fetchMedia]);
+	}, [fetchCampaign, fetchBracketProgress]);
 
 	// Fetch pledges and user pledge when authenticated
 	useEffect(() => {
