@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class OrganizationNotFoundException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class OrganizationNotFoundException extends MashrookException {
+
     public OrganizationNotFoundException(String message) {
-        super(message);
+        super("organization.not.found", HttpStatus.NOT_FOUND, message);
     }
 }

@@ -8,6 +8,7 @@ import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AlertTriangle, Crown, Loader2, User } from "lucide-react";
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import {
 	AlertDialog,
@@ -78,11 +79,7 @@ export function TransferOwnershipDialog({
 			setSelectedMemberId("");
 			onSuccess?.();
 		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: "Failed to transfer ownership";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(error));
 		} finally {
 			setIsLoading(false);
 		}

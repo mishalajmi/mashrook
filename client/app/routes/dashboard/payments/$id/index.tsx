@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useParams, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Building2, CreditCard, Copy, Check, Loader2, Wallet } from "lucide-react";
 import { toast } from "sonner";
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import { cn } from "@/lib/utils";
 import { formatLongDateWithWeekday } from "@/lib/date";
@@ -84,15 +87,17 @@ function canPayOnline(status: InvoiceStatus): boolean {
 }
 
 /**
- * Copy text to clipboard helper
+ * Copy text to clipboard helper - now requires t function for translation
  */
-async function copyToClipboard(text: string, label: string): Promise<void> {
-	try {
-		await navigator.clipboard.writeText(text);
-		toast.success(`${label} copied to clipboard`);
-	} catch {
-		toast.error("Failed to copy to clipboard");
-	}
+function createCopyToClipboard(t: (key: string, options?: Record<string, string>) => string) {
+	return async (text: string, label: string): Promise<void> => {
+		try {
+			await navigator.clipboard.writeText(text);
+			toast.success(t("dashboard.common.copiedToClipboard", { label }));
+		} catch {
+			toast.error(t("dashboard.common.failedToCopy"));
+		}
+	};
 }
 
 /**
@@ -102,10 +107,12 @@ function CopyableField({
 	label,
 	value,
 	testId,
+	copyToClipboard,
 }: {
 	label: string;
 	value: string;
 	testId: string;
+	copyToClipboard: (text: string, label: string) => Promise<void>;
 }): ReactNode {
 	const [copied, setCopied] = useState(false);
 
@@ -153,6 +160,9 @@ function CopyableField({
 export default function InvoiceDetailPage(): ReactNode {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
+	const { t } = useTranslation();
+
+	const copyToClipboard = createCopyToClipboard(t);
 
 	const [invoice, setInvoice] = useState<InvoiceResponse | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -214,10 +224,9 @@ export default function InvoiceDetailPage(): ReactNode {
 			};
 			const updated = await invoiceService.markAsPaid(id, request);
 			setInvoice(updated);
-			toast.success("Payment marked as complete. Awaiting admin confirmation.");
+			toast.success(t("dashboard.payments.markedComplete"));
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to mark as paid";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsMarkingPaid(false);
 		}
@@ -233,10 +242,10 @@ export default function InvoiceDetailPage(): ReactNode {
 						className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
 					>
 						<ArrowLeft className="mr-2 h-4 w-4" />
-						Back to Payments
+						{t("dashboard.common.backToPayments")}
 					</Link>
 				</div>
-				<LoadingState message="Loading invoice details..." />
+				<LoadingState message={t("dashboard.payments.loadingDetails")} />
 			</div>
 		);
 	}
@@ -251,13 +260,13 @@ export default function InvoiceDetailPage(): ReactNode {
 						className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
 					>
 						<ArrowLeft className="mr-2 h-4 w-4" />
-						Back to Payments
+						{t("dashboard.common.backToPayments")}
 					</Link>
 				</div>
 				<EmptyState
-					title="Failed to load invoice"
-					description={error || "Invoice not found"}
-					actionLabel="Try Again"
+					title={t("dashboard.payments.notFound.title")}
+					description={error || t("dashboard.payments.notFound.description")}
+					actionLabel={t("dashboard.common.tryAgain")}
 					onAction={fetchInvoice}
 				/>
 			</div>
@@ -277,7 +286,7 @@ export default function InvoiceDetailPage(): ReactNode {
 					className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
 				>
 					<ArrowLeft className="mr-2 h-4 w-4" />
-					Back to Payments
+					{t("dashboard.common.backToPayments")}
 				</Link>
 			</div>
 
@@ -393,30 +402,35 @@ export default function InvoiceDetailPage(): ReactNode {
 							label="Bank Name"
 							value={BANK_DETAILS.bankName}
 							testId="bank-name"
+							copyToClipboard={copyToClipboard}
 						/>
 						<Separator />
 						<CopyableField
 							label="Account Name"
 							value={BANK_DETAILS.accountName}
 							testId="account-name"
+							copyToClipboard={copyToClipboard}
 						/>
 						<Separator />
 						<CopyableField
 							label="Account Number / IBAN"
 							value={BANK_DETAILS.accountNumber}
 							testId="account-number"
+							copyToClipboard={copyToClipboard}
 						/>
 						<Separator />
 						<CopyableField
 							label="SWIFT Code"
 							value={BANK_DETAILS.swiftCode}
 							testId="swift-code"
+							copyToClipboard={copyToClipboard}
 						/>
 						<Separator />
 						<CopyableField
 							label="Payment Reference"
 							value={invoice.invoiceNumber}
 							testId="payment-reference"
+							copyToClipboard={copyToClipboard}
 						/>
 
 						{/* Important Note */}

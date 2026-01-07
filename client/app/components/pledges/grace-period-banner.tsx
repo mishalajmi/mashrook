@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -70,6 +71,7 @@ export function GracePeriodBanner({
 	onViewPending,
 	className,
 }: GracePeriodBannerProps): ReactNode {
+	const { t } = useTranslation();
 	const [timeRemaining, setTimeRemaining] = useState<TimeRemaining>(() =>
 		calculateTimeRemaining(gracePeriodEndDate)
 	);
@@ -96,8 +98,8 @@ export function GracePeriodBanner({
 
 	const pledgeText =
 		pendingPledgeCount === 1
-			? "1 pledge needs confirmation"
-			: `${pendingPledgeCount} pledges need confirmation`;
+			? t("dashboard.gracePeriod.banner.pledgeNeedsConfirmation", { count: 1 })
+			: t("dashboard.gracePeriod.banner.pledgesNeedConfirmation", { count: pendingPledgeCount });
 
 	return (
 		<div
@@ -120,7 +122,7 @@ export function GracePeriodBanner({
 						{pledgeText}
 					</p>
 					<p className="text-sm text-[var(--color-alert-warning-text-muted)]">
-						Grace period ends in{" "}
+						{t("dashboard.gracePeriod.banner.gracePeriodEndsIn")}{" "}
 						<span
 							data-testid="grace-period-countdown"
 							className="font-semibold"
@@ -136,7 +138,7 @@ export function GracePeriodBanner({
 				onClick={onViewPending}
 				className="border-[var(--color-alert-warning-border)] bg-[var(--color-alert-warning-bg)] text-[var(--color-alert-warning-text)] hover:opacity-80"
 			>
-				View Pending Confirmations
+				{t("dashboard.gracePeriod.banner.viewPendingConfirmations")}
 			</Button>
 		</div>
 	);

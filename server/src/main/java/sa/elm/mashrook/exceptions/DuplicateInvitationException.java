@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class DuplicateInvitationException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class DuplicateInvitationException extends MashrookException {
+
     public DuplicateInvitationException(String message) {
-        super(message);
+        super("team.invitation.duplicate", HttpStatus.CONFLICT, message);
     }
 }

@@ -6,6 +6,7 @@
  */
 
 import { useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Users, DollarSign, Clock, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -90,6 +91,7 @@ export function CampaignCard({
 	onDelete,
 	className,
 }: CampaignCardProps): ReactNode {
+	const { t } = useTranslation();
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
 	// For grace period campaigns, show days until grace period ends
@@ -123,7 +125,7 @@ export function CampaignCard({
 					data-testid="ending-soon-badge"
 					className="absolute -top-2 -right-2 px-2 py-1 bg-amber-500 text-white text-xs font-bold uppercase tracking-wide rounded-full shadow-md animate-pulse z-10"
 				>
-					Ending Soon
+					{t("dashboard.browseCampaigns.card.endingSoon")}
 				</div>
 			)}
 			<CardHeader className="space-y-3">
@@ -142,7 +144,7 @@ export function CampaignCard({
 				{/* Grace Period Urgency Message */}
 				{isGracePeriod && (
 					<p className="text-sm font-medium text-amber-600 dark:text-amber-500">
-						Final commitment window - pledge now
+						{t("dashboard.browseCampaigns.card.finalCommitmentMessage")}
 					</p>
 				)}
 			</CardHeader>
@@ -158,7 +160,7 @@ export function CampaignCard({
 						>
 							{totalPledges}
 						</span>
-						<span className="text-xs text-muted-foreground">Pledges</span>
+						<span className="text-xs text-muted-foreground">{t("dashboard.browseCampaigns.card.pledges")}</span>
 					</div>
 
 					<div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
@@ -169,7 +171,7 @@ export function CampaignCard({
 						>
 							{currentPrice ? formatPrice(currentPrice) : "--"}
 						</span>
-						<span className="text-xs text-muted-foreground">Price</span>
+						<span className="text-xs text-muted-foreground">{t("dashboard.browseCampaigns.card.price")}</span>
 					</div>
 
 					<div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
@@ -180,7 +182,7 @@ export function CampaignCard({
 						>
 							{daysRemaining}
 						</span>
-						<span className="text-xs text-muted-foreground">Days</span>
+						<span className="text-xs text-muted-foreground">{t("dashboard.browseCampaigns.card.days")}</span>
 					</div>
 				</div>
 
@@ -201,7 +203,7 @@ export function CampaignCard({
 					className="flex-1"
 					onClick={() => onViewDetails?.(campaign)}
 				>
-					View Details
+					{t("dashboard.browseCampaigns.card.viewDetails")}
 				</Button>
 				{showActions && isDraft && canEdit && (
 					<Button
@@ -209,7 +211,7 @@ export function CampaignCard({
 						className="flex-1"
 						onClick={() => onEdit?.(campaign)}
 					>
-						Edit
+						{t("dashboard.browseCampaigns.card.edit")}
 					</Button>
 				)}
 				{showActions && canDelete && (
@@ -218,25 +220,25 @@ export function CampaignCard({
 							<Button
 								variant="destructive"
 								size="icon"
-								aria-label="Delete campaign"
+								aria-label={t("dashboard.browseCampaigns.card.delete")}
 							>
 								<Trash2 className="h-4 w-4" />
 							</Button>
 						</AlertDialogTrigger>
 						<AlertDialogContent>
 							<AlertDialogHeader>
-								<AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+								<AlertDialogTitle>{t("dashboard.browseCampaigns.card.deleteCampaign")}</AlertDialogTitle>
 								<AlertDialogDescription>
-									Are you sure you want to delete "{campaign.title}"? This action cannot be undone.
+									{t("dashboard.browseCampaigns.card.deleteConfirmation", { title: campaign.title })}
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
-								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<AlertDialogCancel>{t("dashboard.browseCampaigns.card.cancel")}</AlertDialogCancel>
 								<AlertDialogAction
 									onClick={handleDeleteConfirm}
 									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 								>
-									Delete
+									{t("dashboard.browseCampaigns.card.delete")}
 								</AlertDialogAction>
 							</AlertDialogFooter>
 						</AlertDialogContent>

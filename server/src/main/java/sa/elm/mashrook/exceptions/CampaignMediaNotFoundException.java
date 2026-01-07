@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class CampaignMediaNotFoundException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class CampaignMediaNotFoundException extends MashrookException {
+
     public CampaignMediaNotFoundException(String message) {
-        super(message);
+        super("campaign.media.not.found", HttpStatus.NOT_FOUND, message);
     }
 }

@@ -1,4 +1,35 @@
 {
+  "errors": {
+    "generic": "حدث خطأ",
+    "campaign.not.found": "الحملة غير موجودة",
+    "campaign.validation.failed": "فشل التحقق من الحملة",
+    "campaign.invalid.state": "حالة الحملة غير صالحة",
+    "campaign.invalid.state.transition": "انتقال حالة الحملة غير صالح",
+    "campaign.media.not.found": "وسائط الحملة غير موجودة",
+    "pledge.not.found": "التعهد غير موجود",
+    "pledge.already.exists": "لديك تعهد بالفعل لهذه الحملة",
+    "pledge.access.denied": "ليس لديك صلاحية الوصول إلى هذا التعهد",
+    "pledge.invalid.state": "حالة التعهد غير صالحة",
+    "invoice.not.found": "الفاتورة غير موجودة",
+    "invoice.validation.failed": "فشل التحقق من الفاتورة",
+    "invoice.invalid.status.transition": "انتقال حالة الفاتورة غير صالح",
+    "user.not.found": "المستخدم غير موجود",
+    "user.already.exists": "يوجد مستخدم بهذا البريد الإلكتروني",
+    "account.validation.failed": "فشل التحقق من الحساب",
+    "organization.not.found": "المنظمة غير موجودة",
+    "organization.pending.verification": "منظمتك قيد التحقق",
+    "team.invitation.not.found": "دعوة الفريق غير موجودة",
+    "team.invitation.duplicate": "تم إرسال دعوة بالفعل إلى هذا البريد الإلكتروني",
+    "team.invitation.invalid": "دعوة الفريق غير صالحة",
+    "team.operation.failed": "فشلت عملية الفريق",
+    "payment.already.exists": "الدفعة موجودة بالفعل",
+    "payment.gateway.unavailable": "بوابة الدفع غير متاحة حالياً",
+    "payment.invalid.status.transition": "انتقال حالة الدفع غير صالح",
+    "discount.bracket.not.found": "شريحة الخصم غير موجودة",
+    "media.type.invalid": "نوع الوسائط غير صالح",
+    "file.size.exceeded": "حجم الملف يتجاوز الحد الأقصى",
+    "authentication.failed": "فشل المصادقة"
+  },
   "common": {
     "appName": "مشروك",
     "home": "الرئيسية",
@@ -241,6 +272,223 @@
     "switchToDark": "التبديل للوضع الداكن"
   },
   "dashboard": {
+    "common": {
+      "loading": "جارٍ التحميل...",
+      "backToCampaigns": "العودة إلى الحملات",
+      "backToPayments": "العودة إلى المدفوعات",
+      "backToInvoice": "العودة إلى الفاتورة",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد",
+      "tryAgain": "حاول مرة أخرى",
+      "verify": "تحقق",
+      "reject": "رفض",
+      "copiedToClipboard": "تم نسخ {{label}} إلى الحافظة",
+      "failedToCopy": "فشل النسخ إلى الحافظة"
+    },
+    "team": {
+      "title": "الفريق",
+      "description": "إدارة أعضاء فريقك وصلاحياتهم",
+      "inviteMember": "دعوة عضو",
+      "transferOwnership": "نقل الملكية",
+      "tabs": {
+        "members": "الأعضاء",
+        "invitations": "الدعوات"
+      },
+      "table": {
+        "member": "العضو",
+        "permissions": "الصلاحيات",
+        "status": "الحالة",
+        "joined": "تاريخ الانضمام",
+        "actions": "الإجراءات"
+      },
+      "badges": {
+        "you": "أنت",
+        "owner": "المالك",
+        "active": "نشط",
+        "pending": "معلق",
+        "pendingActivation": "بانتظار التفعيل",
+        "inactive": "غير نشط",
+        "accepted": "مقبول",
+        "expired": "منتهي",
+        "cancelled": "ملغى"
+      }
+    },
+    "overview": {
+      "title": "لوحة التحكم",
+      "welcome": "مرحباً بعودتك",
+      "emptyState": {
+        "title": "التحليلات قريباً",
+        "description": "ستكون تحليلات ورؤى لوحة التحكم متاحة هنا. تحقق لاحقاً للحصول على تقارير مفصلة عن نشاطك."
+      }
+    },
+    "timer": {
+      "days": "أيام",
+      "hours": "ساعات",
+      "minutes": "دقائق",
+      "seconds": "ثواني",
+      "min": "د",
+      "sec": "ث",
+      "ended": "انتهى",
+      "finalCommitmentWindow": "نافذة الالتزام النهائية",
+      "gracePeriodEndsIn": "تنتهي فترة السماح في",
+      "timeRemaining": "الوقت المتبقي"
+    },
+    "gracePeriod": {
+      "banner": {
+        "title": "نافذة الالتزام النهائية - الحملة ستُغلق قريباً",
+        "description": "انتهت فترة التعهد. يُقبل الالتزامات الجديدة حتى الإغلاق النهائي.",
+        "locksOn": "تُغلق في: {{date}}",
+        "pledgeNeedsConfirmation": "تعهد واحد يحتاج تأكيد",
+        "pledgesNeedConfirmation": "{{count}} تعهدات تحتاج تأكيد",
+        "gracePeriodEndsIn": "تنتهي فترة السماح في",
+        "viewPendingConfirmations": "عرض التأكيدات المعلقة"
+      },
+      "info": {
+        "title": "ماذا يحدث عند إغلاق الحملة؟",
+        "point1": "تصبح جميع التعهدات التزامات نهائية",
+        "point2": "يتم إنشاء الفواتير للكميات الملتزم بها",
+        "point3": "تبدأ معالجة الدفع"
+      }
+    },
+    "campaigns": {
+      "loading": "جارٍ تحميل الحملة...",
+      "notFound": {
+        "title": "الحملة غير موجودة",
+        "description": "الحملة التي تبحث عنها غير موجودة أو لم تعد متاحة."
+      },
+      "noActive": {
+        "title": "لا توجد حملات نشطة",
+        "description": "لا توجد حملات نشطة متاحة حالياً. تحقق لاحقاً للحصول على فرص شراء جماعي جديدة."
+      },
+      "noResults": {
+        "title": "لم يتم العثور على حملات",
+        "description": "لا توجد حملات تطابق بحثك. حاول تعديل مصطلحات البحث."
+      },
+      "notAcceptingPledges": "هذه الحملة لم تعد تقبل التعهدات.",
+      "publishedSuccessfully": "تم نشر الحملة بنجاح",
+      "savedAsDraft": "تم حفظ الحملة كمسودة",
+      "pricingUpdated": "تم تحديث مستويات الأسعار بنجاح"
+    },
+    "pledges": {
+      "title": "تعهداتي",
+      "description": "إدارة تعهدات حملاتك وتتبع حالة التسليم",
+      "browseCampaigns": "تصفح الحملات",
+      "loading": "جارٍ تحميل التعهدات...",
+      "loadError": "فشل تحميل التعهدات",
+      "noPledges": {
+        "title": "لا توجد تعهدات بعد",
+        "description": "انضم إلى حملة لبدء التوفير من خلال الشراء الجماعي"
+      },
+      "noResults": "لم يتم العثور على تعهدات {{status}}",
+      "updatedSuccessfully": "تم تحديث التعهد بنجاح",
+      "submittedSuccessfully": "تم تقديم التعهد بنجاح",
+      "cancelledSuccessfully": "تم إلغاء التعهد بنجاح",
+      "confirmedSuccessfully": "تم تأكيد الالتزام بنجاح",
+      "tabs": {
+        "all": "الكل",
+        "pending": "معلق",
+        "committed": "ملتزم",
+        "withdrawn": "منسحب"
+      },
+      "table": {
+        "campaign": "الحملة",
+        "quantity": "الكمية",
+        "total": "الإجمالي",
+        "status": "الحالة",
+        "date": "التاريخ",
+        "actions": "الإجراءات"
+      },
+      "status": {
+        "committed": "ملتزم",
+        "pending": "معلق",
+        "withdrawn": "منسحب"
+      },
+      "units": "وحدة",
+      "view": "عرض"
+    },
+    "payments": {
+      "title": "المدفوعات",
+      "description": "عرض وإدارة فواتيرك وحالة الدفع",
+      "loading": "جارٍ تحميل الفواتير...",
+      "loadingDetails": "جارٍ تحميل تفاصيل الفاتورة...",
+      "loadingStatus": "جارٍ تحميل حالة الدفع...",
+      "loadError": "فشل تحميل الفواتير",
+      "notFound": {
+        "title": "فشل تحميل الفاتورة",
+        "description": "الفاتورة غير موجودة"
+      },
+      "noInvoices": {
+        "title": "لا توجد فواتير بعد",
+        "description": "ليس لديك أي فواتير بعد. ستظهر الفواتير هنا بعد الالتزام بالحملات."
+      },
+      "noResults": "لم يتم العثور على فواتير {{status}}",
+      "markedComplete": "تم وضع علامة اكتمال على الدفعة. بانتظار تأكيد المسؤول.",
+      "status": {
+        "draft": "مسودة",
+        "pendingPayment": "بانتظار الدفع",
+        "pendingConfirmation": "بانتظار التأكيد",
+        "paid": "مدفوعة",
+        "overdue": "متأخرة",
+        "cancelled": "ملغاة"
+      },
+      "filters": {
+        "all": "جميع الفواتير"
+      },
+      "table": {
+        "invoiceNumber": "رقم الفاتورة",
+        "campaign": "الحملة",
+        "amount": "المبلغ",
+        "dueDate": "تاريخ الاستحقاق",
+        "status": "الحالة"
+      },
+      "paymentMethod": {
+        "title": "اختر طريقة الدفع",
+        "subtitle": "اختر كيف تريد دفع الفاتورة {{invoiceNumber}}",
+        "invoiceSummary": "ملخص الفاتورة",
+        "invoiceNumber": "رقم الفاتورة",
+        "totalAmount": "المبلغ الإجمالي",
+        "selectMethod": "طريقة الدفع",
+        "selectMethodDescription": "اختر طريقة الدفع المفضلة لديك",
+        "onlineUnavailable": "خيارات الدفع الإلكتروني غير متاحة حالياً. يرجى استخدام التحويل البنكي.",
+        "creditCard": "بطاقة ائتمان/خصم",
+        "creditCardDescription": "فيزا، ماستركارد، أمريكان إكسبريس",
+        "mada": "مدى",
+        "madaDescription": "شبكة بطاقات الخصم السعودية",
+        "bankTransfer": "تحويل بنكي",
+        "bankTransferDescription": "تحويل يدوي إلى حسابنا البنكي"
+      },
+      "bankDetails": {
+        "bankName": "البنك الأهلي التجاري",
+        "accountName": "شركة مشروك للتجارة"
+      },
+      "result": {
+        "error": "خطأ في تحميل الدفع",
+        "processing": "جارٍ معالجة الدفع",
+        "success": "تم الدفع بنجاح",
+        "failed": "فشل الدفع",
+        "failedDescription": "لم نتمكن من معالجة دفعتك"
+      }
+    },
+    "organizations": {
+      "loading": "جارٍ تحميل المنظمات...",
+      "loadError": "فشل تحميل المنظمات",
+      "noOrganizations": {
+        "title": "لم يتم العثور على منظمات",
+        "description": "لا توجد منظمات مسجلة على المنصة بعد"
+      },
+      "verifyDialog": {
+        "title": "تحقق من المنظمة",
+        "description": "هل أنت متأكد أنك تريد التحقق من \"{{name}}\"؟ سيؤدي هذا إلى تفعيل المنظمة والسماح لها بالمشاركة في الحملات.",
+        "verifying": "جارٍ التحقق..."
+      },
+      "rejectDialog": {
+        "title": "رفض المنظمة",
+        "description": "هل أنت متأكد أنك تريد رفض \"{{name}}\"؟ سيؤدي هذا إلى تعيين المنظمة كغير نشطة.",
+        "rejecting": "جارٍ الرفض..."
+      },
+      "verifiedSuccessfully": "تم التحقق من المنظمة \"{{name}}\" بنجاح",
+      "rejectedSuccessfully": "تم رفض المنظمة \"{{name}}\""
+    },
     "sidebar": {
       "collapse": "طي الشريط الجانبي",
       "expand": "توسيع الشريط الجانبي",
@@ -353,6 +601,35 @@
     "placeholder": {
       "description": "هذه الصفحة قيد التطوير",
       "comingSoon": "ستكون هذه الميزة متاحة قريباً."
+    },
+    "browseCampaigns": {
+      "title": "تصفح الحملات",
+      "description": "اكتشف حملات الشراء الجماعي ووفر من خلال الشراء التعاوني",
+      "myPledges": "تعهداتي",
+      "searchPlaceholder": "البحث في الحملات...",
+      "clearSearch": "مسح البحث",
+      "filters": {
+        "all": "الكل",
+        "active": "نشط",
+        "draft": "مسودة",
+        "locked": "مغلق",
+        "done": "منتهي"
+      },
+      "card": {
+        "endingSoon": "ينتهي قريباً",
+        "finalWindow": "النافذة الأخيرة",
+        "finalCommitmentMessage": "نافذة الالتزام النهائية - تعهد الآن",
+        "days": "أيام",
+        "price": "السعر",
+        "pledges": "التعهدات",
+        "currentPrice": "السعر الحالي",
+        "viewDetails": "عرض التفاصيل",
+        "edit": "تعديل",
+        "delete": "حذف",
+        "deleteCampaign": "حذف الحملة",
+        "deleteConfirmation": "هل أنت متأكد أنك تريد حذف \"{{title}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+        "cancel": "إلغاء"
+      }
     }
   },
   "pledges": {

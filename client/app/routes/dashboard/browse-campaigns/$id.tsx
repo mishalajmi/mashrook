@@ -7,8 +7,11 @@
 
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Calendar, Package, Loader2, Clock, Info } from "lucide-react";
 import { toast } from "sonner";
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import {
 	Button,
@@ -121,6 +124,7 @@ function calculatePledgeSummary(
  */
 export default function BrowseCampaignDetailPage(): ReactNode {
 	const { id } = useParams();
+	const { t } = useTranslation();
 
 	// State for data fetching
 	const [campaign, setCampaign] = useState<PublicCampaignResponse | null>(null);
@@ -208,21 +212,20 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 					quantity: data.quantity,
 				});
 				setUserPledge(updated);
-				toast.success("Pledge updated successfully");
+				toast.success(t("dashboard.pledges.updatedSuccessfully"));
 			} else {
 				// Create new pledge
 				const created = await pledgeService.createPledge(id, {
 					quantity: data.quantity,
 				});
 				setUserPledge(created);
-				toast.success("Pledge submitted successfully");
+				toast.success(t("dashboard.pledges.submittedSuccessfully"));
 			}
 
 			// Refresh data to update summary
 			await Promise.all([fetchPledges(), fetchBracketProgress()]);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to submit pledge";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsSubmittingPledge(false);
 		}
@@ -236,13 +239,12 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 			setIsSubmittingPledge(true);
 			await pledgeService.cancelPledge(userPledge.id);
 			setUserPledge(null);
-			toast.success("Pledge cancelled successfully");
+			toast.success(t("dashboard.pledges.cancelledSuccessfully"));
 
 			// Refresh data to update summary
 			await Promise.all([fetchPledges(), fetchBracketProgress()]);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to cancel pledge";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsSubmittingPledge(false);
 		}
@@ -252,7 +254,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 	if (loading) {
 		return (
 			<div data-testid="browse-campaign-detail" className="flex flex-col gap-6 p-6">
-				<LoadingState message="Loading campaign..." />
+				<LoadingState message={t("dashboard.campaigns.loading")} />
 			</div>
 		);
 	}
@@ -266,11 +268,11 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 					className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Campaigns
+					{t("dashboard.common.backToCampaigns")}
 				</Link>
 				<EmptyState
-					title="Campaign not found"
-					description={error || "The campaign you're looking for doesn't exist or is no longer available."}
+					title={t("dashboard.campaigns.notFound.title")}
+					description={error || t("dashboard.campaigns.notFound.description")}
 				/>
 			</div>
 		);
@@ -318,7 +320,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 				className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
 			>
 				<ArrowLeft className="h-4 w-4" />
-				Back to Campaigns
+				{t("dashboard.common.backToCampaigns")}
 			</Link>
 
 			{/* Grace Period Banner */}
@@ -331,14 +333,14 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 						<Clock className="h-5 w-5 text-amber-600 dark:!text-amber-700 flex-shrink-0" />
 						<div className="flex-1">
 							<p className="font-medium text-amber-900 dark:!text-amber-900">
-								Final Commitment Window - Campaign locks soon
+								{t("dashboard.gracePeriod.banner.title")}
 							</p>
 							<p className="text-sm text-amber-800 dark:!text-amber-800">
-								The pledge period has ended. New commitments accepted until final lock.
+								{t("dashboard.gracePeriod.banner.description")}
 							</p>
 							{campaign.gracePeriodEndDate && (
 								<p className="text-sm font-semibold text-amber-900 dark:!text-amber-900 mt-1">
-									Locks on: {formatDateWithWeekdayAndTime(campaign.gracePeriodEndDate)}
+									{t("dashboard.gracePeriod.banner.locksOn", { date: formatDateWithWeekdayAndTime(campaign.gracePeriodEndDate) })}
 								</p>
 							)}
 						</div>
@@ -365,7 +367,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 					<Card className={isGracePeriod ? "border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/60 dark:border-amber-600" : ""}>
 						<CardHeader>
 							<CardTitle className={cn("text-lg", isGracePeriod && "text-amber-900 dark:text-amber-100")}>
-								{isGracePeriod ? "Grace Period Ends In" : "Time Remaining"}
+								{isGracePeriod ? t("dashboard.timer.gracePeriodEndsIn") : t("dashboard.timer.timeRemaining")}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -383,13 +385,12 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 								<Info className="h-5 w-5 text-blue-600 dark:!text-sky-700 flex-shrink-0 mt-0.5" />
 								<div className="space-y-2">
 									<p className="font-medium text-slate-900 dark:!text-sky-900">
-										What happens when the campaign locks?
+										{t("dashboard.gracePeriod.info.title")}
 									</p>
 									<ul className="text-sm text-slate-700 dark:!text-sky-800 space-y-1 list-disc list-inside">
-										<li>Final pricing is confirmed based on total pledged quantity</li>
-										<li>Invoices are generated for all committed participants</li>
-										<li>Payment collection begins for confirmed orders</li>
-										<li>No new pledges can be accepted after lock</li>
+										<li>{t("dashboard.gracePeriod.info.point1")}</li>
+										<li>{t("dashboard.gracePeriod.info.point2")}</li>
+										<li>{t("dashboard.gracePeriod.info.point3")}</li>
 									</ul>
 								</div>
 							</div>
@@ -536,7 +537,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 							) : (
 								<div className="space-y-4">
 									<p className="text-center text-muted-foreground">
-										This campaign is no longer accepting pledges.
+										{t("dashboard.campaigns.notAcceptingPledges")}
 									</p>
 								</div>
 							)}

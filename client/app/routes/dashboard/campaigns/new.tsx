@@ -6,8 +6,11 @@
 
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import { cn } from "@/lib/utils";
 import {
@@ -125,6 +128,7 @@ function StepIndicator({
  */
 export default function NewCampaignPage(): ReactNode {
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 	const [currentStep, setCurrentStep] = useState(1);
 	const [formData, setFormData] = useState<CampaignFormData>(initialFormData);
 	const [brackets, setBrackets] = useState<DiscountBracketFormData[]>(initialBrackets);
@@ -204,11 +208,10 @@ export default function NewCampaignPage(): ReactNode {
 				brackets: bracketRequests,
 			});
 
-			toast.success("Campaign saved as draft");
+			toast.success(t("dashboard.campaigns.savedAsDraft"));
 			navigate("/dashboard/campaigns");
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to save campaign";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsSaving(false);
 		}
@@ -247,11 +250,10 @@ export default function NewCampaignPage(): ReactNode {
 			// Publish the campaign
 			await campaignService.publishCampaign(campaign.id);
 
-			toast.success("Campaign published successfully");
+			toast.success(t("dashboard.campaigns.publishedSuccessfully"));
 			navigate("/dashboard/campaigns");
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to publish campaign";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsPublishing(false);
 		}

@@ -7,7 +7,10 @@
 
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { Receipt, FileText } from "lucide-react";
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date";
@@ -35,30 +38,30 @@ import {
 // Status badge configurations with required colors
 const invoiceStatusConfig: Record<
 	InvoiceStatus,
-	{ label: string; className: string }
+	{ labelKey: string; className: string }
 > = {
 	DRAFT: {
-		label: "Draft",
+		labelKey: "dashboard.payments.status.draft",
 		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 	},
 	SENT: {
-		label: "Pending Payment",
+		labelKey: "dashboard.payments.status.pendingPayment",
 		className: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
 	},
 	PENDING_CONFIRMATION: {
-		label: "Pending Confirmation",
+		labelKey: "dashboard.payments.status.pendingConfirmation",
 		className: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
 	},
 	PAID: {
-		label: "Paid",
+		labelKey: "dashboard.payments.status.paid",
 		className: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
 	},
 	OVERDUE: {
-		label: "Overdue",
+		labelKey: "dashboard.payments.status.overdue",
 		className: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
 	},
 	CANCELLED: {
-		label: "Cancelled",
+		labelKey: "dashboard.payments.status.cancelled",
 		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 	},
 };
@@ -84,6 +87,7 @@ function formatPrice(price: string): string {
  */
 export default function PaymentsPage(): ReactNode {
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 
 	// State
 	const [invoices, setInvoices] = useState<InvoiceResponse[]>([]);
@@ -136,13 +140,13 @@ export default function PaymentsPage(): ReactNode {
 			<div data-testid="payments-page" className="flex flex-col gap-6 p-6">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-						<h1 className="text-2xl font-bold tracking-tight">Payments</h1>
+						<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.payments.title")}</h1>
 						<p className="text-muted-foreground">
-							View and manage your invoices and payment status
+							{t("dashboard.payments.description")}
 						</p>
 					</div>
 				</div>
-				<LoadingState data-testid="payments-loading" message="Loading invoices..." />
+				<LoadingState data-testid="payments-loading" message={t("dashboard.payments.loading")} />
 			</div>
 		);
 	}
@@ -153,16 +157,16 @@ export default function PaymentsPage(): ReactNode {
 			<div data-testid="payments-page" className="flex flex-col gap-6 p-6">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-						<h1 className="text-2xl font-bold tracking-tight">Payments</h1>
+						<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.payments.title")}</h1>
 						<p className="text-muted-foreground">
-							View and manage your invoices and payment status
+							{t("dashboard.payments.description")}
 						</p>
 					</div>
 				</div>
 				<EmptyState
-					title="Failed to load invoices"
+					title={t("dashboard.payments.loadError")}
 					description={error}
-					actionLabel="Try Again"
+					actionLabel={t("dashboard.common.tryAgain")}
 					onAction={() => fetchInvoices()}
 				/>
 			</div>
@@ -174,9 +178,9 @@ export default function PaymentsPage(): ReactNode {
 			{/* Header */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 className="text-2xl font-bold tracking-tight">Payments</h1>
+					<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.payments.title")}</h1>
 					<p className="text-muted-foreground">
-						View and manage your invoices and payment status
+						{t("dashboard.payments.description")}
 					</p>
 				</div>
 			</div>
@@ -188,14 +192,15 @@ export default function PaymentsPage(): ReactNode {
 					onValueChange={(value) => handleStatusFilterChange(value as FilterStatus)}
 				>
 					<SelectTrigger data-testid="status-filter" className="w-[200px]">
-						<SelectValue placeholder="Filter by status" />
+						<SelectValue placeholder={t("dashboard.payments.filters.all")} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="ALL">All Invoices</SelectItem>
-						<SelectItem value="SENT">Pending Payment</SelectItem>
-						<SelectItem value="PAID">Paid</SelectItem>
-						<SelectItem value="OVERDUE">Overdue</SelectItem>
-						<SelectItem value="CANCELLED">Cancelled</SelectItem>
+						<SelectItem value="ALL">{t("dashboard.payments.filters.all")}</SelectItem>
+						<SelectItem value="SENT">{t("dashboard.payments.status.pendingPayment")}</SelectItem>
+						<SelectItem value="PENDING_CONFIRMATION">{t("dashboard.payments.status.pendingConfirmation")}</SelectItem>
+						<SelectItem value="PAID">{t("dashboard.payments.status.paid")}</SelectItem>
+						<SelectItem value="OVERDUE">{t("dashboard.payments.status.overdue")}</SelectItem>
+						<SelectItem value="CANCELLED">{t("dashboard.payments.status.cancelled")}</SelectItem>
 					</SelectContent>
 				</Select>
 			</div>
@@ -206,11 +211,11 @@ export default function PaymentsPage(): ReactNode {
 					<Table data-testid="invoices-table">
 						<TableHeader>
 							<TableRow>
-								<TableHead>Invoice #</TableHead>
-								<TableHead>Campaign</TableHead>
-								<TableHead>Amount</TableHead>
-								<TableHead>Due Date</TableHead>
-								<TableHead>Status</TableHead>
+								<TableHead>{t("dashboard.payments.table.invoiceNumber")}</TableHead>
+								<TableHead>{t("dashboard.payments.table.campaign")}</TableHead>
+								<TableHead>{t("dashboard.payments.table.amount")}</TableHead>
+								<TableHead>{t("dashboard.payments.table.dueDate")}</TableHead>
+								<TableHead>{t("dashboard.payments.table.status")}</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -242,7 +247,7 @@ export default function PaymentsPage(): ReactNode {
 													statusConfig.className
 												)}
 											>
-												{statusConfig.label}
+												{t(statusConfig.labelKey)}
 											</span>
 										</TableCell>
 									</TableRow>
@@ -254,11 +259,11 @@ export default function PaymentsPage(): ReactNode {
 			) : (
 				<EmptyState
 					icon={FileText}
-					title="No invoices yet"
+					title={t("dashboard.payments.noInvoices.title")}
 					description={
 						statusFilter === "ALL"
-							? "You don't have any invoices yet. Invoices will appear here after you commit to campaigns."
-							: `No ${invoiceStatusConfig[statusFilter as InvoiceStatus]?.label.toLowerCase() || statusFilter.toLowerCase()} invoices found`
+							? t("dashboard.payments.noInvoices.description")
+							: t("dashboard.payments.noResults", { status: t(invoiceStatusConfig[statusFilter as InvoiceStatus]?.labelKey || "").toLowerCase() || statusFilter.toLowerCase() })
 					}
 				/>
 			)}

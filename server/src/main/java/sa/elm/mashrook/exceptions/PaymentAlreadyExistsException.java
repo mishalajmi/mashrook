@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class PaymentAlreadyExistsException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class PaymentAlreadyExistsException extends MashrookException {
+
     public PaymentAlreadyExistsException(String message) {
-        super(message);
+        super("payment.already.exists", HttpStatus.CONFLICT, message);
     }
 }

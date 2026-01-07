@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class DiscountBracketNotFoundException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class DiscountBracketNotFoundException extends MashrookException {
+
     public DiscountBracketNotFoundException(String message) {
-        super(message);
+        super("discount.bracket.not.found", HttpStatus.NOT_FOUND, message);
     }
 }

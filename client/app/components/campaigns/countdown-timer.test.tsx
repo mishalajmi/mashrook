@@ -396,7 +396,7 @@ describe("CountdownTimer", () => {
 			});
 
 			const hours = screen.getByTestId("countdown-hours");
-			expect(hours).toHaveClass("text-amber-600");
+			expect(hours).toHaveClass("text-[var(--color-alert-warning-text)]");
 		});
 
 		it("should not show urgent label when not in grace period", () => {

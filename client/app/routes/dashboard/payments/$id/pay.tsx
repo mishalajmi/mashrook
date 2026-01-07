@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useParams, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import {
 	ArrowLeft,
 	CreditCard,
@@ -8,6 +9,8 @@ import {
 	Landmark,
 } from "lucide-react";
 import { toast } from "sonner";
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import { cn } from "@/lib/utils";
 import {
@@ -31,8 +34,8 @@ type PaymentMethod = "card" | "mada" | "bank_transfer";
 
 interface PaymentMethodOption {
 	id: PaymentMethod;
-	label: string;
-	description: string;
+	labelKey: string;
+	descriptionKey: string;
 	icon: typeof CreditCard;
 	isOnline: boolean;
 }
@@ -40,22 +43,22 @@ interface PaymentMethodOption {
 const PAYMENT_METHODS: PaymentMethodOption[] = [
 	{
 		id: "card",
-		label: "Credit/Debit Card",
-		description: "Visa, Mastercard, American Express",
+		labelKey: "dashboard.payments.paymentMethod.creditCard",
+		descriptionKey: "dashboard.payments.paymentMethod.creditCardDescription",
 		icon: CreditCard,
 		isOnline: true,
 	},
 	{
 		id: "mada",
-		label: "Mada",
-		description: "Saudi debit card network",
+		labelKey: "dashboard.payments.paymentMethod.mada",
+		descriptionKey: "dashboard.payments.paymentMethod.madaDescription",
 		icon: Landmark,
 		isOnline: true,
 	},
 	{
 		id: "bank_transfer",
-		label: "Bank Transfer",
-		description: "Manual transfer to our bank account",
+		labelKey: "dashboard.payments.paymentMethod.bankTransfer",
+		descriptionKey: "dashboard.payments.paymentMethod.bankTransferDescription",
 		icon: Building2,
 		isOnline: false,
 	},
@@ -76,6 +79,7 @@ function formatPrice(price: string): string {
 export default function PaymentMethodPage(): ReactNode {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 
 	const [invoice, setInvoice] = useState<InvoiceResponse | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -142,9 +146,7 @@ export default function PaymentMethodPage(): ReactNode {
 			const response = await paymentService.initiateOnlinePayment(id);
 			window.location.href = response.redirectUrl;
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : "Failed to initiate payment";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 			setIsProcessing(false);
 		}
 	};
@@ -158,10 +160,10 @@ export default function PaymentMethodPage(): ReactNode {
 						className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
 					>
 						<ArrowLeft className="mr-2 h-4 w-4" />
-						Back to Invoice
+						{t("dashboard.common.backToInvoice")}
 					</Link>
 				</div>
-				<LoadingState message="Loading invoice details..." />
+				<LoadingState message={t("dashboard.payments.loadingDetails")} />
 			</div>
 		);
 	}
@@ -175,13 +177,13 @@ export default function PaymentMethodPage(): ReactNode {
 						className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
 					>
 						<ArrowLeft className="mr-2 h-4 w-4" />
-						Back to Payments
+						{t("dashboard.common.backToPayments")}
 					</Link>
 				</div>
 				<EmptyState
-					title="Failed to load invoice"
-					description={error || "Invoice not found"}
-					actionLabel="Try Again"
+					title={t("dashboard.payments.notFound.title")}
+					description={error || t("dashboard.payments.notFound.description")}
+					actionLabel={t("dashboard.common.tryAgain")}
 					onAction={fetchInvoice}
 				/>
 			</div>
@@ -200,33 +202,33 @@ export default function PaymentMethodPage(): ReactNode {
 					className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
 				>
 					<ArrowLeft className="mr-2 h-4 w-4" />
-					Back to Invoice
+					{t("dashboard.common.backToInvoice")}
 				</Link>
 			</div>
 
 			<div className="space-y-1">
-				<h1 className="text-2xl font-bold tracking-tight">Choose Payment Method</h1>
+				<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.payments.paymentMethod.title")}</h1>
 				<p className="text-muted-foreground">
-					Select how you would like to pay for invoice {invoice.invoiceNumber}
+					{t("dashboard.payments.paymentMethod.subtitle", { invoiceNumber: invoice.invoiceNumber })}
 				</p>
 			</div>
 
 			<div className="grid gap-6 lg:grid-cols-2">
 				<Card>
 					<CardHeader>
-						<CardTitle>Invoice Summary</CardTitle>
+						<CardTitle>{t("dashboard.payments.paymentMethod.invoiceSummary")}</CardTitle>
 						<CardDescription>{invoice.campaignTitle}</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="flex justify-between">
-							<span className="text-muted-foreground">Invoice Number</span>
+							<span className="text-muted-foreground">{t("dashboard.payments.paymentMethod.invoiceNumber")}</span>
 							<span data-testid="invoice-number" className="font-medium">
 								{invoice.invoiceNumber}
 							</span>
 						</div>
 						<Separator />
 						<div className="flex justify-between text-lg">
-							<span className="font-semibold">Total Amount</span>
+							<span className="font-semibold">{t("dashboard.payments.paymentMethod.totalAmount")}</span>
 							<span data-testid="invoice-amount" className="font-bold">
 								{formatPrice(invoice.totalAmount)}
 							</span>
@@ -236,8 +238,8 @@ export default function PaymentMethodPage(): ReactNode {
 
 				<Card>
 					<CardHeader>
-						<CardTitle>Payment Method</CardTitle>
-						<CardDescription>Select your preferred payment option</CardDescription>
+						<CardTitle>{t("dashboard.payments.paymentMethod.selectMethod")}</CardTitle>
+						<CardDescription>{t("dashboard.payments.paymentMethod.selectMethodDescription")}</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-6">
 						{!showBankDetails ? (
@@ -245,8 +247,7 @@ export default function PaymentMethodPage(): ReactNode {
 								{isOnlineAvailable === false && (
 									<div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
 										<p>
-											Online payment options are currently unavailable. Please
-											use bank transfer.
+											{t("dashboard.payments.paymentMethod.onlineUnavailable")}
 										</p>
 									</div>
 								)}
@@ -277,10 +278,10 @@ export default function PaymentMethodPage(): ReactNode {
 													<Icon className="mt-0.5 h-5 w-5 text-muted-foreground" />
 													<div className="flex-1 space-y-1">
 														<p className="font-medium leading-none">
-															{method.label}
+															{t(method.labelKey)}
 														</p>
 														<p className="text-sm text-muted-foreground">
-															{method.description}
+															{t(method.descriptionKey)}
 														</p>
 													</div>
 												</Label>

@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class InvalidMediaTypeException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InvalidMediaTypeException extends MashrookException {
+
     public InvalidMediaTypeException(String message) {
-        super(message);
+        super("media.type.invalid", HttpStatus.BAD_REQUEST, message);
     }
 }

@@ -6,6 +6,7 @@ import type { MetaDescriptor } from "react-router";
 import { ArrowLeft, Calendar, Package, Loader2, Clock, Info } from "lucide-react";
 import { toast } from "sonner";
 
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 import { Header } from "@/components/landing/header";
 
 import {
@@ -255,8 +256,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 			// Refresh data to update summary
 			await Promise.all([fetchPledges(), fetchBracketProgress()]);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to submit pledge";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsSubmittingPledge(false);
 		}
@@ -275,8 +275,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 			// Refresh data to update summary
 			await Promise.all([fetchPledges(), fetchBracketProgress()]);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to cancel pledge";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsSubmittingPledge(false);
 		}

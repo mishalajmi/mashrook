@@ -1,4 +1,35 @@
 {
+  "errors": {
+    "generic": "An error occurred",
+    "campaign.not.found": "Campaign not found",
+    "campaign.validation.failed": "Campaign validation failed",
+    "campaign.invalid.state": "Invalid campaign state",
+    "campaign.invalid.state.transition": "Invalid campaign state transition",
+    "campaign.media.not.found": "Campaign media not found",
+    "pledge.not.found": "Pledge not found",
+    "pledge.already.exists": "You already have a pledge for this campaign",
+    "pledge.access.denied": "You don't have permission to access this pledge",
+    "pledge.invalid.state": "Invalid pledge state",
+    "invoice.not.found": "Invoice not found",
+    "invoice.validation.failed": "Invoice validation failed",
+    "invoice.invalid.status.transition": "Invalid invoice status transition",
+    "user.not.found": "User not found",
+    "user.already.exists": "A user with this email already exists",
+    "account.validation.failed": "Account validation failed",
+    "organization.not.found": "Organization not found",
+    "organization.pending.verification": "Your organization is pending verification",
+    "team.invitation.not.found": "Team invitation not found",
+    "team.invitation.duplicate": "An invitation has already been sent to this email",
+    "team.invitation.invalid": "Invalid team invitation",
+    "team.operation.failed": "Team operation failed",
+    "payment.already.exists": "Payment already exists",
+    "payment.gateway.unavailable": "Payment gateway is currently unavailable",
+    "payment.invalid.status.transition": "Invalid payment status transition",
+    "discount.bracket.not.found": "Discount bracket not found",
+    "media.type.invalid": "Invalid media type",
+    "file.size.exceeded": "File size exceeds the maximum limit",
+    "authentication.failed": "Authentication failed"
+  },
   "common": {
     "appName": "Mashrook",
     "home": "Home",
@@ -241,6 +272,223 @@
     "switchToDark": "Switch to dark mode"
   },
   "dashboard": {
+    "common": {
+      "loading": "Loading...",
+      "backToCampaigns": "Back to Campaigns",
+      "backToPayments": "Back to Payments",
+      "backToInvoice": "Back to Invoice",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "tryAgain": "Try Again",
+      "verify": "Verify",
+      "reject": "Reject",
+      "copiedToClipboard": "{{label}} copied to clipboard",
+      "failedToCopy": "Failed to copy to clipboard"
+    },
+    "team": {
+      "title": "Team",
+      "description": "Manage your team members and permissions",
+      "inviteMember": "Invite Member",
+      "transferOwnership": "Transfer Ownership",
+      "tabs": {
+        "members": "Members",
+        "invitations": "Invitations"
+      },
+      "table": {
+        "member": "Member",
+        "permissions": "Permissions",
+        "status": "Status",
+        "joined": "Joined",
+        "actions": "Actions"
+      },
+      "badges": {
+        "you": "You",
+        "owner": "Owner",
+        "active": "Active",
+        "pending": "Pending",
+        "pendingActivation": "Pending Activation",
+        "inactive": "Inactive",
+        "accepted": "Accepted",
+        "expired": "Expired",
+        "cancelled": "Cancelled"
+      }
+    },
+    "overview": {
+      "title": "Dashboard Overview",
+      "welcome": "Welcome back",
+      "emptyState": {
+        "title": "Analytics Coming Soon",
+        "description": "Dashboard analytics and insights will be available here. Check back soon for detailed reports on your activity."
+      }
+    },
+    "timer": {
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds",
+      "min": "Min",
+      "sec": "Sec",
+      "ended": "Ended",
+      "finalCommitmentWindow": "Final commitment window",
+      "gracePeriodEndsIn": "Grace Period Ends In",
+      "timeRemaining": "Time Remaining"
+    },
+    "gracePeriod": {
+      "banner": {
+        "title": "Final Commitment Window - Campaign locks soon",
+        "description": "The pledge period has ended. New commitments accepted until final lock.",
+        "locksOn": "Locks on: {{date}}",
+        "pledgeNeedsConfirmation": "{{count}} pledge needs confirmation",
+        "pledgesNeedConfirmation": "{{count}} pledges need confirmation",
+        "gracePeriodEndsIn": "Grace period ends in",
+        "viewPendingConfirmations": "View Pending Confirmations"
+      },
+      "info": {
+        "title": "What happens when the campaign locks?",
+        "point1": "All pledges become final commitments",
+        "point2": "Invoices are generated for committed quantities",
+        "point3": "Payment processing begins"
+      }
+    },
+    "campaigns": {
+      "loading": "Loading campaign...",
+      "notFound": {
+        "title": "Campaign not found",
+        "description": "The campaign you're looking for doesn't exist or is no longer available."
+      },
+      "noActive": {
+        "title": "No active campaigns",
+        "description": "There are no active campaigns available at the moment. Check back later for new group buying opportunities."
+      },
+      "noResults": {
+        "title": "No campaigns found",
+        "description": "No campaigns match your search. Try adjusting your search terms."
+      },
+      "notAcceptingPledges": "This campaign is no longer accepting pledges.",
+      "publishedSuccessfully": "Campaign published successfully",
+      "savedAsDraft": "Campaign saved as draft",
+      "pricingUpdated": "Pricing tiers updated successfully"
+    },
+    "pledges": {
+      "title": "My Pledges",
+      "description": "Manage your campaign pledges and track delivery status",
+      "browseCampaigns": "Browse Campaigns",
+      "loading": "Loading pledges...",
+      "loadError": "Failed to load pledges",
+      "noPledges": {
+        "title": "No pledges yet",
+        "description": "Join a campaign to start saving through group buying"
+      },
+      "noResults": "No {{status}} pledges found",
+      "updatedSuccessfully": "Pledge updated successfully",
+      "submittedSuccessfully": "Pledge submitted successfully",
+      "cancelledSuccessfully": "Pledge cancelled successfully",
+      "confirmedSuccessfully": "Commitment confirmed successfully",
+      "tabs": {
+        "all": "All",
+        "pending": "Pending",
+        "committed": "Committed",
+        "withdrawn": "Withdrawn"
+      },
+      "table": {
+        "campaign": "Campaign",
+        "quantity": "Quantity",
+        "total": "Total",
+        "status": "Status",
+        "date": "Date",
+        "actions": "Actions"
+      },
+      "status": {
+        "committed": "Committed",
+        "pending": "Pending",
+        "withdrawn": "Withdrawn"
+      },
+      "units": "units",
+      "view": "View"
+    },
+    "payments": {
+      "title": "Payments",
+      "description": "View and manage your invoices and payment status",
+      "loading": "Loading invoices...",
+      "loadingDetails": "Loading invoice details...",
+      "loadingStatus": "Loading payment status...",
+      "loadError": "Failed to load invoices",
+      "notFound": {
+        "title": "Failed to load invoice",
+        "description": "Invoice not found"
+      },
+      "noInvoices": {
+        "title": "No invoices yet",
+        "description": "You don't have any invoices yet. Invoices will appear here after you commit to campaigns."
+      },
+      "noResults": "No {{status}} invoices found",
+      "markedComplete": "Payment marked as complete. Awaiting admin confirmation.",
+      "status": {
+        "draft": "Draft",
+        "pendingPayment": "Pending Payment",
+        "pendingConfirmation": "Pending Confirmation",
+        "paid": "Paid",
+        "overdue": "Overdue",
+        "cancelled": "Cancelled"
+      },
+      "filters": {
+        "all": "All Invoices"
+      },
+      "table": {
+        "invoiceNumber": "Invoice #",
+        "campaign": "Campaign",
+        "amount": "Amount",
+        "dueDate": "Due Date",
+        "status": "Status"
+      },
+      "paymentMethod": {
+        "title": "Choose Payment Method",
+        "subtitle": "Select how you would like to pay for invoice {{invoiceNumber}}",
+        "invoiceSummary": "Invoice Summary",
+        "invoiceNumber": "Invoice Number",
+        "totalAmount": "Total Amount",
+        "selectMethod": "Payment Method",
+        "selectMethodDescription": "Select your preferred payment option",
+        "onlineUnavailable": "Online payment options are currently unavailable. Please use bank transfer.",
+        "creditCard": "Credit/Debit Card",
+        "creditCardDescription": "Visa, Mastercard, American Express",
+        "mada": "Mada",
+        "madaDescription": "Saudi debit card network",
+        "bankTransfer": "Bank Transfer",
+        "bankTransferDescription": "Manual transfer to our bank account"
+      },
+      "bankDetails": {
+        "bankName": "National Commerce Bank",
+        "accountName": "Mashrook Trading LLC"
+      },
+      "result": {
+        "error": "Error Loading Payment",
+        "processing": "Processing Payment",
+        "success": "Payment Successful",
+        "failed": "Payment Failed",
+        "failedDescription": "We could not process your payment"
+      }
+    },
+    "organizations": {
+      "loading": "Loading organizations...",
+      "loadError": "Failed to load organizations",
+      "noOrganizations": {
+        "title": "No organizations found",
+        "description": "There are no organizations registered on the platform yet"
+      },
+      "verifyDialog": {
+        "title": "Verify Organization",
+        "description": "Are you sure you want to verify \"{{name}}\"? This will activate the organization and allow them to participate in campaigns.",
+        "verifying": "Verifying..."
+      },
+      "rejectDialog": {
+        "title": "Reject Organization",
+        "description": "Are you sure you want to reject \"{{name}}\"? This will mark the organization as inactive.",
+        "rejecting": "Rejecting..."
+      },
+      "verifiedSuccessfully": "Organization \"{{name}}\" has been verified successfully",
+      "rejectedSuccessfully": "Organization \"{{name}}\" has been rejected"
+    },
     "sidebar": {
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
@@ -353,6 +601,35 @@
     "placeholder": {
       "description": "This page is under development",
       "comingSoon": "This feature will be available soon."
+    },
+    "browseCampaigns": {
+      "title": "Browse Campaigns",
+      "description": "Discover group buying campaigns and save through collective purchasing",
+      "myPledges": "My Pledges",
+      "searchPlaceholder": "Search campaigns...",
+      "clearSearch": "Clear search",
+      "filters": {
+        "all": "All",
+        "active": "Active",
+        "draft": "Draft",
+        "locked": "Locked",
+        "done": "Done"
+      },
+      "card": {
+        "endingSoon": "ENDING SOON",
+        "finalWindow": "Final Window",
+        "finalCommitmentMessage": "Final commitment window - pledge now",
+        "days": "Days",
+        "price": "Price",
+        "pledges": "Pledges",
+        "currentPrice": "Current price",
+        "viewDetails": "View Details",
+        "edit": "Edit",
+        "delete": "Delete",
+        "deleteCampaign": "Delete Campaign",
+        "deleteConfirmation": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
+        "cancel": "Cancel"
+      }
     }
   },
   "pledges": {

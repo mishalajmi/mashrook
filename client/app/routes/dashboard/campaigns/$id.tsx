@@ -7,8 +7,11 @@
 
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Users, DollarSign, Clock, Calendar, Target, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import {
 	Button,
@@ -160,6 +163,7 @@ function calculatePledgeSummary(
  */
 export default function CampaignDetailPage(): ReactNode {
 	const { id } = useParams();
+	const { t } = useTranslation();
 
 	// Get user authorities for campaigns resource
 	const { canUpdate } = useResourceAuthorities("campaigns");
@@ -252,10 +256,9 @@ export default function CampaignDetailPage(): ReactNode {
 			setIsPublishing(true);
 			const updated = await campaignService.publishCampaign(id);
 			setCampaign(updated);
-			toast.success("Campaign published successfully");
+			toast.success(t("dashboard.campaigns.publishedSuccessfully"));
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to publish campaign";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsPublishing(false);
 		}
@@ -316,10 +319,9 @@ export default function CampaignDetailPage(): ReactNode {
 			// Refresh campaign data
 			await fetchCampaign();
 			setIsEditingBrackets(false);
-			toast.success("Pricing tiers updated successfully");
+			toast.success(t("dashboard.campaigns.pricingUpdated"));
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to save pricing tiers";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsSavingBrackets(false);
 		}

@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 
@@ -80,6 +81,7 @@ export function CountdownTimer({
 	isGracePeriod = false,
 	className,
 }: CountdownTimerProps): ReactNode {
+	const { t } = useTranslation();
 	const [timeRemaining, setTimeRemaining] = useState<TimeRemaining | null>(
 		null
 	);
@@ -106,28 +108,28 @@ export function CountdownTimer({
 					<span className="text-2xl font-bold text-foreground tabular-nums">
 						--
 					</span>
-					<span className="text-xs text-muted-foreground">Days</span>
+					<span className="text-xs text-muted-foreground">{t("dashboard.timer.days")}</span>
 				</div>
 				<span className="text-xl text-muted-foreground">:</span>
 				<div className="flex flex-col items-center">
 					<span className="text-2xl font-bold text-foreground tabular-nums">
 						--
 					</span>
-					<span className="text-xs text-muted-foreground">Hours</span>
+					<span className="text-xs text-muted-foreground">{t("dashboard.timer.hours")}</span>
 				</div>
 				<span className="text-xl text-muted-foreground">:</span>
 				<div className="flex flex-col items-center">
 					<span className="text-2xl font-bold text-foreground tabular-nums">
 						--
 					</span>
-					<span className="text-xs text-muted-foreground">Minutes</span>
+					<span className="text-xs text-muted-foreground">{t("dashboard.timer.minutes")}</span>
 				</div>
 				<span className="text-xl text-muted-foreground">:</span>
 				<div className="flex flex-col items-center">
 					<span className="text-2xl font-bold text-foreground tabular-nums">
 						--
 					</span>
-					<span className="text-xs text-muted-foreground">Seconds</span>
+					<span className="text-xs text-muted-foreground">{t("dashboard.timer.seconds")}</span>
 				</div>
 			</div>
 		);
@@ -143,7 +145,7 @@ export function CountdownTimer({
 					data-testid="countdown-ended"
 					className="text-lg font-semibold text-muted-foreground"
 				>
-					Ended
+					{t("dashboard.timer.ended")}
 				</span>
 			</div>
 		);
@@ -175,7 +177,7 @@ export function CountdownTimer({
 			{/* Grace Period Label */}
 			{isGracePeriod && (
 				<span className="text-sm font-semibold text-[var(--color-alert-warning-text)] uppercase tracking-wide animate-pulse">
-					Final commitment window
+					{t("dashboard.timer.finalCommitmentWindow")}
 				</span>
 			)}
 
@@ -185,7 +187,7 @@ export function CountdownTimer({
 					<span data-testid="countdown-days" className={valueClass}>
 						{timeRemaining.days}
 					</span>
-					<span className={labelClass}>Days</span>
+					<span className={labelClass}>{t("dashboard.timer.days")}</span>
 				</div>
 
 				<span className={separatorClass}>:</span>
@@ -195,7 +197,7 @@ export function CountdownTimer({
 					<span data-testid="countdown-hours" className={valueClass}>
 						{padNumber(timeRemaining.hours)}
 					</span>
-					<span className={labelClass}>Hours</span>
+					<span className={labelClass}>{t("dashboard.timer.hours")}</span>
 				</div>
 
 				<span className={separatorClass}>:</span>
@@ -205,7 +207,7 @@ export function CountdownTimer({
 					<span data-testid="countdown-minutes" className={valueClass}>
 						{padNumber(timeRemaining.minutes)}
 					</span>
-					<span className={labelClass}>Min</span>
+					<span className={labelClass}>{t("dashboard.timer.min")}</span>
 				</div>
 
 				<span className={separatorClass}>:</span>
@@ -215,7 +217,7 @@ export function CountdownTimer({
 					<span data-testid="countdown-seconds" className={valueClass}>
 						{padNumber(timeRemaining.seconds)}
 					</span>
-					<span className={labelClass}>Sec</span>
+					<span className={labelClass}>{t("dashboard.timer.sec")}</span>
 				</div>
 			</div>
 		</div>

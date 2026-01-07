@@ -6,8 +6,11 @@
  */
 
 import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Building2, Check, X } from "lucide-react";
 import { toast } from "sonner";
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date";
@@ -72,6 +75,8 @@ type StatusFilter = OrganizationStatus | "ALL";
  * - Toast notifications on success/error
  */
 export default function OrganizationsPage(): ReactNode {
+	const { t } = useTranslation();
+
 	// State
 	const [organizations, setOrganizations] = useState<Organization[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -124,16 +129,14 @@ export default function OrganizationsPage(): ReactNode {
 		try {
 			setIsProcessing(true);
 			await organizationService.verifyOrganization(selectedOrg.id);
-			toast.success(`Organization "${selectedOrg.nameEn}" has been verified successfully`);
+			toast.success(t("dashboard.organizations.verifiedSuccessfully", { name: selectedOrg.nameEn }));
 			setIsVerifyDialogOpen(false);
 			setSelectedOrg(null);
 			// Refresh the list
 			const status = statusFilter === "ALL" ? undefined : statusFilter;
 			await fetchOrganizations(status);
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : "Failed to verify organization";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsProcessing(false);
 		}
@@ -156,16 +159,14 @@ export default function OrganizationsPage(): ReactNode {
 		try {
 			setIsProcessing(true);
 			await organizationService.rejectOrganization(selectedOrg.id);
-			toast.success(`Organization "${selectedOrg.nameEn}" has been rejected`);
+			toast.success(t("dashboard.organizations.rejectedSuccessfully", { name: selectedOrg.nameEn }));
 			setIsRejectDialogOpen(false);
 			setSelectedOrg(null);
 			// Refresh the list
 			const status = statusFilter === "ALL" ? undefined : statusFilter;
 			await fetchOrganizations(status);
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : "Failed to reject organization";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsProcessing(false);
 		}
@@ -191,7 +192,7 @@ export default function OrganizationsPage(): ReactNode {
 						</p>
 					</div>
 				</div>
-				<LoadingState message="Loading organizations..." />
+				<LoadingState message={t("dashboard.organizations.loading")} />
 			</div>
 		);
 	}
@@ -209,9 +210,9 @@ export default function OrganizationsPage(): ReactNode {
 					</div>
 				</div>
 				<EmptyState
-					title="Failed to load organizations"
+					title={t("dashboard.organizations.loadError")}
 					description={error}
-					actionLabel="Try Again"
+					actionLabel={t("dashboard.common.tryAgain")}
 					onAction={() => {
 						const status = statusFilter === "ALL" ? undefined : statusFilter;
 						fetchOrganizations(status);
@@ -298,7 +299,7 @@ export default function OrganizationsPage(): ReactNode {
 														onClick={() => handleVerifyClick(org)}
 													>
 														<Check className="h-4 w-4 mr-1" />
-														Verify
+														{t("dashboard.common.verify")}
 													</Button>
 													<Button
 														variant="destructive"
@@ -306,7 +307,7 @@ export default function OrganizationsPage(): ReactNode {
 														onClick={() => handleRejectClick(org)}
 													>
 														<X className="h-4 w-4 mr-1" />
-														Reject
+														{t("dashboard.common.reject")}
 													</Button>
 												</div>
 											)}
@@ -320,10 +321,10 @@ export default function OrganizationsPage(): ReactNode {
 			) : (
 				<EmptyState
 					icon={Building2}
-					title="No organizations found"
+					title={t("dashboard.organizations.noOrganizations.title")}
 					description={
 						statusFilter === "ALL"
-							? "There are no organizations registered on the platform yet"
+							? t("dashboard.organizations.noOrganizations.description")
 							: `No ${statusFilter.toLowerCase()} organizations found`
 					}
 				/>
@@ -333,12 +334,9 @@ export default function OrganizationsPage(): ReactNode {
 			<Dialog open={isVerifyDialogOpen} onOpenChange={setIsVerifyDialogOpen}>
 				<DialogContent data-testid="verify-dialog">
 					<DialogHeader>
-						<DialogTitle>Verify Organization</DialogTitle>
+						<DialogTitle>{t("dashboard.organizations.verifyDialog.title")}</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to verify{" "}
-							<span className="font-semibold">{selectedOrg?.nameEn}</span>?
-							This will activate the organization and allow them to use the
-							platform.
+							{t("dashboard.organizations.verifyDialog.description", { name: selectedOrg?.nameEn })}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
@@ -347,10 +345,10 @@ export default function OrganizationsPage(): ReactNode {
 							onClick={handleVerifyCancel}
 							disabled={isProcessing}
 						>
-							Cancel
+							{t("dashboard.common.cancel")}
 						</Button>
 						<Button onClick={handleVerifyConfirm} disabled={isProcessing}>
-							{isProcessing ? "Verifying..." : "Confirm"}
+							{isProcessing ? t("dashboard.organizations.verifyDialog.verifying") : t("dashboard.common.confirm")}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
@@ -360,11 +358,9 @@ export default function OrganizationsPage(): ReactNode {
 			<Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
 				<DialogContent data-testid="reject-dialog">
 					<DialogHeader>
-						<DialogTitle>Reject Organization</DialogTitle>
+						<DialogTitle>{t("dashboard.organizations.rejectDialog.title")}</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to reject{" "}
-							<span className="font-semibold">{selectedOrg?.nameEn}</span>?
-							This will mark the organization as inactive.
+							{t("dashboard.organizations.rejectDialog.description", { name: selectedOrg?.nameEn })}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
@@ -373,14 +369,14 @@ export default function OrganizationsPage(): ReactNode {
 							onClick={handleRejectCancel}
 							disabled={isProcessing}
 						>
-							Cancel
+							{t("dashboard.common.cancel")}
 						</Button>
 						<Button
 							variant="destructive"
 							onClick={handleRejectConfirm}
 							disabled={isProcessing}
 						>
-							{isProcessing ? "Rejecting..." : "Confirm"}
+							{isProcessing ? t("dashboard.organizations.rejectDialog.rejecting") : t("dashboard.common.confirm")}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

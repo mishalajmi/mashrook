@@ -6,6 +6,7 @@
  */
 
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -23,12 +24,12 @@ interface CampaignFiltersProps {
 
 type StatusOption = CampaignStatus | "ALL";
 
-const statusOptions: { value: StatusOption; label: string }[] = [
-	{ value: "ALL", label: "All" },
-	{ value: "active", label: "Active" },
-	{ value: "draft", label: "Draft" },
-	{ value: "locked", label: "Locked" },
-	{ value: "done", label: "Done" },
+const statusOptions: { value: StatusOption; labelKey: string }[] = [
+	{ value: "ALL", labelKey: "dashboard.browseCampaigns.filters.all" },
+	{ value: "active", labelKey: "dashboard.browseCampaigns.filters.active" },
+	{ value: "draft", labelKey: "dashboard.browseCampaigns.filters.draft" },
+	{ value: "locked", labelKey: "dashboard.browseCampaigns.filters.locked" },
+	{ value: "done", labelKey: "dashboard.browseCampaigns.filters.done" },
 ];
 
 /**
@@ -44,6 +45,8 @@ export function CampaignFilters({
 	onFiltersChange,
 	className,
 }: CampaignFiltersProps): ReactNode {
+	const { t } = useTranslation();
+
 	const handleSearchChange = (value: string) => {
 		onFiltersChange({ ...filters, search: value });
 	};
@@ -68,7 +71,7 @@ export function CampaignFilters({
 				<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 				<Input
 					type="text"
-					placeholder="Search campaigns..."
+					placeholder={t("dashboard.browseCampaigns.searchPlaceholder")}
 					value={filters.search ?? ""}
 					onChange={(e) => handleSearchChange(e.target.value)}
 					className="pl-10 pr-10"
@@ -79,7 +82,7 @@ export function CampaignFilters({
 						variant="ghost"
 						size="icon-sm"
 						onClick={handleClearSearch}
-						aria-label="Clear search"
+						aria-label={t("dashboard.browseCampaigns.clearSearch")}
 						className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
 					>
 						<X className="h-4 w-4" />
@@ -96,7 +99,7 @@ export function CampaignFilters({
 				<TabsList className="w-full sm:w-auto">
 					{statusOptions.map((option) => (
 						<TabsTrigger key={option.value} value={option.value} className="flex-1 sm:flex-none">
-							{option.label}
+							{t(option.labelKey)}
 						</TabsTrigger>
 					))}
 				</TabsList>
