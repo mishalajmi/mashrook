@@ -367,7 +367,10 @@
       "notAcceptingPledges": "This campaign is no longer accepting pledges.",
       "publishedSuccessfully": "Campaign published successfully",
       "savedAsDraft": "Campaign saved as draft",
-      "pricingUpdated": "Pricing tiers updated successfully"
+      "pricingUpdated": "Pricing tiers updated successfully",
+      "media": {
+        "title": "Media Gallery"
+      }
     },
     "pledges": {
       "title": "My Pledges",

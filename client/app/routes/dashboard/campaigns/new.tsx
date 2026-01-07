@@ -23,9 +23,9 @@ import {
 	Input,
 	Label,
 } from "@/components/ui";
-import { DiscountBracketEditor, ProductDetailsEditor } from "@/components/campaigns";
-import { campaignService, type DiscountBracketRequest } from "@/services/campaign.service";
-import type { CampaignFormData, DiscountBracketFormData, ProductDetail } from "@/types/campaign";
+import { DiscountBracketEditor, ProductDetailsEditor, MediaUploader } from "@/components/campaigns";
+import { campaignService, type DiscountBracketRequest, type CampaignMediaResponse } from "@/services/campaign.service";
+import type { CampaignFormData, DiscountBracketFormData, ProductDetail, CampaignMedia } from "@/types/campaign";
 
 interface FormErrors {
 	title?: string;
@@ -40,7 +40,27 @@ const steps = [
 	{ id: 1, name: "Basic Info" },
 	{ id: 2, name: "Timeline" },
 	{ id: 3, name: "Pricing" },
+	{ id: 4, name: "Media" },
 ];
+
+/**
+ * Transform media response to component-compatible type
+ */
+function toMedia(response: CampaignMediaResponse): CampaignMedia {
+	return {
+		id: response.id,
+		campaignId: response.campaignId,
+		storageKey: response.storageKey,
+		originalFilename: response.originalFilename,
+		contentType: response.contentType,
+		sizeBytes: response.sizeBytes,
+		mediaType: response.mediaType,
+		mediaOrder: response.mediaOrder,
+		presignedUrl: response.presignedUrl,
+		createdAt: response.createdAt,
+		updatedAt: response.updatedAt,
+	};
+}
 
 const initialFormData: CampaignFormData = {
 	title: "",
@@ -135,6 +155,9 @@ export default function NewCampaignPage(): ReactNode {
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [isSaving, setIsSaving] = useState(false);
 	const [isPublishing, setIsPublishing] = useState(false);
+	// Campaign ID and media state - populated after draft creation
+	const [campaignId, setCampaignId] = useState<string | null>(null);
+	const [media, setMedia] = useState<CampaignMedia[]>([]);
 
 	const validateStep = (step: number): boolean => {
 		const newErrors: FormErrors = {};
@@ -172,17 +195,78 @@ export default function NewCampaignPage(): ReactNode {
 		return Object.keys(newErrors).length === 0;
 	};
 
-	const handleNext = () => {
-		if (validateStep(currentStep)) {
-			setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+	const handleNext = async () => {
+		if (!validateStep(currentStep)) {
+			return;
 		}
+
+		// When moving from step 3 to step 4, create draft campaign first
+		if (currentStep === 3 && !campaignId) {
+			try {
+				setIsSaving(true);
+				const bracketRequests: DiscountBracketRequest[] = brackets.map((bracket) => ({
+					minQuantity: bracket.minQuantity,
+					maxQuantity: bracket.maxQuantity,
+					unitPrice: bracket.unitPrice,
+					bracketOrder: bracket.bracketOrder,
+				}));
+
+				const productDetailsJson = JSON.stringify(formData.productDetails);
+
+				const campaign = await campaignService.createCampaign({
+					title: formData.title,
+					description: formData.description,
+					productDetails: productDetailsJson,
+					targetQuantity: formData.targetQuantity,
+					startDate: formData.startDate,
+					endDate: formData.endDate,
+					brackets: bracketRequests,
+				});
+
+				setCampaignId(campaign.id);
+				toast.success(t("dashboard.campaigns.savedAsDraft"));
+			} catch (err) {
+				toast.error(getTranslatedErrorMessage(err));
+				return;
+			} finally {
+				setIsSaving(false);
+			}
+		}
+
+		setCurrentStep((prev) => Math.min(prev + 1, steps.length));
 	};
 
 	const handleBack = () => {
 		setCurrentStep((prev) => Math.max(prev - 1, 1));
 	};
 
+	// Media handlers for step 4
+	const handleMediaUpload = async (file: File) => {
+		if (!campaignId) return;
+
+		await campaignService.uploadMedia(campaignId, file, media.length);
+		// Refresh media list
+		const updatedMedia = await campaignService.listMedia(campaignId);
+		setMedia(updatedMedia.map(toMedia));
+	};
+
+	const handleMediaDelete = async (mediaId: string) => {
+		if (!campaignId) return;
+
+		await campaignService.deleteMedia(campaignId, mediaId);
+		// Refresh media list
+		const updatedMedia = await campaignService.listMedia(campaignId);
+		setMedia(updatedMedia.map(toMedia));
+	};
+
 	const handleSaveDraft = async () => {
+		// If campaign already created (on step 4), just navigate
+		if (campaignId) {
+			toast.success(t("dashboard.campaigns.savedAsDraft"));
+			navigate("/dashboard/campaigns");
+			return;
+		}
+
 		try {
 			setIsSaving(true);
 
@@ -218,37 +302,45 @@ export default function NewCampaignPage(): ReactNode {
 	};
 
 	const handlePublish = async () => {
-		if (!validateStep(currentStep)) {
-			return;
-		}
-
 		try {
 			setIsPublishing(true);
 
-			// Convert brackets to API format
-			const bracketRequests: DiscountBracketRequest[] = brackets.map((bracket) => ({
-				minQuantity: bracket.minQuantity,
-				maxQuantity: bracket.maxQuantity,
-				unitPrice: bracket.unitPrice,
-				bracketOrder: bracket.bracketOrder,
-			}));
+			let idToPublish = campaignId;
 
-			// Serialize product details to JSON
-			const productDetailsJson = JSON.stringify(formData.productDetails);
+			// If campaign not yet created (publishing from step 3 or earlier), create it first
+			if (!idToPublish) {
+				if (!validateStep(currentStep)) {
+					setIsPublishing(false);
+					return;
+				}
 
-			// Create the campaign with brackets included
-			const campaign = await campaignService.createCampaign({
-				title: formData.title,
-				description: formData.description,
-				productDetails: productDetailsJson,
-				targetQuantity: formData.targetQuantity,
-				startDate: formData.startDate,
-				endDate: formData.endDate,
-				brackets: bracketRequests,
-			});
+				// Convert brackets to API format
+				const bracketRequests: DiscountBracketRequest[] = brackets.map((bracket) => ({
+					minQuantity: bracket.minQuantity,
+					maxQuantity: bracket.maxQuantity,
+					unitPrice: bracket.unitPrice,
+					bracketOrder: bracket.bracketOrder,
+				}));
+
+				// Serialize product details to JSON
+				const productDetailsJson = JSON.stringify(formData.productDetails);
+
+				// Create the campaign with brackets included
+				const campaign = await campaignService.createCampaign({
+					title: formData.title,
+					description: formData.description,
+					productDetails: productDetailsJson,
+					targetQuantity: formData.targetQuantity,
+					startDate: formData.startDate,
+					endDate: formData.endDate,
+					brackets: bracketRequests,
+				});
+
+				idToPublish = campaign.id;
+			}
 
 			// Publish the campaign
-			await campaignService.publishCampaign(campaign.id);
+			await campaignService.publishCampaign(idToPublish);
 
 			toast.success(t("dashboard.campaigns.publishedSuccessfully"));
 			navigate("/dashboard/campaigns");
@@ -303,11 +395,13 @@ export default function NewCampaignPage(): ReactNode {
 						{currentStep === 1 && "Basic Information"}
 						{currentStep === 2 && "Campaign Timeline"}
 						{currentStep === 3 && "Pricing Tiers"}
+						{currentStep === 4 && "Campaign Media"}
 					</CardTitle>
 					<CardDescription>
 						{currentStep === 1 && "Enter the basic details about your campaign"}
 						{currentStep === 2 && "Set the start and end dates for your campaign"}
 						{currentStep === 3 && "Define discount brackets based on quantity"}
+						{currentStep === 4 && "Upload images and videos for your campaign"}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
@@ -419,6 +513,20 @@ export default function NewCampaignPage(): ReactNode {
 						</div>
 					)}
 
+					{/* Step 4: Media */}
+					{currentStep === 4 && (
+						<div className="space-y-4">
+							<MediaUploader
+								media={media}
+								onUpload={handleMediaUpload}
+								onDelete={handleMediaDelete}
+							/>
+							<p className="text-sm text-muted-foreground">
+								Add product images and videos to showcase your campaign. Media is optional but helps attract more buyers.
+							</p>
+						</div>
+					)}
+
 					{/* Navigation Buttons */}
 					<div className="flex justify-between pt-4 border-t">
 						<div>
@@ -430,7 +538,16 @@ export default function NewCampaignPage(): ReactNode {
 						</div>
 						<div className="flex gap-2">
 							{currentStep < steps.length ? (
-								<Button onClick={handleNext} disabled={isSaving || isPublishing}>Next</Button>
+								<Button onClick={handleNext} disabled={isSaving || isPublishing}>
+									{isSaving && currentStep === 3 ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											Creating draft...
+										</>
+									) : (
+										"Next"
+									)}
+								</Button>
 							) : (
 								<Button onClick={handlePublish} disabled={isSaving || isPublishing}>
 									{isPublishing ? (

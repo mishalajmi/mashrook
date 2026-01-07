@@ -42,6 +42,7 @@ import {
 } from "@/components/ui";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CampaignStatusBadge, BracketProgressIndicator, DiscountBracketEditor, MediaUploader, ProductDetailsCard } from "@/components/campaigns";
+import { MediaGallery } from "@/components/ui";
 import { campaignService, type CampaignResponse, type BracketRequest, type CampaignMediaResponse } from "@/services/campaign.service";
 import { pledgeService, type PledgeResponse } from "@/services/pledge.service";
 import type { DiscountBracket, CampaignPledgeSummary, DiscountBracketFormData, CampaignMedia } from "@/types/campaign";
@@ -369,6 +370,7 @@ export default function CampaignDetailPage(): ReactNode {
 
 	const daysRemaining = calculateDaysRemaining(campaign.endDate);
 	const isDraft = campaign.status === "draft";
+	const isEditable = campaign.status === "draft" || campaign.status === "active";
 
 	return (
 		<div className="flex flex-col gap-6 p-6">
@@ -511,7 +513,7 @@ export default function CampaignDetailPage(): ReactNode {
 							<CardHeader>
 								<CardTitle>Campaign Media</CardTitle>
 								<CardDescription>
-									{isDraft && canUpdate
+									{isEditable && canUpdate
 										? "Upload images and videos for your campaign"
 										: "Images and videos for this campaign"}
 								</CardDescription>
@@ -522,33 +524,15 @@ export default function CampaignDetailPage(): ReactNode {
 										media={media}
 										onUpload={handleMediaUpload}
 										onDelete={handleMediaDelete}
-										disabled={!isDraft}
+										disabled={!isEditable}
 									/>
 								) : (
-									// Read-only media display for users without update permission
-									<div className="space-y-4">
-										{media.length > 0 ? (
-											<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-												{media.map((item) => (
-													<div key={item.id} className="relative aspect-video rounded-lg overflow-hidden border bg-muted">
-														{item.mediaType === "IMAGE" && item.presignedUrl ? (
-															<img
-																src={item.presignedUrl}
-																alt={item.originalFilename}
-																className="w-full h-full object-cover"
-															/>
-														) : (
-															<div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
-																{item.originalFilename}
-															</div>
-														)}
-													</div>
-												))}
-											</div>
-										) : (
-											<p className="text-sm text-muted-foreground">No media available</p>
-										)}
-									</div>
+									// Read-only media gallery for users without update permission
+									media.length > 0 ? (
+										<MediaGallery media={media} columns={3} showThumbnails />
+									) : (
+										<p className="text-sm text-muted-foreground">No media available</p>
+									)
 								)}
 							</CardContent>
 						</Card>

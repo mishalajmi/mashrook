@@ -25,18 +25,21 @@ import {
 	PledgeForm,
 	ProductDetailsCard,
 } from "@/components/campaigns";
+import { MediaGallery } from "@/components/ui";
 import { useAuth } from "@/contexts/AuthContext";
 import {
 	campaignService,
 	type CampaignResponse,
 	type PublicCampaignResponse,
 	type BracketProgressResponse,
+	type CampaignMediaResponse,
 } from "@/services/campaign.service";
 import { pledgeService, type PledgeResponse } from "@/services/pledge.service";
 import type {
 	DiscountBracket,
 	CampaignPledgeSummary,
 	PledgeFormData,
+	CampaignMedia,
 } from "@/types/campaign";
 import { formatLongDate, formatDateWithWeekdayAndTime } from "@/lib/date";
 
@@ -130,6 +133,7 @@ export default function PublicCampaignDetailPage(): ReactNode {
 	const [bracketProgress, setBracketProgress] = useState<BracketProgressResponse | null>(null);
 	const [pledges, setPledges] = useState<PledgeResponse[]>([]);
 	const [userPledge, setUserPledge] = useState<PledgeResponse | null>(null);
+	const [media, setMedia] = useState<CampaignMedia[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -189,6 +193,33 @@ export default function PublicCampaignDetailPage(): ReactNode {
 		}
 	}, [id]);
 
+	// Fetch media for the campaign (public endpoint - no auth required)
+	const fetchMedia = useCallback(async () => {
+		if (!id) return;
+
+		try {
+			const mediaResponse = await campaignService.listMedia(id);
+			// Convert CampaignMediaResponse to CampaignMedia
+			const mediaItems: CampaignMedia[] = mediaResponse.map((m) => ({
+				id: m.id,
+				campaignId: m.campaignId,
+				storageKey: m.storageKey,
+				originalFilename: m.originalFilename,
+				contentType: m.contentType,
+				sizeBytes: m.sizeBytes,
+				mediaType: m.mediaType,
+				mediaOrder: m.mediaOrder,
+				presignedUrl: m.presignedUrl,
+				createdAt: m.createdAt,
+				updatedAt: m.updatedAt,
+			}));
+			setMedia(mediaItems);
+		} catch (err) {
+			// Media fetch might fail - ok for public view
+			console.error("Failed to fetch media:", err);
+		}
+	}, [id]);
+
 	// Fetch pledges for the campaign (requires auth)
 	const fetchPledges = useCallback(async () => {
 		if (!id || !isAuthenticated) return;
@@ -220,7 +251,8 @@ export default function PublicCampaignDetailPage(): ReactNode {
 	useEffect(() => {
 		fetchCampaign();
 		fetchBracketProgress();
-	}, [fetchCampaign, fetchBracketProgress]);
+		fetchMedia();
+	}, [fetchCampaign, fetchBracketProgress, fetchMedia]);
 
 	// Fetch pledges and user pledge when authenticated
 	useEffect(() => {
@@ -491,6 +523,18 @@ export default function PublicCampaignDetailPage(): ReactNode {
 								</div>
 							</CardContent>
 						</Card>
+
+						{/* Product Images/Videos Gallery */}
+						{media.length > 0 && (
+							<Card>
+								<CardHeader>
+									<CardTitle className="text-lg">Product Images</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<MediaGallery media={media} columns={3} showThumbnails />
+								</CardContent>
+							</Card>
+						)}
 
 						{/* Pricing Tiers */}
 						{brackets.length > 0 && (

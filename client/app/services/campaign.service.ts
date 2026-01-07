@@ -11,6 +11,35 @@ import { apiClient } from "@/lib/api-client";
 import type { CampaignStatus, MediaType } from "@/types/campaign";
 
 /**
+ * Normalize campaign status from backend (DRAFT -> draft)
+ * Backend returns uppercase, frontend expects lowercase
+ */
+function normalizeStatus(status: string): CampaignStatus {
+	return status.toLowerCase() as CampaignStatus;
+}
+
+/**
+ * Normalize a campaign response status field
+ */
+function normalizeCampaignResponse<T extends { status: CampaignStatus }>(
+	response: T
+): T {
+	return {
+		...response,
+		status: normalizeStatus(response.status),
+	};
+}
+
+/**
+ * Normalize an array of campaign responses
+ */
+function normalizeCampaignResponses<T extends { status: CampaignStatus }>(
+	responses: T[]
+): T[] {
+	return responses.map(normalizeCampaignResponse);
+}
+
+/**
  * Request payload for creating a discount bracket (includes campaignId for new API)
  */
 export interface BracketCreateRequest {
@@ -249,7 +278,11 @@ export const campaignService = {
 	 * @returns Paginated list of active campaign summaries
 	 */
 	async getActiveCampaigns(): Promise<CampaignListResponse> {
-		return apiClient.get<CampaignListResponse>("/v1/campaigns/public");
+		const response = await apiClient.get<CampaignListResponse>("/v1/campaigns/public");
+		return {
+			...response,
+			campaigns: normalizeCampaignResponses(response.campaigns),
+		};
 	},
 
 	/**
@@ -260,7 +293,8 @@ export const campaignService = {
 	 * @throws Error if campaign not found
 	 */
 	async getPublicCampaign(id: string): Promise<PublicCampaignResponse> {
-		return apiClient.get<PublicCampaignResponse>(`/v1/campaigns/public/${id}`);
+		const response = await apiClient.get<PublicCampaignResponse>(`/v1/campaigns/public/${id}`);
+		return normalizeCampaignResponse(response);
 	},
 
 	/**
@@ -282,7 +316,8 @@ export const campaignService = {
 	 * @throws Error if campaign not found
 	 */
 	async getCampaign(id: string): Promise<CampaignResponse> {
-		return apiClient.get<CampaignResponse>(`/v1/campaigns/${id}`);
+		const response = await apiClient.get<CampaignResponse>(`/v1/campaigns/${id}`);
+		return normalizeCampaignResponse(response);
 	},
 
 	/**
@@ -293,7 +328,8 @@ export const campaignService = {
 	 */
 	async listCampaigns(options: ListCampaignsOptions = {}): Promise<CampaignResponse[]> {
 		const queryString = buildQueryString(options);
-		return apiClient.get<CampaignResponse[]>(`/v1/campaigns${queryString}`);
+		const response = await apiClient.get<CampaignResponse[]>(`/v1/campaigns${queryString}`);
+		return normalizeCampaignResponses(response);
 	},
 
 	/**
@@ -304,7 +340,8 @@ export const campaignService = {
 	 * @throws Error on validation failure
 	 */
 	async createCampaign(data: CampaignCreateRequest): Promise<CampaignResponse> {
-		return apiClient.post<CampaignResponse>("/v1/campaigns", data);
+		const response = await apiClient.post<CampaignResponse>("/v1/campaigns", data);
+		return normalizeCampaignResponse(response);
 	},
 
 	/**
@@ -316,7 +353,8 @@ export const campaignService = {
 	 * @throws Error if campaign not found or not authorized
 	 */
 	async updateCampaign(id: string, data: CampaignUpdateRequest): Promise<CampaignResponse> {
-		return apiClient.put<CampaignResponse>(`/v1/campaigns/${id}`, data);
+		const response = await apiClient.put<CampaignResponse>(`/v1/campaigns/${id}`, data);
+		return normalizeCampaignResponse(response);
 	},
 
 	/**
@@ -327,7 +365,8 @@ export const campaignService = {
 	 * @throws Error if campaign not found or not in DRAFT status
 	 */
 	async publishCampaign(id: string): Promise<CampaignResponse> {
-		return apiClient.patch<CampaignResponse>(`/v1/campaigns/${id}/publish`);
+		const response = await apiClient.patch<CampaignResponse>(`/v1/campaigns/${id}/publish`);
+		return normalizeCampaignResponse(response);
 	},
 
 	/**

@@ -367,7 +367,10 @@
       "notAcceptingPledges": "هذه الحملة لم تعد تقبل التعهدات.",
       "publishedSuccessfully": "تم نشر الحملة بنجاح",
       "savedAsDraft": "تم حفظ الحملة كمسودة",
-      "pricingUpdated": "تم تحديث مستويات الأسعار بنجاح"
+      "pricingUpdated": "تم تحديث مستويات الأسعار بنجاح",
+      "media": {
+        "title": "معرض الوسائط"
+      }
     },
     "pledges": {
       "title": "تعهداتي",

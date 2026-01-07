@@ -20,6 +20,7 @@ import {
 	CardHeader,
 	CardTitle,
 	LoadingState,
+	MediaGallery,
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -34,7 +35,28 @@ import {
 	campaignService,
 	type PublicCampaignResponse,
 	type BracketProgressResponse,
+	type CampaignMediaResponse,
 } from "@/services/campaign.service";
+import type { CampaignMedia } from "@/types/campaign";
+
+/**
+ * Transform media response to component-compatible type
+ */
+function toMedia(response: CampaignMediaResponse): CampaignMedia {
+	return {
+		id: response.id,
+		campaignId: response.campaignId,
+		storageKey: response.storageKey,
+		originalFilename: response.originalFilename,
+		contentType: response.contentType,
+		sizeBytes: response.sizeBytes,
+		mediaType: response.mediaType,
+		mediaOrder: response.mediaOrder,
+		presignedUrl: response.presignedUrl,
+		createdAt: response.createdAt,
+		updatedAt: response.updatedAt,
+	};
+}
 import { pledgeService, type PledgeResponse } from "@/services/pledge.service";
 import type {
 	DiscountBracket,
@@ -131,6 +153,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 	const [bracketProgress, setBracketProgress] = useState<BracketProgressResponse | null>(null);
 	const [pledges, setPledges] = useState<PledgeResponse[]>([]);
 	const [userPledge, setUserPledge] = useState<PledgeResponse | null>(null);
+	const [media, setMedia] = useState<CampaignMedia[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -191,13 +214,26 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 		}
 	}, [id]);
 
+	// Fetch campaign media
+	const fetchMedia = useCallback(async () => {
+		if (!id) return;
+
+		try {
+			const response = await campaignService.listMedia(id);
+			setMedia(response.map(toMedia));
+		} catch (err) {
+			console.error("Failed to fetch media:", err);
+		}
+	}, [id]);
+
 	// Initial data fetch
 	useEffect(() => {
 		fetchCampaign();
 		fetchBracketProgress();
 		fetchPledges();
 		fetchUserPledge();
-	}, [fetchCampaign, fetchBracketProgress, fetchPledges, fetchUserPledge]);
+		fetchMedia();
+	}, [fetchCampaign, fetchBracketProgress, fetchPledges, fetchUserPledge, fetchMedia]);
 
 	// Handle pledge submission
 	const handlePledgeSubmit = async (data: PledgeFormData) => {
@@ -419,6 +455,18 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 							</div>
 						</CardContent>
 					</Card>
+
+					{/* Media Gallery */}
+					{media.length > 0 && (
+						<Card>
+							<CardHeader>
+								<CardTitle className="text-lg">{t("dashboard.campaigns.media.title")}</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<MediaGallery media={media} columns={3} />
+							</CardContent>
+						</Card>
+					)}
 
 					{/* Pricing Tiers */}
 					{brackets.length > 0 && (

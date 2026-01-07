@@ -38,6 +38,7 @@ import java.math.RoundingMode;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -192,7 +193,8 @@ public class CampaignService {
 
     @Transactional(readOnly = true)
     public CampaignListResponse findActiveCampaigns(String search, UUID supplierId, Pageable pageable) {
-        List<CampaignEntity> activeCampaigns = campaignRepository.findAllByStatus(CampaignStatus.GRACE_PERIOD);
+        List<CampaignEntity> activeCampaigns = campaignRepository.findAllByStatusIn(Set.of(
+                CampaignStatus.ACTIVE,CampaignStatus.GRACE_PERIOD));
 
         List<CampaignEntity> filtered = activeCampaigns.stream()
                 .filter(campaign -> filterBySearch(campaign, search))
