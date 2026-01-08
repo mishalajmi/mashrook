@@ -1,8 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class InvoiceValidationException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InvoiceValidationException extends MashrookException {
 
     public InvoiceValidationException(String message) {
-        super(message);
+        super("invoice.validation.failed", HttpStatus.BAD_REQUEST, message);
     }
 }

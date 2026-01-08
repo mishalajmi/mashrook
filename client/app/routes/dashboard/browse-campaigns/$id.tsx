@@ -7,8 +7,11 @@
 
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Calendar, Package, Loader2, Clock, Info } from "lucide-react";
 import { toast } from "sonner";
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import {
 	Button,
@@ -17,7 +20,9 @@ import {
 	CardHeader,
 	CardTitle,
 	LoadingState,
+	MediaGallery,
 } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
 	CampaignStatusBadge,
@@ -30,7 +35,28 @@ import {
 	campaignService,
 	type PublicCampaignResponse,
 	type BracketProgressResponse,
+	type CampaignMediaResponse,
 } from "@/services/campaign.service";
+import type { CampaignMedia } from "@/types/campaign";
+
+/**
+ * Transform media response to component-compatible type
+ */
+function toMedia(response: CampaignMediaResponse): CampaignMedia {
+	return {
+		id: response.id,
+		campaignId: response.campaignId,
+		storageKey: response.storageKey,
+		originalFilename: response.originalFilename,
+		contentType: response.contentType,
+		sizeBytes: response.sizeBytes,
+		mediaType: response.mediaType,
+		mediaOrder: response.mediaOrder,
+		presignedUrl: response.presignedUrl,
+		createdAt: response.createdAt,
+		updatedAt: response.updatedAt,
+	};
+}
 import { pledgeService, type PledgeResponse } from "@/services/pledge.service";
 import type {
 	DiscountBracket,
@@ -120,12 +146,14 @@ function calculatePledgeSummary(
  */
 export default function BrowseCampaignDetailPage(): ReactNode {
 	const { id } = useParams();
+	const { t } = useTranslation();
 
 	// State for data fetching
 	const [campaign, setCampaign] = useState<PublicCampaignResponse | null>(null);
 	const [bracketProgress, setBracketProgress] = useState<BracketProgressResponse | null>(null);
 	const [pledges, setPledges] = useState<PledgeResponse[]>([]);
 	const [userPledge, setUserPledge] = useState<PledgeResponse | null>(null);
+	const [media, setMedia] = useState<CampaignMedia[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -142,8 +170,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 			const data = await campaignService.getPublicCampaign(id);
 			setCampaign(data);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to load campaign";
-			setError(message);
+			setError(getTranslatedErrorMessage(err, t));
 		} finally {
 			setLoading(false);
 		}
@@ -186,13 +213,26 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 		}
 	}, [id]);
 
+	// Fetch campaign media
+	const fetchMedia = useCallback(async () => {
+		if (!id) return;
+
+		try {
+			const response = await campaignService.listMedia(id);
+			setMedia(response.map(toMedia));
+		} catch (err) {
+			console.error("Failed to fetch media:", err);
+		}
+	}, [id]);
+
 	// Initial data fetch
 	useEffect(() => {
 		fetchCampaign();
 		fetchBracketProgress();
 		fetchPledges();
 		fetchUserPledge();
-	}, [fetchCampaign, fetchBracketProgress, fetchPledges, fetchUserPledge]);
+		fetchMedia();
+	}, [fetchCampaign, fetchBracketProgress, fetchPledges, fetchUserPledge, fetchMedia]);
 
 	// Handle pledge submission
 	const handlePledgeSubmit = async (data: PledgeFormData) => {
@@ -207,21 +247,20 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 					quantity: data.quantity,
 				});
 				setUserPledge(updated);
-				toast.success("Pledge updated successfully");
+				toast.success(t("dashboard.pledges.updatedSuccessfully"));
 			} else {
 				// Create new pledge
 				const created = await pledgeService.createPledge(id, {
 					quantity: data.quantity,
 				});
 				setUserPledge(created);
-				toast.success("Pledge submitted successfully");
+				toast.success(t("dashboard.pledges.submittedSuccessfully"));
 			}
 
 			// Refresh data to update summary
 			await Promise.all([fetchPledges(), fetchBracketProgress()]);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to submit pledge";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsSubmittingPledge(false);
 		}
@@ -235,13 +274,12 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 			setIsSubmittingPledge(true);
 			await pledgeService.cancelPledge(userPledge.id);
 			setUserPledge(null);
-			toast.success("Pledge cancelled successfully");
+			toast.success(t("dashboard.pledges.cancelledSuccessfully"));
 
 			// Refresh data to update summary
 			await Promise.all([fetchPledges(), fetchBracketProgress()]);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to cancel pledge";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsSubmittingPledge(false);
 		}
@@ -251,7 +289,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 	if (loading) {
 		return (
 			<div data-testid="browse-campaign-detail" className="flex flex-col gap-6 p-6">
-				<LoadingState message="Loading campaign..." />
+				<LoadingState message={t("dashboard.campaigns.loading")} />
 			</div>
 		);
 	}
@@ -265,11 +303,11 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 					className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Campaigns
+					{t("dashboard.common.backToCampaigns")}
 				</Link>
 				<EmptyState
-					title="Campaign not found"
-					description={error || "The campaign you're looking for doesn't exist or is no longer available."}
+					title={t("dashboard.campaigns.notFound.title")}
+					description={error || t("dashboard.campaigns.notFound.description")}
 				/>
 			</div>
 		);
@@ -317,27 +355,27 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 				className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
 			>
 				<ArrowLeft className="h-4 w-4" />
-				Back to Campaigns
+				{t("dashboard.common.backToCampaigns")}
 			</Link>
 
 			{/* Grace Period Banner */}
 			{isGracePeriod && (
 				<div
 					data-testid="grace-period-banner"
-					className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-4"
+					className="rounded-lg border p-4 bg-amber-50 border-amber-500 dark:bg-amber-100 dark:border-amber-600"
 				>
 					<div className="flex items-center gap-3">
-						<Clock className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+						<Clock className="h-5 w-5 text-amber-600 dark:!text-amber-700 flex-shrink-0" />
 						<div className="flex-1">
-							<p className="font-medium text-amber-800 dark:text-amber-200">
-								Final Commitment Window - Campaign locks soon
+							<p className="font-medium text-amber-900 dark:!text-amber-900">
+								{t("dashboard.gracePeriod.banner.title")}
 							</p>
-							<p className="text-sm text-amber-700 dark:text-amber-300">
-								The pledge period has ended. New commitments accepted until final lock.
+							<p className="text-sm text-amber-800 dark:!text-amber-800">
+								{t("dashboard.gracePeriod.banner.description")}
 							</p>
 							{campaign.gracePeriodEndDate && (
-								<p className="text-sm font-semibold text-amber-800 dark:text-amber-200 mt-1">
-									Locks on: {formatDateWithWeekdayAndTime(campaign.gracePeriodEndDate)}
+								<p className="text-sm font-semibold text-amber-900 dark:!text-amber-900 mt-1">
+									{t("dashboard.gracePeriod.banner.locksOn", { date: formatDateWithWeekdayAndTime(campaign.gracePeriodEndDate) })}
 								</p>
 							)}
 						</div>
@@ -361,10 +399,10 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 					</div>
 
 					{/* Countdown Timer */}
-					<Card className={isGracePeriod ? "border-amber-400 dark:border-amber-500" : ""}>
+					<Card className={isGracePeriod ? "border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/60 dark:border-amber-600" : ""}>
 						<CardHeader>
-							<CardTitle className="text-lg">
-								{isGracePeriod ? "Grace Period Ends In" : "Time Remaining"}
+							<CardTitle className={cn("text-lg", isGracePeriod && "text-amber-900 dark:text-amber-100")}>
+								{isGracePeriod ? t("dashboard.timer.gracePeriodEndsIn") : t("dashboard.timer.timeRemaining")}
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
@@ -374,33 +412,30 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 
 					{/* What happens when locked - shown only during grace period */}
 					{isGracePeriod && (
-						<Card
+						<div
 							data-testid="lock-info-box"
-							className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20"
+							className="rounded-lg border p-6 bg-slate-100 border-slate-500 dark:bg-sky-100 dark:border-sky-600"
 						>
-							<CardContent className="pt-6">
-								<div className="flex gap-3">
-									<Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-									<div className="space-y-2">
-										<p className="font-medium text-blue-900 dark:text-blue-100">
-											What happens when the campaign locks?
-										</p>
-										<ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
-											<li>Final pricing is confirmed based on total pledged quantity</li>
-											<li>Invoices are generated for all committed participants</li>
-											<li>Payment collection begins for confirmed orders</li>
-											<li>No new pledges can be accepted after lock</li>
-										</ul>
-									</div>
+							<div className="flex gap-3">
+								<Info className="h-5 w-5 text-blue-600 dark:!text-sky-700 flex-shrink-0 mt-0.5" />
+								<div className="space-y-2">
+									<p className="font-medium text-slate-900 dark:!text-sky-900">
+										{t("dashboard.gracePeriod.info.title")}
+									</p>
+									<ul className="text-sm text-slate-700 dark:!text-sky-800 space-y-1 list-disc list-inside">
+										<li>{t("dashboard.gracePeriod.info.point1")}</li>
+										<li>{t("dashboard.gracePeriod.info.point2")}</li>
+										<li>{t("dashboard.gracePeriod.info.point3")}</li>
+									</ul>
 								</div>
-							</CardContent>
-						</Card>
+							</div>
+						</div>
 					)}
 
 					{/* Product Details */}
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-lg">Product Details</CardTitle>
+							<CardTitle className="text-lg">{t("dashboard.browseCampaigns.detail.productDetails")}</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="flex items-start gap-3">
@@ -413,18 +448,30 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 							<div className="flex items-center gap-3">
 								<Calendar className="h-5 w-5 text-muted-foreground" />
 								<div className="text-sm text-muted-foreground">
-									<span className="font-medium text-foreground">Campaign Period:</span>{" "}
+									<span className="font-medium text-foreground">{t("dashboard.browseCampaigns.detail.campaignPeriod")}</span>{" "}
 									{formatLongDate(campaign.startDate)} - {formatLongDate(campaign.endDate)}
 								</div>
 							</div>
 						</CardContent>
 					</Card>
 
+					{/* Media Gallery */}
+					{media.length > 0 && (
+						<Card>
+							<CardHeader>
+								<CardTitle className="text-lg">{t("dashboard.campaigns.media.title")}</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<MediaGallery media={media} columns={3} />
+							</CardContent>
+						</Card>
+					)}
+
 					{/* Pricing Tiers */}
 					{brackets.length > 0 && (
 						<Card>
 							<CardHeader>
-								<CardTitle className="text-lg">Pricing Tiers</CardTitle>
+								<CardTitle className="text-lg">{t("dashboard.browseCampaigns.detail.pricingTiers")}</CardTitle>
 							</CardHeader>
 							<CardContent>
 								<BracketProgressVisualization
@@ -450,7 +497,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 										? `$${parseFloat(brackets[0].unitPrice).toFixed(2)}`
 										: "--"}
 								</p>
-								<p className="text-sm text-muted-foreground">Current Price</p>
+								<p className="text-sm text-muted-foreground">{t("dashboard.browseCampaigns.detail.currentPrice")}</p>
 							</div>
 
 							<div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
@@ -458,26 +505,23 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 									<p className="text-xl font-semibold text-foreground">
 										{pledgeSummary.totalPledges}
 									</p>
-									<p className="text-xs text-muted-foreground">Buyers</p>
+									<p className="text-xs text-muted-foreground">{t("dashboard.browseCampaigns.detail.buyers")}</p>
 								</div>
 								<div className="text-center">
 									<p className="text-xl font-semibold text-foreground">
 										{pledgeSummary.totalQuantity}
 									</p>
-									<p className="text-xs text-muted-foreground">Units Pledged</p>
+									<p className="text-xs text-muted-foreground">{t("dashboard.browseCampaigns.detail.unitsPledged")}</p>
 								</div>
 							</div>
 
 							{pledgeSummary.unitsToNextBracket && pledgeSummary.nextBracket && (
 								<div className="pt-4 border-t border-border text-center">
 									<p className="text-sm text-muted-foreground">
-										<span className="font-semibold text-primary">
-											{pledgeSummary.unitsToNextBracket} more units
-										</span>{" "}
-										to unlock{" "}
-										<span className="font-semibold text-foreground">
-											${parseFloat(pledgeSummary.nextBracket.unitPrice).toFixed(2)}
-										</span>
+										{t("dashboard.browseCampaigns.detail.moreUnitsToUnlock", {
+											count: pledgeSummary.unitsToNextBracket,
+											price: `$${parseFloat(pledgeSummary.nextBracket.unitPrice).toFixed(2)}`
+										})}
 									</p>
 								</div>
 							)}
@@ -493,10 +537,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 										<>
 											<div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
 												<p className="text-sm text-center text-muted-foreground">
-													You have pledged{" "}
-													<span className="font-semibold text-foreground">
-														{userPledge.quantity} units
-													</span>
+													{t("dashboard.browseCampaigns.detail.youHavePledged", { count: userPledge.quantity })}
 												</p>
 											</div>
 											<PledgeForm
@@ -505,7 +546,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 												maxQuantity={campaign.targetQty}
 												initialQuantity={userPledge.quantity}
 												isSubmitting={isSubmittingPledge}
-												submitButtonText="Update Pledge"
+												submitButtonText={t("dashboard.browseCampaigns.detail.updatePledge")}
 												onSubmit={handlePledgeSubmit}
 											/>
 											<Button
@@ -516,11 +557,11 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 											>
 												{isSubmittingPledge ? (
 													<>
-														<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-														Cancelling...
+														<Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />
+														{t("dashboard.browseCampaigns.detail.cancelling")}
 													</>
 												) : (
-													"Cancel Pledge"
+													t("dashboard.browseCampaigns.detail.cancelPledge")
 												)}
 											</Button>
 										</>
@@ -537,7 +578,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 							) : (
 								<div className="space-y-4">
 									<p className="text-center text-muted-foreground">
-										This campaign is no longer accepting pledges.
+										{t("dashboard.campaigns.notAcceptingPledges")}
 									</p>
 								</div>
 							)}

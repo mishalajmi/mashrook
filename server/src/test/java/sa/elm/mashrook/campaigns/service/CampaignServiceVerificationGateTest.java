@@ -53,6 +53,7 @@ class CampaignServiceVerificationGateTest {
     private NotificationService notificationService;
 
     private CampaignService campaignService;
+    private CampaignMediaService campaignMediaService;
 
     @BeforeEach
     void setUp() {
@@ -62,7 +63,8 @@ class CampaignServiceVerificationGateTest {
                 organizationService,
                 pledgeService,
                 userService,
-                notificationService
+                notificationService,
+                campaignMediaService
         );
     }
 

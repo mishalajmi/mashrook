@@ -114,12 +114,12 @@ class ResourceTest {
         }
 
         @Test
-        @DisplayName("should return singular lowercase value for bracket and pledge resources")
-        void shouldReturnSingularLowercaseValueForBracketAndPledge() {
+        @DisplayName("should return plural lowercase value for bracket, pledge, and campaign resources")
+        void shouldReturnPluralLowercaseValueForBracketPledgeAndCampaign() {
             // Act & Assert
-            assertThat(Resource.BRACKETS.getResource()).isEqualTo("bracket");
-            assertThat(Resource.PLEDGES.getResource()).isEqualTo("pledge");
-            assertThat(Resource.CAMPAIGNS.getResource()).isEqualTo("campaign");
+            assertThat(Resource.BRACKETS.getResource()).isEqualTo("brackets");
+            assertThat(Resource.PLEDGES.getResource()).isEqualTo("pledges");
+            assertThat(Resource.CAMPAIGNS.getResource()).isEqualTo("campaigns");
         }
     }
 }

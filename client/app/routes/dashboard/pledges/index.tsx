@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date";
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 import {
 	Tooltip,
 	TooltipContent,
@@ -53,18 +54,18 @@ interface PledgeWithCampaign extends PledgeResponse {
 // Status badge configurations with required colors
 const pledgeStatusConfig: Record<
 	PledgeStatus,
-	{ label: string; className: string }
+	{ labelKey: string; className: string }
 > = {
 	PENDING: {
-		label: "Pending",
+		labelKey: "dashboard.pledges.status.pending",
 		className: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
 	},
 	COMMITTED: {
-		label: "Committed",
+		labelKey: "dashboard.pledges.status.committed",
 		className: "bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300",
 	},
 	WITHDRAWN: {
-		label: "Withdrawn",
+		labelKey: "dashboard.pledges.status.withdrawn",
 		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 	},
 };
@@ -166,14 +167,13 @@ export default function PledgesPage(): ReactNode {
 		try {
 			setIsCommitting(true);
 			await pledgeService.commitPledge(pledgeId);
-			toast.success("Commitment confirmed successfully");
+			toast.success(t("dashboard.pledges.confirmedSuccessfully"));
 			setIsCommitModalOpen(false);
 			setSelectedPledge(null);
 			// Refresh pledges
 			await fetchPledges();
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to confirm commitment";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsCommitting(false);
 		}
@@ -194,13 +194,13 @@ export default function PledgesPage(): ReactNode {
 			<div data-testid="pledges-page" className="flex flex-col gap-6 p-6">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-						<h1 className="text-2xl font-bold tracking-tight">My Pledges</h1>
+						<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.pledges.title")}</h1>
 						<p className="text-muted-foreground">
-							Manage your campaign pledges and track delivery status
+							{t("dashboard.pledges.description")}
 						</p>
 					</div>
 				</div>
-				<LoadingState data-testid="pledges-loading" message="Loading pledges..." />
+				<LoadingState data-testid="pledges-loading" message={t("dashboard.pledges.loading")} />
 			</div>
 		);
 	}
@@ -211,16 +211,16 @@ export default function PledgesPage(): ReactNode {
 			<div data-testid="pledges-page" className="flex flex-col gap-6 p-6">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-						<h1 className="text-2xl font-bold tracking-tight">My Pledges</h1>
+						<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.pledges.title")}</h1>
 						<p className="text-muted-foreground">
-							Manage your campaign pledges and track delivery status
+							{t("dashboard.pledges.description")}
 						</p>
 					</div>
 				</div>
 				<EmptyState
-					title="Failed to load pledges"
+					title={t("dashboard.pledges.loadError")}
 					description={error}
-					actionLabel="Try Again"
+					actionLabel={t("dashboard.common.tryAgain")}
 					onAction={fetchPledges}
 				/>
 			</div>
@@ -232,15 +232,15 @@ export default function PledgesPage(): ReactNode {
 			{/* Header */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 className="text-2xl font-bold tracking-tight">My Pledges</h1>
+					<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.pledges.title")}</h1>
 					<p className="text-muted-foreground">
-						Manage your campaign pledges and track delivery status
+						{t("dashboard.pledges.description")}
 					</p>
 				</div>
 				<Button asChild>
 					<Link to="/dashboard/browse-campaigns">
 						<ShoppingBag className="h-4 w-4 mr-2" />
-						Browse Campaigns
+						{t("dashboard.pledges.browseCampaigns")}
 					</Link>
 				</Button>
 			</div>
@@ -261,10 +261,10 @@ export default function PledgesPage(): ReactNode {
 				onValueChange={(value) => setActiveTab(value as FilterTab)}
 			>
 				<TabsList>
-					<TabsTrigger value="ALL">All</TabsTrigger>
-					<TabsTrigger value="PENDING">Pending</TabsTrigger>
-					<TabsTrigger value="COMMITTED">Committed</TabsTrigger>
-					<TabsTrigger value="WITHDRAWN">Withdrawn</TabsTrigger>
+					<TabsTrigger value="ALL">{t("dashboard.pledges.tabs.all")}</TabsTrigger>
+					<TabsTrigger value="PENDING">{t("dashboard.pledges.tabs.pending")}</TabsTrigger>
+					<TabsTrigger value="COMMITTED">{t("dashboard.pledges.tabs.committed")}</TabsTrigger>
+					<TabsTrigger value="WITHDRAWN">{t("dashboard.pledges.tabs.withdrawn")}</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value={activeTab} className="mt-4">
@@ -274,12 +274,12 @@ export default function PledgesPage(): ReactNode {
 							<Table data-testid="pledges-table">
 								<TableHeader>
 									<TableRow>
-										<TableHead>Campaign</TableHead>
-										<TableHead>Quantity</TableHead>
-										<TableHead>Total</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead>Date</TableHead>
-										<TableHead className="text-right">Actions</TableHead>
+										<TableHead>{t("dashboard.pledges.table.campaign")}</TableHead>
+										<TableHead>{t("dashboard.pledges.table.quantity")}</TableHead>
+										<TableHead>{t("dashboard.pledges.table.total")}</TableHead>
+										<TableHead>{t("dashboard.pledges.table.status")}</TableHead>
+										<TableHead>{t("dashboard.pledges.table.date")}</TableHead>
+										<TableHead className="text-right">{t("dashboard.pledges.table.actions")}</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -294,7 +294,7 @@ export default function PledgesPage(): ReactNode {
 												<TableCell className="font-medium">
 													{pledge.campaignTitle}
 												</TableCell>
-												<TableCell>{pledge.quantity} units</TableCell>
+												<TableCell>{pledge.quantity} {t("dashboard.pledges.units")}</TableCell>
 												<TableCell className="font-medium">
 													{pledge.totalAmount
 														? formatPrice(pledge.totalAmount)
@@ -308,7 +308,7 @@ export default function PledgesPage(): ReactNode {
 															statusConfig.className
 														)}
 													>
-														{statusConfig.label}
+														{t(statusConfig.labelKey)}
 													</span>
 												</TableCell>
 												<TableCell className="text-muted-foreground">
@@ -358,7 +358,7 @@ export default function PledgesPage(): ReactNode {
 															}
 														>
 															<ExternalLink className="h-4 w-4 mr-1" />
-															View
+															{t("dashboard.pledges.view")}
 														</Button>
 													</div>
 												</TableCell>
@@ -371,13 +371,13 @@ export default function PledgesPage(): ReactNode {
 					) : (
 						<EmptyState
 							icon={ShoppingBag}
-							title="No pledges yet"
+							title={t("dashboard.pledges.noPledges.title")}
 							description={
 								activeTab === "ALL"
-									? "Join a campaign to start saving through group buying"
-									: `No ${activeTab.toLowerCase()} pledges found`
+									? t("dashboard.pledges.noPledges.description")
+									: t("dashboard.pledges.noResults", { status: activeTab.toLowerCase() })
 							}
-							actionLabel={activeTab === "ALL" ? "Browse Campaigns" : undefined}
+							actionLabel={activeTab === "ALL" ? t("dashboard.pledges.browseCampaigns") : undefined}
 							onAction={
 								activeTab === "ALL" ? () => navigate("/dashboard/browse-campaigns") : undefined
 							}

@@ -6,6 +6,7 @@
  */
 
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -25,14 +26,15 @@ interface DiscountBracketEditorProps {
 
 /**
  * Validate brackets for overlapping ranges and invalid min/max
+ * Returns error key instead of translated message for flexibility
  */
 function validateBrackets(
 	brackets: DiscountBracketFormData[]
-): { valid: boolean; error?: string } {
+): { valid: boolean; errorKey?: string } {
 	// Check each bracket for min > max
 	for (const bracket of brackets) {
 		if (bracket.maxQuantity !== null && bracket.minQuantity > bracket.maxQuantity) {
-			return { valid: false, error: "Min must be less than max quantity" };
+			return { valid: false, errorKey: "dashboard.brackets.validation.minLessThanMax" };
 		}
 	}
 
@@ -43,7 +45,7 @@ function validateBrackets(
 		const next = sorted[i + 1];
 
 		if (current.maxQuantity !== null && current.maxQuantity >= next.minQuantity) {
-			return { valid: false, error: "Brackets cannot overlap" };
+			return { valid: false, errorKey: "dashboard.brackets.validation.cannotOverlap" };
 		}
 	}
 
@@ -66,6 +68,7 @@ export function DiscountBracketEditor({
 	disabled = false,
 	className,
 }: DiscountBracketEditorProps): ReactNode {
+	const { t } = useTranslation();
 	const validation = validateBrackets(brackets);
 
 	const handleAddBracket = () => {
@@ -123,9 +126,9 @@ export function DiscountBracketEditor({
 		>
 			{/* Header */}
 			<div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-3 px-2">
-				<div className="text-sm font-medium text-muted-foreground">Min Qty</div>
-				<div className="text-sm font-medium text-muted-foreground">Max Qty</div>
-				<div className="text-sm font-medium text-muted-foreground">Unit Price</div>
+				<div className="text-sm font-medium text-muted-foreground">{t("dashboard.brackets.minQty")}</div>
+				<div className="text-sm font-medium text-muted-foreground">{t("dashboard.brackets.maxQty")}</div>
+				<div className="text-sm font-medium text-muted-foreground">{t("dashboard.brackets.unitPrice")}</div>
 				<div className="w-10" />
 			</div>
 
@@ -166,7 +169,7 @@ export function DiscountBracketEditor({
 							}}
 							disabled={disabled}
 							min={1}
-							placeholder="No limit"
+							placeholder={t("dashboard.brackets.noLimit")}
 							className="h-9"
 						/>
 						<div className="relative">
@@ -191,7 +194,7 @@ export function DiscountBracketEditor({
 							size="icon-sm"
 							onClick={() => handleDeleteBracket(index)}
 							disabled={disabled || !canDelete}
-							aria-label="Delete bracket"
+							aria-label={t("dashboard.brackets.deleteBracket")}
 							className="text-muted-foreground hover:text-destructive"
 						>
 							<Trash2 className="h-4 w-4" />
@@ -209,17 +212,17 @@ export function DiscountBracketEditor({
 				disabled={disabled}
 				className="w-full"
 			>
-				<Plus className="h-4 w-4 mr-2" />
-				Add Bracket
+				<Plus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+				{t("dashboard.brackets.addBracket")}
 			</Button>
 
 			{/* Validation Error */}
-			{!validation.valid && validation.error && (
+			{!validation.valid && validation.errorKey && (
 				<div
 					data-testid="validation-error"
 					className="text-sm text-destructive font-medium px-2"
 				>
-					{validation.error}
+					{t(validation.errorKey)}
 				</div>
 			)}
 		</div>

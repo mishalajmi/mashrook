@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class InvoiceNotFoundException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InvoiceNotFoundException extends MashrookException {
+
     public InvoiceNotFoundException(String message) {
-        super(message);
+        super("invoice.not.found", HttpStatus.NOT_FOUND, message);
     }
 }

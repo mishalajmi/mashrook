@@ -360,13 +360,24 @@ export function createApiClient(baseUrl: string = API_BASE_URL) {
 
 	/**
 	 * Make a multipart form data request (for file uploads)
+	 * Includes 401 handling with token refresh, same as regular request()
 	 */
 	async function requestFormData<T>(
 		endpoint: string,
-		formData: FormData
+		formData: FormData,
+		isRetry: boolean = false
 	): Promise<T> {
 		const url = `${baseUrl}${endpoint}`;
 		const headers = buildHeaders();
+
+		// Log request in development
+		if (isDevelopment()) {
+			console.log("[API FormData Request]", {
+				url,
+				method: "POST",
+				headers,
+			});
+		}
 
 		try {
 			const response = await fetch(url, {
@@ -379,20 +390,58 @@ export function createApiClient(baseUrl: string = API_BASE_URL) {
 			if (response.ok) {
 				const data = await response.json();
 				const camelCaseData = convertKeysToCamelCase(data);
+				logResponse(url, response.status, camelCaseData);
 				return camelCaseData as T;
 			}
 
+			// Handle 401 Unauthorized - attempt token refresh if not already retrying
+			if (response.status === 401 && !isRetry) {
+				const currentToken = getAccessToken();
+
+				// Only attempt refresh if user had an access token (was authenticated), and it was expired
+				if (currentToken && isTokenExpired(currentToken)) {
+					const refreshSuccessful = await refreshAccessToken(baseUrl);
+
+					if (refreshSuccessful) {
+						// Retry the original request with new token
+						return requestFormData<T>(endpoint, formData, true);
+					}
+
+					// Refresh failed - throw authentication error
+					const authError = createApiError(
+						"Authentication failed",
+						401,
+						"AUTHENTICATION_FAILED"
+					);
+					logError(url, authError);
+					throw authError;
+				}
+
+				// No token present - user was not authenticated, just throw 401
+				const unauthError = createApiError(
+					"Unauthorized",
+					401,
+					"UNAUTHORIZED"
+				);
+				logError(url, unauthError);
+				throw unauthError;
+			}
+
 			const errorData = await parseErrorResponse(response);
-			throw createApiError(
+			const apiError = createApiError(
 				errorData.message,
 				response.status,
 				errorData.code || getErrorCodeFromStatus(response.status)
 			);
+			logError(url, apiError);
+			throw apiError;
 		} catch (error) {
 			if (error && typeof error === "object" && "code" in error && "status" in error) {
 				throw error;
 			}
-			throw transformError(error, "Upload failed");
+			const transformedError = transformError(error, "Upload failed");
+			logError(url, transformedError);
+			throw transformedError;
 		}
 	}
 

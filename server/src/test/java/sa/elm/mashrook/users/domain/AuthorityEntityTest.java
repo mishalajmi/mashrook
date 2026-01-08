@@ -70,8 +70,8 @@ class AuthorityEntityTest {
             // Act
             String authorityString = authority.toAuthorityString();
 
-            // Assert
-            assertThat(authorityString).isEqualTo("user_management:delete");
+            // Assert - uses resource.getResource() format (kebab-case) for consistency
+            assertThat(authorityString).isEqualTo("user-management:delete");
         }
     }
 

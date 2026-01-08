@@ -6,6 +6,7 @@ export { EmptyState } from "./empty-state";
 export { ProgressBar } from "./progress-bar";
 export { LoadingState } from "./loading-state";
 export { DataTable, type Column } from "./data-table";
+export { MediaGallery } from "./media-gallery";
 
 // shadcn/ui components
 export {

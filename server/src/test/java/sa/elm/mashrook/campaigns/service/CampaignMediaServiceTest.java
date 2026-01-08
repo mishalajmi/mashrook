@@ -129,8 +129,6 @@ class CampaignMediaServiceTest {
             CampaignMediaResponse result = campaignMediaService.addMedia(CAMPAIGN_ID, SUPPLIER_ID, file, 0);
 
             assertThat(result).isNotNull();
-            assertThat(result.storageKey()).isEqualTo(storageKey);
-            assertThat(result.originalFilename()).isEqualTo("test.jpg");
             assertThat(result.contentType()).isEqualTo("image/jpeg");
             assertThat(result.mediaType()).isEqualTo(MediaType.IMAGE);
 

@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class CampaignValidationException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class CampaignValidationException extends MashrookException {
+
     public CampaignValidationException(String message) {
-        super(message);
+        super("campaign.validation.failed", HttpStatus.BAD_REQUEST, message);
     }
 }

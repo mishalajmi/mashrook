@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class InvalidCampaignStateException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InvalidCampaignStateException extends MashrookException {
+
     public InvalidCampaignStateException(String message) {
-        super(message);
+        super("campaign.invalid.state", HttpStatus.BAD_REQUEST, message);
     }
 }

@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class PledgeNotFoundException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class PledgeNotFoundException extends MashrookException {
+
     public PledgeNotFoundException(String message) {
-        super(message);
+        super("pledge.not.found", HttpStatus.NOT_FOUND, message);
     }
 }

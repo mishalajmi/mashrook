@@ -7,8 +7,10 @@
 
 import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { ShoppingBag, Megaphone } from "lucide-react";
 
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 import { Button, LoadingState } from "@/components/ui";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CampaignGrid, CampaignFilters } from "@/components/campaigns";
@@ -98,6 +100,7 @@ function filterCampaigns(
  */
 export default function BrowseCampaignsPage(): ReactNode {
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 	const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 	const [pledgeSummaries, setPledgeSummaries] = useState<Record<string, CampaignPledgeSummary>>({});
 	const [loading, setLoading] = useState(true);
@@ -117,8 +120,8 @@ export default function BrowseCampaignsPage(): ReactNode {
 				setCampaigns(transformed.campaigns);
 				setPledgeSummaries(transformed.pledgeSummaries);
 				setError(null);
-			} catch {
-				setError("Failed to load campaigns");
+			} catch (err) {
+				setError(getTranslatedErrorMessage(err, t));
 			} finally {
 				setLoading(false);
 			}
@@ -142,15 +145,15 @@ export default function BrowseCampaignsPage(): ReactNode {
 			{/* Header */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 className="text-2xl font-bold tracking-tight">Browse Campaigns</h1>
+					<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.browseCampaigns.title")}</h1>
 					<p className="text-muted-foreground">
-						Discover group buying campaigns and save through collective purchasing
+						{t("dashboard.browseCampaigns.description")}
 					</p>
 				</div>
 				<Button asChild variant="outline">
 					<Link to="/dashboard/pledges">
-						<ShoppingBag className="h-4 w-4 mr-2" />
-						My Pledges
+						<ShoppingBag className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+						{t("dashboard.browseCampaigns.myPledges")}
 					</Link>
 				</Button>
 			</div>
@@ -176,7 +179,7 @@ export default function BrowseCampaignsPage(): ReactNode {
 					campaigns={filteredCampaigns}
 					pledgeSummaries={pledgeSummaries}
 					onViewDetails={handleViewDetails}
-					emptyMessage="No active campaigns found"
+					emptyMessage={t("dashboard.browseCampaigns.noActiveCampaigns")}
 				/>
 			)}
 
@@ -184,16 +187,16 @@ export default function BrowseCampaignsPage(): ReactNode {
 			{!loading && !error && campaigns.length === 0 && (
 				<EmptyState
 					icon={Megaphone}
-					title="No active campaigns"
-					description="There are no active campaigns available at the moment. Check back later for new group buying opportunities."
+					title={t("dashboard.browseCampaigns.noActiveCampaigns")}
+					description={t("dashboard.browseCampaigns.checkBackLater")}
 				/>
 			)}
 
 			{!loading && !error && hasSearchWithNoResults && (
 				<EmptyState
 					icon={Megaphone}
-					title="No campaigns found"
-					description="No campaigns match your search. Try adjusting your search terms."
+					title={t("dashboard.browseCampaigns.noSearchResults")}
+					description={t("dashboard.browseCampaigns.tryDifferentSearch")}
 				/>
 			)}
 		</div>

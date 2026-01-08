@@ -2,8 +2,10 @@
  * Products Page
  */
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { PlaceholderPage } from "../placeholder-page";
 
 export default function ProductsPage(): ReactNode {
-	return <PlaceholderPage title="Products & Catalog" description="Manage your product listings and catalog" />;
+	const { t } = useTranslation();
+	return <PlaceholderPage title={t("dashboard.pages.products.title")} description={t("dashboard.pages.products.description")} />;
 }

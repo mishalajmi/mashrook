@@ -507,7 +507,8 @@ class CampaignControllerTest {
                     100,
                     50,
                     "active",
-                    brackets
+                    brackets,
+                    List.of()  // media
             );
 
             when(campaignService.getPublicCampaignDetails(campaignId)).thenReturn(response);

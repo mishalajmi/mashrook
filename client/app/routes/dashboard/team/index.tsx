@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 import { formatDate } from "@/lib/date";
 import {
 	Button,
@@ -58,36 +59,36 @@ import {
 	type TeamInvitation,
 } from "@/services/team.service";
 
-const memberStatusConfig: Record<string, { label: string; className: string }> = {
+const memberStatusConfig: Record<string, { labelKey: string; className: string }> = {
 	ACTIVE: {
-		label: "Active",
+		labelKey: "dashboard.team.badges.active",
 		className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300",
 	},
 	PENDING_ACTIVATION: {
-		label: "Pending Activation",
+		labelKey: "dashboard.team.badges.pendingActivation",
 		className: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
 	},
 	INACTIVE: {
-		label: "Inactive",
+		labelKey: "dashboard.team.badges.inactive",
 		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 	},
 };
 
-const invitationStatusConfig: Record<string, { label: string; className: string }> = {
+const invitationStatusConfig: Record<string, { labelKey: string; className: string }> = {
 	PENDING: {
-		label: "Pending",
+		labelKey: "dashboard.team.badges.pending",
 		className: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
 	},
 	ACCEPTED: {
-		label: "Accepted",
+		labelKey: "dashboard.team.badges.accepted",
 		className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300",
 	},
 	EXPIRED: {
-		label: "Expired",
+		labelKey: "dashboard.team.badges.expired",
 		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 	},
 	CANCELLED: {
-		label: "Cancelled",
+		labelKey: "dashboard.team.badges.cancelled",
 		className: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
 	},
 };
@@ -146,8 +147,7 @@ export default function TeamPage(): ReactNode {
 			const data = await teamService.getInvitations();
 			setInvitations(data);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to load invitations";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setLoadingInvitations(false);
 		}
@@ -188,8 +188,7 @@ export default function TeamPage(): ReactNode {
 			setMemberToRemove(null);
 			fetchMembers();
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to remove member";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsRemoving(false);
 		}
@@ -205,8 +204,7 @@ export default function TeamPage(): ReactNode {
 				})
 			);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to resend invitation";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsResending(null);
 		}
@@ -232,8 +230,7 @@ export default function TeamPage(): ReactNode {
 			setInvitationToCancel(null);
 			fetchInvitations();
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to cancel invitation";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsCancelling(false);
 		}
@@ -252,14 +249,14 @@ export default function TeamPage(): ReactNode {
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
 						<h1 className="text-2xl font-bold tracking-tight">
-							{t("team.title", "Team")}
+							{t("dashboard.team.title")}
 						</h1>
 						<p className="text-muted-foreground">
-							{t("team.subtitle", "Manage your team members and permissions")}
+							{t("dashboard.team.description")}
 						</p>
 					</div>
 				</div>
-				<LoadingState message={t("team.loadingMembers", "Loading team members...")} />
+				<LoadingState message={t("team.loadingMembers")} />
 			</div>
 		);
 	}
@@ -271,17 +268,17 @@ export default function TeamPage(): ReactNode {
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
 						<h1 className="text-2xl font-bold tracking-tight">
-							{t("team.title", "Team")}
+							{t("dashboard.team.title")}
 						</h1>
 						<p className="text-muted-foreground">
-							{t("team.subtitle", "Manage your team members and permissions")}
+							{t("dashboard.team.description")}
 						</p>
 					</div>
 				</div>
 				<EmptyState
-					title={t("team.loadError", "Failed to load team")}
+					title={t("team.loadError")}
 					description={error}
-					actionLabel={t("common.tryAgain", "Try Again")}
+					actionLabel={t("dashboard.common.tryAgain")}
 					onAction={fetchMembers}
 				/>
 			</div>
@@ -294,10 +291,10 @@ export default function TeamPage(): ReactNode {
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h1 className="text-2xl font-bold tracking-tight">
-						{t("team.title", "Team")}
+						{t("dashboard.team.title")}
 					</h1>
 					<p className="text-muted-foreground">
-						{t("team.subtitle", "Manage your team members and permissions")}
+						{t("dashboard.team.description")}
 					</p>
 				</div>
 				<div className="flex gap-2">
@@ -308,13 +305,13 @@ export default function TeamPage(): ReactNode {
 							disabled={eligibleMembersForOwnership.length === 0}
 						>
 							<Crown className="h-4 w-4 me-2" />
-							{t("team.transferOwnership", "Transfer Ownership")}
+							{t("dashboard.team.transferOwnership")}
 						</Button>
 					)}
 					{canManageTeam && (
 						<Button onClick={() => setInviteDialogOpen(true)}>
 							<UserPlus className="h-4 w-4 me-2" />
-							{t("team.inviteMember", "Invite Member")}
+							{t("dashboard.team.inviteMember")}
 						</Button>
 					)}
 				</div>
@@ -328,14 +325,14 @@ export default function TeamPage(): ReactNode {
 				<TabsList>
 					<TabsTrigger value="members" className="gap-2">
 						<Users className="h-4 w-4" />
-						{t("team.members", "Members")}
+						{t("dashboard.team.tabs.members")}
 						<Badge variant="secondary" className="ms-1">
 							{members.length}
 						</Badge>
 					</TabsTrigger>
 					<TabsTrigger value="invitations" className="gap-2">
 						<Mail className="h-4 w-4" />
-						{t("team.invitations", "Invitations")}
+						{t("dashboard.team.tabs.invitations")}
 						{invitations.filter((i) => i.status === "PENDING").length > 0 && (
 							<Badge variant="secondary" className="ms-1">
 								{invitations.filter((i) => i.status === "PENDING").length}
@@ -351,13 +348,13 @@ export default function TeamPage(): ReactNode {
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>{t("team.member", "Member")}</TableHead>
-										<TableHead>{t("team.permissions", "Permissions")}</TableHead>
-										<TableHead>{t("team.status", "Status")}</TableHead>
-										<TableHead>{t("team.joined", "Joined")}</TableHead>
+										<TableHead>{t("dashboard.team.table.member")}</TableHead>
+										<TableHead>{t("dashboard.team.table.permissions")}</TableHead>
+										<TableHead>{t("dashboard.team.table.status")}</TableHead>
+										<TableHead>{t("dashboard.team.table.joined")}</TableHead>
 										{canManageTeam && (
 											<TableHead className="text-right">
-												{t("team.actions", "Actions")}
+												{t("dashboard.team.table.actions")}
 											</TableHead>
 										)}
 									</TableRow>
@@ -383,7 +380,7 @@ export default function TeamPage(): ReactNode {
 																)}
 																{isCurrentUser && (
 																	<Badge variant="outline" className="text-xs">
-																		{t("team.you", "You")}
+																		{t("dashboard.team.badges.you")}
 																	</Badge>
 																)}
 															</div>
@@ -396,7 +393,7 @@ export default function TeamPage(): ReactNode {
 												<TableCell>
 													{member.isOwner ? (
 														<Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-															{t("team.owner", "Owner")}
+															{t("dashboard.team.badges.owner")}
 														</Badge>
 													) : (
 														<PermissionBadges
@@ -412,7 +409,7 @@ export default function TeamPage(): ReactNode {
 															statusConfig.className
 														)}
 													>
-														{statusConfig.label}
+														{t(statusConfig.labelKey)}
 													</span>
 												</TableCell>
 												<TableCell className="text-muted-foreground">
@@ -459,12 +456,9 @@ export default function TeamPage(): ReactNode {
 					) : (
 						<EmptyState
 							icon={Users}
-							title={t("team.noMembers", "No team members yet")}
-							description={t(
-								"team.noMembersDescription",
-								"Invite team members to help manage your organization"
-							)}
-							actionLabel={canManageTeam ? t("team.inviteMember", "Invite Member") : undefined}
+							title={t("team.noMembers")}
+							description={t("team.noMembersDescription")}
+							actionLabel={canManageTeam ? t("dashboard.team.inviteMember") : undefined}
 							onAction={canManageTeam ? () => setInviteDialogOpen(true) : undefined}
 						/>
 					)}
@@ -474,21 +468,21 @@ export default function TeamPage(): ReactNode {
 				<TabsContent value="invitations" className="mt-4">
 					{loadingInvitations ? (
 						<LoadingState
-							message={t("team.loadingInvitations", "Loading invitations...")}
+							message={t("team.loadingInvitations")}
 						/>
 					) : invitations.length > 0 ? (
 						<div className="rounded-md border">
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>{t("team.email", "Email")}</TableHead>
-										<TableHead>{t("team.permissions", "Permissions")}</TableHead>
-										<TableHead>{t("team.status", "Status")}</TableHead>
-										<TableHead>{t("team.sent", "Sent")}</TableHead>
-										<TableHead>{t("team.expires", "Expires")}</TableHead>
+										<TableHead>{t("team.email")}</TableHead>
+										<TableHead>{t("dashboard.team.table.permissions")}</TableHead>
+										<TableHead>{t("dashboard.team.table.status")}</TableHead>
+										<TableHead>{t("team.sent")}</TableHead>
+										<TableHead>{t("team.expires")}</TableHead>
 										{canManageTeam && (
 											<TableHead className="text-right">
-												{t("team.actions", "Actions")}
+												{t("dashboard.team.table.actions")}
 											</TableHead>
 										)}
 									</TableRow>
@@ -518,7 +512,7 @@ export default function TeamPage(): ReactNode {
 															statusConfig.className
 														)}
 													>
-														{statusConfig.label}
+														{t(statusConfig.labelKey)}
 													</span>
 												</TableCell>
 												<TableCell className="text-muted-foreground">
@@ -545,7 +539,7 @@ export default function TeamPage(): ReactNode {
 																		<Send className="h-4 w-4" />
 																	)}
 																	<span className="ms-2 sr-only sm:not-sr-only">
-																		{t("team.resend", "Resend")}
+																		{t("team.resend")}
 																	</span>
 																</Button>
 																<Button
@@ -558,7 +552,7 @@ export default function TeamPage(): ReactNode {
 																>
 																	<X className="h-4 w-4" />
 																	<span className="ms-2 sr-only sm:not-sr-only">
-																		{t("team.cancel", "Cancel")}
+																		{t("team.cancel")}
 																	</span>
 																</Button>
 															</div>
@@ -574,12 +568,9 @@ export default function TeamPage(): ReactNode {
 					) : (
 						<EmptyState
 							icon={Mail}
-							title={t("team.noInvitations", "No pending invitations")}
-							description={t(
-								"team.noInvitationsDescription",
-								"Send invitations to grow your team"
-							)}
-							actionLabel={canManageTeam ? t("team.inviteMember", "Invite Member") : undefined}
+							title={t("team.noInvitations")}
+							description={t("team.noInvitationsDescription")}
+							actionLabel={canManageTeam ? t("dashboard.team.inviteMember") : undefined}
 							onAction={canManageTeam ? () => setInviteDialogOpen(true) : undefined}
 						/>
 					)}

@@ -73,10 +73,10 @@ class MashrookUserDetailsTest {
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet());
 
-            // Assert - WRITE permission now produces "create", CAMPAIGNS resource produces "campaign"
+            // Assert - WRITE permission now produces "create", CAMPAIGNS resource produces "campaigns"
             assertThat(authorityStrings).contains(
                     "organizations:read",
-                    "campaign:create"
+                    "campaigns:create"
             );
         }
 
@@ -96,7 +96,7 @@ class MashrookUserDetailsTest {
             // Assert - Role-based permissions come from UserRole.getPermissions() which uses ResourcePermission.toAuthorityString()
             assertThat(authorityStrings).contains(
                     "dashboard:read",
-                    "campaign:read"
+                    "campaigns:read"
             );
         }
 
@@ -153,7 +153,7 @@ class MashrookUserDetailsTest {
 
             // Act & Assert
             assertThat(userDetails.hasPermission("organizations:create")).isFalse();
-            assertThat(userDetails.hasPermission("campaigns:read")).isFalse();
+            assertThat(userDetails.hasPermission("campaigns:read")).isFalse(); // user has no campaigns authority
         }
 
         @Test
@@ -215,7 +215,7 @@ class MashrookUserDetailsTest {
             // Assert
             assertThat(authorityStrings).contains(
                     "dashboard:read",
-                    "campaign:read"
+                    "campaigns:read"
             );
         }
 
@@ -232,18 +232,18 @@ class MashrookUserDetailsTest {
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet());
 
-            // Assert
+            // Assert - SUPPLIER_OWNER has TEAM resource, not USER_MANAGEMENT
             assertThat(authorityStrings).contains(
                     "organizations:read",
                     "organizations:create",
                     "organizations:update",
-                    "campaign:read",
-                    "campaign:create",
-                    "campaign:update",
-                    "campaign:delete",
-                    "user-management:read",
-                    "user-management:create",
-                    "user-management:update"
+                    "campaigns:read",
+                    "campaigns:create",
+                    "campaigns:update",
+                    "campaigns:delete",
+                    "teams:read",
+                    "teams:create",
+                    "teams:update"
             );
         }
 
@@ -318,10 +318,10 @@ class MashrookUserDetailsTest {
             // Act
             Set<String> permissions = userDetails.getResourcePermissions();
 
-            // Assert - WRITE permission produces "create", CAMPAIGNS resource produces "campaign"
+            // Assert - WRITE permission produces "create", CAMPAIGNS resource produces "campaigns"
             assertThat(permissions).contains(
                     "organizations:read",
-                    "campaign:create"
+                    "campaigns:create"
             );
         }
 

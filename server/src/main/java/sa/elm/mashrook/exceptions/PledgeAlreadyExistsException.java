@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class PledgeAlreadyExistsException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class PledgeAlreadyExistsException extends MashrookException {
+
     public PledgeAlreadyExistsException(String message) {
-        super(message);
+        super("pledge.already.exists", HttpStatus.CONFLICT, message);
     }
 }

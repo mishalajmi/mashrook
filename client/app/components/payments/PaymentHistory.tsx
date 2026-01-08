@@ -3,6 +3,7 @@ import { RefreshCw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { formatDateTime } from "@/lib/date";
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 import {
 	Button,
 	Card,
@@ -67,9 +68,7 @@ export function PaymentHistory({ invoiceId }: PaymentHistoryProps): ReactNode {
 				await paymentService.retryPayment(paymentId);
 			window.location.href = response.redirectUrl;
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : "Failed to retry payment";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 			setRetryingPaymentId(null);
 		}
 	};

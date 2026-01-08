@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { Link, useParams, useSearchParams, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { CheckCircle2, XCircle, Loader2, ArrowLeft } from "lucide-react";
 
 import {
@@ -35,6 +36,7 @@ export default function PaymentResultPage(): ReactNode {
 	const { id } = useParams<{ id: string }>();
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 
 	const checkoutId = searchParams.get("checkout_id");
 
@@ -124,7 +126,7 @@ export default function PaymentResultPage(): ReactNode {
 	if (loading) {
 		return (
 			<div data-testid="payment-result-page" className="flex flex-col gap-6 p-6">
-				<LoadingState message="Loading payment status..." />
+				<LoadingState message={t("dashboard.payments.loadingStatus")} />
 			</div>
 		);
 	}
@@ -138,19 +140,19 @@ export default function PaymentResultPage(): ReactNode {
 						className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
 					>
 						<ArrowLeft className="mr-2 h-4 w-4" />
-						Back to Invoice
+						{t("dashboard.common.backToInvoice")}
 					</Link>
 				</div>
 				<Card className="mx-auto w-full max-w-xl">
 					<CardContent className="pt-6">
 						<div className="flex flex-col items-center text-center">
 							<XCircle className="h-16 w-16 text-red-500" />
-							<h2 className="mt-4 text-xl font-semibold">Error Loading Payment</h2>
+							<h2 className="mt-4 text-xl font-semibold">{t("dashboard.payments.result.error")}</h2>
 							<p className="mt-2 text-muted-foreground">
-								{error || "Payment not found"}
+								{error || t("dashboard.payments.notFound.description")}
 							</p>
 							<Button className="mt-6" onClick={() => navigate(`/dashboard/payments/${id}`)}>
-								Back to Invoice
+								{t("dashboard.common.backToInvoice")}
 							</Button>
 						</div>
 					</CardContent>
@@ -173,9 +175,9 @@ export default function PaymentResultPage(): ReactNode {
 							className="flex flex-col items-center text-center"
 						>
 							<Loader2 className="h-16 w-16 animate-spin text-primary" />
-							<h2 className="mt-4 text-xl font-semibold">Processing Payment</h2>
+							<h2 className="mt-4 text-xl font-semibold">{t("dashboard.payments.result.processing")}</h2>
 							<p className="mt-2 text-muted-foreground">
-								Please wait while we confirm your payment...
+								{t("dashboard.common.loading")}
 							</p>
 						</div>
 					</CardContent>
@@ -195,8 +197,8 @@ export default function PaymentResultPage(): ReactNode {
 								className="h-16 w-16 text-green-500"
 							/>
 						</div>
-						<CardTitle data-testid="success-title">Payment Successful</CardTitle>
-						<CardDescription>Your payment has been processed</CardDescription>
+						<CardTitle data-testid="success-title">{t("dashboard.payments.result.success")}</CardTitle>
+						<CardDescription>{t("dashboard.payments.status.paid")}</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
@@ -240,9 +242,9 @@ export default function PaymentResultPage(): ReactNode {
 						<div className="mx-auto mb-4">
 							<XCircle data-testid="error-icon" className="h-16 w-16 text-red-500" />
 						</div>
-						<CardTitle data-testid="failure-title">Payment Failed</CardTitle>
+						<CardTitle data-testid="failure-title">{t("dashboard.payments.result.failed")}</CardTitle>
 						<CardDescription>
-							{payment.errorMessage || "We could not process your payment"}
+							{payment.errorMessage || t("dashboard.payments.result.failedDescription")}
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
@@ -251,7 +253,7 @@ export default function PaymentResultPage(): ReactNode {
 							className="w-full"
 							onClick={handleTryAgain}
 						>
-							Try Again
+							{t("dashboard.common.tryAgain")}
 						</Button>
 						<Button
 							data-testid="choose-different-method-button"
@@ -259,7 +261,7 @@ export default function PaymentResultPage(): ReactNode {
 							className="w-full"
 							onClick={handleTryAgain}
 						>
-							Choose Different Method
+							{t("dashboard.payments.paymentMethod.selectMethod")}
 						</Button>
 					</CardContent>
 				</Card>

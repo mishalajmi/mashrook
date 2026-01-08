@@ -21,5 +21,6 @@ public record CampaignPublicResponse(
         Integer targetQty,
         Integer totalPledged,
         String status,
-        List<DiscountBracketDto> brackets
+        List<DiscountBracketDto> brackets,
+        List<CampaignMediaResponse> media
 ) {}
