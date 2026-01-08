@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Users, DollarSign, Clock, Calendar, Target, Plus, Loader2 } from "lucide-react";
+import { ArrowLeft, Users, DollarSign, Clock, Calendar, Target, Plus, Loader2, Pencil, X, Save } from "lucide-react";
 import { toast } from "sonner";
 
 import { getTranslatedErrorMessage } from "@/lib/error-utils";
@@ -43,7 +43,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { CampaignStatusBadge, BracketProgressIndicator, DiscountBracketEditor, MediaUploader, ProductDetailsCard } from "@/components/campaigns";
 import { MediaGallery } from "@/components/ui";
-import { campaignService, type CampaignResponse, type BracketRequest, type CampaignMediaResponse } from "@/services/campaign.service";
+import { campaignService, type CampaignResponse, type BracketRequest, type CampaignMediaResponse, type CampaignUpdateRequest } from "@/services/campaign.service";
 import { pledgeService, type PledgeResponse } from "@/services/pledge.service";
 import type { DiscountBracket, CampaignPledgeSummary, DiscountBracketFormData, CampaignMedia } from "@/types/campaign";
 import { useResourceAuthorities } from "@/hooks/use-authority";
@@ -184,6 +184,17 @@ export default function CampaignDetailPage(): ReactNode {
 	// State for publishing
 	const [isPublishing, setIsPublishing] = useState(false);
 
+	// State for campaign editing
+	const [isEditing, setIsEditing] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
+	const [editForm, setEditForm] = useState({
+		title: "",
+		description: "",
+		startDate: "",
+		endDate: "",
+		targetQuantity: 0,
+	});
+
 	// Fetch campaign data
 	const fetchCampaign = useCallback(async () => {
 		if (!id) return;
@@ -263,6 +274,60 @@ export default function CampaignDetailPage(): ReactNode {
 		} finally {
 			setIsPublishing(false);
 		}
+	};
+
+	// Start editing campaign
+	const handleStartEdit = () => {
+		if (!campaign) return;
+		setEditForm({
+			title: campaign.title,
+			description: campaign.description,
+			startDate: campaign.startDate,
+			endDate: campaign.endDate,
+			targetQuantity: campaign.targetQuantity ?? 0,
+		});
+		setIsEditing(true);
+	};
+
+	// Cancel editing campaign
+	const handleCancelEdit = () => {
+		setIsEditing(false);
+		setEditForm({
+			title: "",
+			description: "",
+			startDate: "",
+			endDate: "",
+			targetQuantity: 0,
+		});
+	};
+
+	// Save campaign changes
+	const handleSaveCampaign = async () => {
+		if (!id || !campaign) return;
+
+		try {
+			setIsSaving(true);
+			const updateData: CampaignUpdateRequest = {
+				title: editForm.title,
+				description: editForm.description,
+				startDate: editForm.startDate,
+				endDate: editForm.endDate,
+				targetQuantity: editForm.targetQuantity,
+			};
+			const updated = await campaignService.updateCampaign(id, updateData);
+			setCampaign(updated);
+			setIsEditing(false);
+			toast.success(t("dashboard.campaigns.detail.updateSuccess"));
+		} catch (err) {
+			toast.error(getTranslatedErrorMessage(err));
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
+	// Update edit form field
+	const updateEditForm = (field: keyof typeof editForm, value: string | number) => {
+		setEditForm((prev) => ({ ...prev, [field]: value }));
 	};
 
 	// Start editing brackets
@@ -384,28 +449,90 @@ export default function CampaignDetailPage(): ReactNode {
 					{t("dashboard.common.backToCampaigns")}
 				</Link>
 
-				<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-					<div className="flex flex-col gap-2">
-						<div className="flex items-center gap-3">
-							<h1 className="text-2xl font-bold tracking-tight">{campaign.title}</h1>
-							<CampaignStatusBadge status={campaign.status} />
+				{isEditing ? (
+					/* Edit Mode Header */
+					<div className="flex flex-col gap-4">
+						<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+							<div className="flex-1 space-y-4">
+								<div className="space-y-2">
+									<Label htmlFor="edit-title">{t("dashboard.campaigns.create.form.title")}</Label>
+									<Input
+										id="edit-title"
+										value={editForm.title}
+										onChange={(e) => updateEditForm("title", e.target.value)}
+										placeholder={t("dashboard.campaigns.create.form.titlePlaceholder")}
+										disabled={isSaving}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="edit-description">{t("dashboard.campaigns.create.form.description")}</Label>
+									<textarea
+										id="edit-description"
+										value={editForm.description}
+										onChange={(e) => updateEditForm("description", e.target.value)}
+										placeholder={t("dashboard.campaigns.create.form.descriptionPlaceholder")}
+										rows={3}
+										disabled={isSaving}
+										className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+									/>
+								</div>
+							</div>
+							<div className="flex gap-2 sm:flex-col">
+								<Button
+									variant="outline"
+									onClick={handleCancelEdit}
+									disabled={isSaving}
+								>
+									<X className="mr-2 h-4 w-4" />
+									{t("dashboard.common.cancel")}
+								</Button>
+								<Button onClick={handleSaveCampaign} disabled={isSaving}>
+									{isSaving ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											{t("dashboard.common.saving")}
+										</>
+									) : (
+										<>
+											<Save className="mr-2 h-4 w-4" />
+											{t("dashboard.common.saveChanges")}
+										</>
+									)}
+								</Button>
+							</div>
 						</div>
-						<p className="text-muted-foreground max-w-2xl">{campaign.description}</p>
 					</div>
+				) : (
+					/* View Mode Header */
+					<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+						<div className="flex flex-col gap-2">
+							<div className="flex items-center gap-3">
+								<h1 className="text-2xl font-bold tracking-tight">{campaign.title}</h1>
+								<CampaignStatusBadge status={campaign.status} />
+							</div>
+							<p className="text-muted-foreground max-w-2xl">{campaign.description}</p>
+						</div>
 
-					{isDraft && canUpdate && (
-						<Button onClick={handlePublish} disabled={isPublishing}>
-							{isPublishing ? (
-								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									{t("dashboard.campaigns.create.publishing")}
-								</>
-							) : (
-								t("dashboard.campaigns.create.publishCampaign")
-							)}
-						</Button>
-					)}
-				</div>
+						{isDraft && canUpdate && (
+							<div className="flex gap-2">
+								<Button variant="outline" onClick={handleStartEdit}>
+									<Pencil className="mr-2 h-4 w-4" />
+									{t("dashboard.common.edit")}
+								</Button>
+								<Button onClick={handlePublish} disabled={isPublishing}>
+									{isPublishing ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											{t("dashboard.campaigns.create.publishing")}
+										</>
+									) : (
+										t("dashboard.campaigns.create.publishCampaign")
+									)}
+								</Button>
+							</div>
+						)}
+					</div>
+				)}
 			</div>
 
 			{/* Stats Cards */}
@@ -459,7 +586,7 @@ export default function CampaignDetailPage(): ReactNode {
 						<Target className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{campaign.targetQuantity}</div>
+						<div className="text-2xl font-bold">{campaign.targetQuantity ?? "--"}</div>
 						<p className="text-xs text-muted-foreground">{t("dashboard.campaigns.detail.stats.unitsGoal")}</p>
 					</CardContent>
 				</Card>
@@ -489,22 +616,71 @@ export default function CampaignDetailPage(): ReactNode {
 									<ProductDetailsCard productDetails={campaign.productDetails} />
 								</div>
 
-								<div className="grid grid-cols-2 gap-4">
-									<div>
-										<h4 className="text-sm font-medium text-muted-foreground mb-1">
-											<Calendar className="h-3 w-3 inline mr-1" />
-											{t("dashboard.common.startDate")}
-										</h4>
-										<p className="text-sm">{formatDate(campaign.startDate)}</p>
+								{isEditing ? (
+									/* Edit Mode - Editable fields */
+									<div className="space-y-4">
+										<div className="grid grid-cols-2 gap-4">
+											<div className="space-y-2">
+												<Label htmlFor="edit-startDate">
+													<Calendar className="h-3 w-3 inline mr-1" />
+													{t("dashboard.common.startDate")}
+												</Label>
+												<Input
+													id="edit-startDate"
+													type="date"
+													value={editForm.startDate}
+													onChange={(e) => updateEditForm("startDate", e.target.value)}
+													disabled={isSaving}
+												/>
+											</div>
+											<div className="space-y-2">
+												<Label htmlFor="edit-endDate">
+													<Calendar className="h-3 w-3 inline mr-1" />
+													{t("dashboard.common.endDate")}
+												</Label>
+												<Input
+													id="edit-endDate"
+													type="date"
+													value={editForm.endDate}
+													onChange={(e) => updateEditForm("endDate", e.target.value)}
+													disabled={isSaving}
+												/>
+											</div>
+										</div>
+										<div className="space-y-2">
+											<Label htmlFor="edit-targetQuantity">
+												<Target className="h-3 w-3 inline mr-1" />
+												{t("dashboard.campaigns.detail.stats.target")}
+											</Label>
+											<Input
+												id="edit-targetQuantity"
+												type="number"
+												min={1}
+												value={editForm.targetQuantity}
+												onChange={(e) => updateEditForm("targetQuantity", parseInt(e.target.value) || 0)}
+												disabled={isSaving}
+											/>
+										</div>
 									</div>
-									<div>
-										<h4 className="text-sm font-medium text-muted-foreground mb-1">
-											<Calendar className="h-3 w-3 inline mr-1" />
-											{t("dashboard.common.endDate")}
-										</h4>
-										<p className="text-sm">{formatDate(campaign.endDate)}</p>
+								) : (
+									/* View Mode - Display only */
+									<div className="grid grid-cols-2 gap-4">
+										<div>
+											<h4 className="text-sm font-medium text-muted-foreground mb-1">
+												<Calendar className="h-3 w-3 inline mr-1" />
+												{t("dashboard.common.startDate")}
+											</h4>
+											<p className="text-sm">{formatDate(campaign.startDate)}</p>
+										</div>
+										<div>
+											<h4 className="text-sm font-medium text-muted-foreground mb-1">
+												<Calendar className="h-3 w-3 inline mr-1" />
+												{t("dashboard.common.endDate")}
+											</h4>
+											<p className="text-sm">{formatDate(campaign.endDate)}</p>
+										</div>
 									</div>
-								</div>
+								)}
 							</CardContent>
 						</Card>
 

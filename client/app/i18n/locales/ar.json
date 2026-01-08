@@ -292,6 +292,7 @@
       "save": "حفظ",
       "saveChanges": "حفظ التغييرات",
       "saving": "جارٍ الحفظ...",
+      "edit": "تعديل",
       "startDate": "تاريخ البدء",
       "endDate": "تاريخ الانتهاء"
     },
@@ -445,6 +446,7 @@
         "loading": "جارٍ تحميل الحملة...",
         "notFound": "الحملة غير موجودة",
         "notFoundDescription": "الحملة التي تبحث عنها غير موجودة أو تمت إزالتها.",
+        "updateSuccess": "تم تحديث الحملة بنجاح",
         "stats": {
           "totalPledges": "إجمالي التعهدات",
           "unitsPledged": "وحدة متعهد بها",
@@ -877,7 +879,8 @@
         "delete": "حذف",
         "deleteCampaign": "حذف الحملة",
         "deleteConfirmation": "هل أنت متأكد أنك تريد حذف \"{{title}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
-        "cancel": "إلغاء"
+        "cancel": "إلغاء",
+        "editDisabledReason": "لا يمكنك تعديل الحملات التي حالتها غير المسودة"
       },
       "detail": {
         "productDetails": "تفاصيل المنتج",

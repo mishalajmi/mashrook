@@ -292,6 +292,7 @@
       "save": "Save",
       "saveChanges": "Save Changes",
       "saving": "Saving...",
+      "edit": "Edit",
       "startDate": "Start Date",
       "endDate": "End Date"
     },
@@ -452,6 +453,7 @@
         "loading": "Loading campaign...",
         "notFound": "Campaign not found",
         "notFoundDescription": "The campaign you're looking for doesn't exist or has been removed.",
+        "updateSuccess": "Campaign updated successfully",
         "stats": {
           "totalPledges": "Total Pledges",
           "unitsPledged": "units pledged",
@@ -884,7 +886,8 @@
         "delete": "Delete",
         "deleteCampaign": "Delete Campaign",
         "deleteConfirmation": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "editDisabledReason": "Only draft campaigns can be edited"
       },
       "detail": {
         "productDetails": "Product Details",

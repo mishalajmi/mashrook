@@ -25,6 +25,10 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger,
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
 } from "@/components/ui";
 import type { Campaign, CampaignPledgeSummary } from "@/types/campaign";
 import { CampaignStatusBadge } from "./campaign-status-badge";
@@ -205,14 +209,28 @@ export function CampaignCard({
 				>
 					{t("dashboard.browseCampaigns.card.viewDetails")}
 				</Button>
-				{showActions && isDraft && canEdit && (
-					<Button
-						variant="secondary"
-						className="flex-1"
-						onClick={() => onEdit?.(campaign)}
-					>
-						{t("dashboard.browseCampaigns.card.edit")}
-					</Button>
+				{showActions && canEdit && (
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<span className="flex-1">
+									<Button
+										variant="secondary"
+										className="w-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed"
+										onClick={() => onEdit?.(campaign)}
+										disabled={!isDraft}
+									>
+										{t("dashboard.browseCampaigns.card.edit")}
+									</Button>
+								</span>
+							</TooltipTrigger>
+							{!isDraft && (
+								<TooltipContent>
+									<p>{t("dashboard.browseCampaigns.card.editDisabledReason")}</p>
+								</TooltipContent>
+							)}
+						</Tooltip>
+					</TooltipProvider>
 				)}
 				{showActions && canDelete && (
 					<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
