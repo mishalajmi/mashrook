@@ -2,8 +2,10 @@
  * Configuration Page
  */
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { PlaceholderPage } from "../placeholder-page";
 
 export default function ConfigurationPage(): ReactNode {
-	return <PlaceholderPage title="Configuration" description="Configure platform settings and options" />;
+	const { t } = useTranslation();
+	return <PlaceholderPage title={t("dashboard.pages.configuration.title")} description={t("dashboard.pages.configuration.description")} />;
 }

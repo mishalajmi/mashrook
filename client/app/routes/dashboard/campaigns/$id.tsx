@@ -338,7 +338,7 @@ export default function CampaignDetailPage(): ReactNode {
 	if (loading) {
 		return (
 			<div className="flex flex-col gap-6 p-6">
-				<LoadingState message="Loading campaign..." />
+				<LoadingState message={t("dashboard.campaigns.detail.loading")} />
 			</div>
 		);
 	}
@@ -352,11 +352,11 @@ export default function CampaignDetailPage(): ReactNode {
 					className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Campaigns
+					{t("dashboard.common.backToCampaigns")}
 				</Link>
 				<EmptyState
-					title="Campaign not found"
-					description={error || "The campaign you're looking for doesn't exist or you don't have access to it."}
+					title={t("dashboard.campaigns.detail.notFound")}
+					description={error || t("dashboard.campaigns.detail.notFoundDescription")}
 				/>
 			</div>
 		);
@@ -381,7 +381,7 @@ export default function CampaignDetailPage(): ReactNode {
 					className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Campaigns
+					{t("dashboard.common.backToCampaigns")}
 				</Link>
 
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -398,10 +398,10 @@ export default function CampaignDetailPage(): ReactNode {
 							{isPublishing ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Publishing...
+									{t("dashboard.campaigns.create.publishing")}
 								</>
 							) : (
-								"Publish Campaign"
+								t("dashboard.campaigns.create.publishCampaign")
 							)}
 						</Button>
 					)}
@@ -412,7 +412,7 @@ export default function CampaignDetailPage(): ReactNode {
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Total Pledges</CardTitle>
+						<CardTitle className="text-sm font-medium">{t("dashboard.campaigns.detail.stats.totalPledges")}</CardTitle>
 						<Users className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
@@ -420,14 +420,14 @@ export default function CampaignDetailPage(): ReactNode {
 							{pledgeSummary.totalPledges}
 						</div>
 						<p className="text-xs text-muted-foreground">
-							{pledgeSummary.totalQuantity} units pledged
+							{pledgeSummary.totalQuantity} {t("dashboard.campaigns.detail.stats.unitsPledged")}
 						</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Current Price</CardTitle>
+						<CardTitle className="text-sm font-medium">{t("dashboard.campaigns.detail.stats.currentPrice")}</CardTitle>
 						<DollarSign className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
@@ -436,31 +436,31 @@ export default function CampaignDetailPage(): ReactNode {
 								? formatPrice(pledgeSummary.currentBracket.unitPrice)
 								: "--"}
 						</div>
-						<p className="text-xs text-muted-foreground">Per unit</p>
+						<p className="text-xs text-muted-foreground">{t("dashboard.campaigns.detail.stats.perUnit")}</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Days Remaining</CardTitle>
+						<CardTitle className="text-sm font-medium">{t("dashboard.campaigns.detail.stats.daysRemaining")}</CardTitle>
 						<Clock className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div data-testid="detail-days-remaining" className="text-2xl font-bold">
 							{daysRemaining}
 						</div>
-						<p className="text-xs text-muted-foreground">Until campaign ends</p>
+						<p className="text-xs text-muted-foreground">{t("dashboard.campaigns.detail.stats.untilEnds")}</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Target</CardTitle>
+						<CardTitle className="text-sm font-medium">{t("dashboard.campaigns.detail.stats.target")}</CardTitle>
 						<Target className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">{campaign.targetQuantity}</div>
-						<p className="text-xs text-muted-foreground">Units goal</p>
+						<p className="text-xs text-muted-foreground">{t("dashboard.campaigns.detail.stats.unitsGoal")}</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -468,9 +468,9 @@ export default function CampaignDetailPage(): ReactNode {
 			{/* Tabs */}
 			<Tabs defaultValue="overview" className="space-y-4">
 				<TabsList>
-					<TabsTrigger value="overview">Overview</TabsTrigger>
-					<TabsTrigger value="pledges">Pledges</TabsTrigger>
-					<TabsTrigger value="analytics">Analytics</TabsTrigger>
+					<TabsTrigger value="overview">{t("dashboard.campaigns.detail.tabs.overview")}</TabsTrigger>
+					<TabsTrigger value="pledges">{t("dashboard.campaigns.detail.tabs.pledges")}</TabsTrigger>
+					<TabsTrigger value="analytics">{t("dashboard.campaigns.detail.tabs.analytics")}</TabsTrigger>
 				</TabsList>
 
 				{/* Overview Tab */}
@@ -479,12 +479,12 @@ export default function CampaignDetailPage(): ReactNode {
 						{/* Campaign Details */}
 						<Card>
 							<CardHeader>
-								<CardTitle>Campaign Details</CardTitle>
+								<CardTitle>{t("dashboard.campaigns.detail.cards.campaignDetails")}</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<div>
 									<h4 className="text-sm font-medium text-muted-foreground mb-2">
-										Product Details
+										{t("dashboard.campaigns.detail.cards.productDetails")}
 									</h4>
 									<ProductDetailsCard productDetails={campaign.productDetails} />
 								</div>
@@ -493,14 +493,14 @@ export default function CampaignDetailPage(): ReactNode {
 									<div>
 										<h4 className="text-sm font-medium text-muted-foreground mb-1">
 											<Calendar className="h-3 w-3 inline mr-1" />
-											Start Date
+											{t("dashboard.common.startDate")}
 										</h4>
 										<p className="text-sm">{formatDate(campaign.startDate)}</p>
 									</div>
 									<div>
 										<h4 className="text-sm font-medium text-muted-foreground mb-1">
 											<Calendar className="h-3 w-3 inline mr-1" />
-											End Date
+											{t("dashboard.common.endDate")}
 										</h4>
 										<p className="text-sm">{formatDate(campaign.endDate)}</p>
 									</div>
@@ -511,11 +511,11 @@ export default function CampaignDetailPage(): ReactNode {
 						{/* Media - Only show upload UI for users with update permission */}
 						<Card className="lg:col-span-2">
 							<CardHeader>
-								<CardTitle>Campaign Media</CardTitle>
+								<CardTitle>{t("dashboard.campaigns.detail.cards.campaignMedia")}</CardTitle>
 								<CardDescription>
 									{isEditable && canUpdate
-										? "Upload images and videos for your campaign"
-										: "Images and videos for this campaign"}
+										? t("dashboard.campaigns.detail.cards.mediaDescriptionOwner")
+										: t("dashboard.campaigns.detail.cards.mediaDescriptionViewer")}
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
@@ -531,7 +531,7 @@ export default function CampaignDetailPage(): ReactNode {
 									media.length > 0 ? (
 										<MediaGallery media={media} columns={3} showThumbnails />
 									) : (
-										<p className="text-sm text-muted-foreground">No media available</p>
+										<p className="text-sm text-muted-foreground">{t("dashboard.campaigns.detail.cards.noMedia")}</p>
 									)
 								)}
 							</CardContent>
@@ -541,9 +541,9 @@ export default function CampaignDetailPage(): ReactNode {
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between">
 								<div>
-									<CardTitle>Pricing Tiers</CardTitle>
+									<CardTitle>{t("dashboard.campaigns.detail.cards.pricingTiers")}</CardTitle>
 									<CardDescription>
-										Price decreases as more units are pledged
+										{t("dashboard.campaigns.detail.cards.pricingDescription")}
 									</CardDescription>
 								</div>
 								{isDraft && canUpdate && (
@@ -553,7 +553,7 @@ export default function CampaignDetailPage(): ReactNode {
 										onClick={handleStartEditBrackets}
 									>
 										<Plus className="h-4 w-4 mr-1" />
-										Edit Tiers
+										{t("dashboard.campaigns.detail.cards.editTiers")}
 									</Button>
 								)}
 							</CardHeader>
@@ -569,8 +569,8 @@ export default function CampaignDetailPage(): ReactNode {
 										<Table>
 											<TableHeader>
 												<TableRow>
-													<TableHead>Quantity Range</TableHead>
-													<TableHead className="text-right">Price/Unit</TableHead>
+													<TableHead>{t("dashboard.campaigns.detail.cards.quantityRange")}</TableHead>
+													<TableHead className="text-right">{t("dashboard.campaigns.detail.cards.pricePerUnit")}</TableHead>
 												</TableRow>
 											</TableHeader>
 											<TableBody>
@@ -585,10 +585,10 @@ export default function CampaignDetailPage(): ReactNode {
 													>
 														<TableCell>
 															{bracket.minQuantity} -{" "}
-															{bracket.maxQuantity ?? "unlimited"}
+															{bracket.maxQuantity ?? t("dashboard.brackets.noLimit")}
 															{pledgeSummary.currentBracket?.id === bracket.id && (
 																<span className="ml-2 text-xs text-primary font-medium">
-																	Current
+																	{t("dashboard.campaigns.detail.cards.current")}
 																</span>
 															)}
 														</TableCell>
@@ -602,9 +602,9 @@ export default function CampaignDetailPage(): ReactNode {
 									</>
 								) : (
 									<EmptyState
-										title="No pricing tiers"
-										description={isDraft ? "Add pricing tiers to define discount levels" : "This campaign has no pricing tiers configured"}
-										actionLabel={isDraft ? "Add Tiers" : undefined}
+										title={t("dashboard.campaigns.detail.cards.noPricingTiers")}
+										description={isDraft ? t("dashboard.campaigns.detail.cards.noPricingOwner") : t("dashboard.campaigns.detail.cards.noPricingViewer")}
+										actionLabel={isDraft ? t("dashboard.campaigns.detail.cards.addTiers") : undefined}
 										onAction={isDraft ? handleStartEditBrackets : undefined}
 									/>
 								)}
@@ -617,9 +617,9 @@ export default function CampaignDetailPage(): ReactNode {
 				<TabsContent value="pledges">
 					<Card>
 						<CardHeader>
-							<CardTitle>Pledges</CardTitle>
+							<CardTitle>{t("dashboard.campaigns.detail.pledges.title")}</CardTitle>
 							<CardDescription>
-								All pledges for this campaign
+								{t("dashboard.campaigns.detail.pledges.description")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
@@ -627,10 +627,10 @@ export default function CampaignDetailPage(): ReactNode {
 								<Table>
 									<TableHeader>
 										<TableRow>
-											<TableHead>Buyer ID</TableHead>
-											<TableHead className="text-right">Quantity</TableHead>
-											<TableHead>Status</TableHead>
-											<TableHead className="text-right">Date</TableHead>
+											<TableHead>{t("dashboard.campaigns.detail.pledges.table.buyerId")}</TableHead>
+											<TableHead className="text-right">{t("dashboard.campaigns.detail.pledges.table.quantity")}</TableHead>
+											<TableHead>{t("dashboard.campaigns.detail.pledges.table.status")}</TableHead>
+											<TableHead className="text-right">{t("dashboard.campaigns.detail.pledges.table.date")}</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
@@ -640,7 +640,7 @@ export default function CampaignDetailPage(): ReactNode {
 													{pledge.buyerOrgId.slice(0, 8)}...
 												</TableCell>
 												<TableCell className="text-right">
-													{pledge.quantity} units
+													{pledge.quantity} {t("dashboard.campaigns.detail.pledges.units")}
 												</TableCell>
 												<TableCell>
 													<span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
@@ -662,8 +662,8 @@ export default function CampaignDetailPage(): ReactNode {
 								</Table>
 							) : (
 								<EmptyState
-									title="No pledges yet"
-									description="Pledges will appear here once buyers start committing to your campaign"
+									title={t("dashboard.campaigns.detail.pledges.noPledges")}
+									description={t("dashboard.campaigns.detail.pledges.noPledgesDescription")}
 								/>
 							)}
 						</CardContent>
@@ -674,15 +674,15 @@ export default function CampaignDetailPage(): ReactNode {
 				<TabsContent value="analytics">
 					<Card>
 						<CardHeader>
-							<CardTitle>Analytics</CardTitle>
+							<CardTitle>{t("dashboard.campaigns.detail.analytics.title")}</CardTitle>
 							<CardDescription>
-								Campaign performance metrics
+								{t("dashboard.campaigns.detail.analytics.description")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<EmptyState
-								title="Analytics Coming Soon"
-								description="Detailed campaign analytics will be available here in a future update"
+								title={t("dashboard.campaigns.detail.analytics.comingSoon")}
+								description={t("dashboard.campaigns.detail.analytics.comingSoonDescription")}
 							/>
 						</CardContent>
 					</Card>
@@ -693,10 +693,9 @@ export default function CampaignDetailPage(): ReactNode {
 			<Dialog open={isEditingBrackets} onOpenChange={(open) => !open && handleCancelEditBrackets()}>
 				<DialogContent className="max-w-2xl">
 					<DialogHeader>
-						<DialogTitle>Edit Pricing Tiers</DialogTitle>
+						<DialogTitle>{t("dashboard.campaigns.detail.editDialog.title")}</DialogTitle>
 						<DialogDescription>
-							Define quantity ranges and their corresponding unit prices.
-							Lower prices for higher quantities encourage group buying.
+							{t("dashboard.campaigns.detail.editDialog.description")}
 						</DialogDescription>
 					</DialogHeader>
 
@@ -714,7 +713,7 @@ export default function CampaignDetailPage(): ReactNode {
 							onClick={handleCancelEditBrackets}
 							disabled={isSavingBrackets}
 						>
-							Cancel
+							{t("dashboard.common.cancel")}
 						</Button>
 						<Button
 							onClick={handleSaveBrackets}
@@ -723,10 +722,10 @@ export default function CampaignDetailPage(): ReactNode {
 							{isSavingBrackets ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Saving...
+									{t("dashboard.common.saving")}
 								</>
 							) : (
-								"Save Changes"
+								t("dashboard.common.saveChanges")
 							)}
 						</Button>
 					</DialogFooter>

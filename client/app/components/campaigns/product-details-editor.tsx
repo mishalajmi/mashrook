@@ -6,6 +6,7 @@
  */
 
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -38,6 +39,8 @@ export function ProductDetailsEditor({
 	disabled = false,
 	className,
 }: ProductDetailsEditorProps): ReactNode {
+	const { t } = useTranslation();
+
 	const handleAddDetail = () => {
 		const newDetail: ProductDetail = {
 			key: "",
@@ -72,8 +75,8 @@ export function ProductDetailsEditor({
 		>
 			{/* Header */}
 			<div className="grid grid-cols-[1fr_1fr_auto] gap-3 px-2">
-				<div className="text-sm font-medium text-muted-foreground">Attribute</div>
-				<div className="text-sm font-medium text-muted-foreground">Value</div>
+				<div className="text-sm font-medium text-muted-foreground">{t("dashboard.productDetails.attribute")}</div>
+				<div className="text-sm font-medium text-muted-foreground">{t("dashboard.productDetails.value")}</div>
 				<div className="w-10" />
 			</div>
 
@@ -91,7 +94,7 @@ export function ProductDetailsEditor({
 							value={detail.key}
 							onChange={(e) => handleUpdateDetail(index, "key", e.target.value)}
 							disabled={disabled}
-							placeholder="e.g., Color"
+							placeholder={t("dashboard.productDetails.attributePlaceholder")}
 							className="h-9"
 						/>
 						<Input
@@ -100,7 +103,7 @@ export function ProductDetailsEditor({
 							value={detail.value}
 							onChange={(e) => handleUpdateDetail(index, "value", e.target.value)}
 							disabled={disabled}
-							placeholder="e.g., Red"
+							placeholder={t("dashboard.productDetails.valuePlaceholder")}
 							className="h-9"
 						/>
 						<Button
@@ -109,7 +112,7 @@ export function ProductDetailsEditor({
 							size="icon-sm"
 							onClick={() => handleDeleteDetail(index)}
 							disabled={disabled || !canDelete}
-							aria-label="Delete detail"
+							aria-label={t("dashboard.productDetails.deleteDetail")}
 							className="text-muted-foreground hover:text-destructive"
 						>
 							<Trash2 className="h-4 w-4" />
@@ -121,7 +124,7 @@ export function ProductDetailsEditor({
 			{/* Empty State */}
 			{details.length === 0 && (
 				<div className="text-center py-4 text-muted-foreground text-sm">
-					No product details yet. Add attributes to describe your product.
+					{t("dashboard.productDetails.noDetails")}
 				</div>
 			)}
 
@@ -134,8 +137,8 @@ export function ProductDetailsEditor({
 				disabled={disabled}
 				className="w-full"
 			>
-				<Plus className="h-4 w-4 mr-2" />
-				Add Detail
+				<Plus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+				{t("dashboard.productDetails.addDetail")}
 			</Button>
 		</div>
 	);

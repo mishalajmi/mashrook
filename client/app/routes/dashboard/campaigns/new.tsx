@@ -36,11 +36,11 @@ interface FormErrors {
 	endDate?: string;
 }
 
-const steps = [
-	{ id: 1, name: "Basic Info" },
-	{ id: 2, name: "Timeline" },
-	{ id: 3, name: "Pricing" },
-	{ id: 4, name: "Media" },
+const getSteps = (t: (key: string) => string) => [
+	{ id: 1, name: t("dashboard.campaigns.create.steps.basicInfo") },
+	{ id: 2, name: t("dashboard.campaigns.create.steps.timeline") },
+	{ id: 3, name: t("dashboard.campaigns.create.steps.pricing") },
+	{ id: 4, name: t("dashboard.campaigns.create.steps.media") },
 ];
 
 /**
@@ -164,30 +164,30 @@ export default function NewCampaignPage(): ReactNode {
 
 		if (step === 1) {
 			if (!formData.title.trim()) {
-				newErrors.title = "Title is required";
+				newErrors.title = t("dashboard.campaigns.create.validation.titleRequired");
 			}
 			if (!formData.description.trim()) {
-				newErrors.description = "Description is required";
+				newErrors.description = t("dashboard.campaigns.create.validation.descriptionRequired");
 			}
 			if (formData.productDetails.length === 0) {
-				newErrors.productDetails = "At least one product detail is required";
+				newErrors.productDetails = t("dashboard.campaigns.create.validation.productDetailsRequired");
 			} else if (formData.productDetails.some((d) => !d.key.trim() || !d.value.trim())) {
-				newErrors.productDetails = "All product details must have both key and value";
+				newErrors.productDetails = t("dashboard.campaigns.create.validation.productDetailsMustHaveBoth");
 			}
 			if (formData.targetQuantity < 1) {
-				newErrors.targetQuantity = "Target quantity must be at least 1";
+				newErrors.targetQuantity = t("dashboard.campaigns.create.validation.targetQuantityMin");
 			}
 		}
 
 		if (step === 2) {
 			if (!formData.startDate) {
-				newErrors.startDate = "Start date is required";
+				newErrors.startDate = t("dashboard.campaigns.create.validation.startDateRequired");
 			}
 			if (!formData.endDate) {
-				newErrors.endDate = "End date is required";
+				newErrors.endDate = t("dashboard.campaigns.create.validation.endDateRequired");
 			}
 			if (formData.startDate && formData.endDate && formData.startDate >= formData.endDate) {
-				newErrors.endDate = "End date must be after start date";
+				newErrors.endDate = t("dashboard.campaigns.create.validation.endDateAfterStart");
 			}
 		}
 
@@ -359,6 +359,8 @@ export default function NewCampaignPage(): ReactNode {
 		}
 	};
 
+	const steps = getSteps(t);
+
 	return (
 		<div className="flex flex-col gap-6 p-6">
 			{/* Header */}
@@ -368,18 +370,18 @@ export default function NewCampaignPage(): ReactNode {
 					className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Campaigns
+					{t("dashboard.common.backToCampaigns")}
 				</Link>
 				<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-					<h1 className="text-2xl font-bold tracking-tight">Create Campaign</h1>
+					<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.campaigns.create.title")}</h1>
 					<Button variant="outline" onClick={handleSaveDraft} disabled={isSaving || isPublishing}>
 						{isSaving ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Saving...
+								{t("dashboard.common.saving")}
 							</>
 						) : (
-							"Save Draft"
+							t("dashboard.campaigns.create.saveDraft")
 						)}
 					</Button>
 				</div>
@@ -392,16 +394,16 @@ export default function NewCampaignPage(): ReactNode {
 			<Card>
 				<CardHeader>
 					<CardTitle>
-						{currentStep === 1 && "Basic Information"}
-						{currentStep === 2 && "Campaign Timeline"}
-						{currentStep === 3 && "Pricing Tiers"}
-						{currentStep === 4 && "Campaign Media"}
+						{currentStep === 1 && t("dashboard.campaigns.create.basicInformation.title")}
+						{currentStep === 2 && t("dashboard.campaigns.create.timeline.title")}
+						{currentStep === 3 && t("dashboard.campaigns.create.pricing.title")}
+						{currentStep === 4 && t("dashboard.campaigns.create.media.title")}
 					</CardTitle>
 					<CardDescription>
-						{currentStep === 1 && "Enter the basic details about your campaign"}
-						{currentStep === 2 && "Set the start and end dates for your campaign"}
-						{currentStep === 3 && "Define discount brackets based on quantity"}
-						{currentStep === 4 && "Upload images and videos for your campaign"}
+						{currentStep === 1 && t("dashboard.campaigns.create.basicInformation.description")}
+						{currentStep === 2 && t("dashboard.campaigns.create.timeline.description")}
+						{currentStep === 3 && t("dashboard.campaigns.create.pricing.description")}
+						{currentStep === 4 && t("dashboard.campaigns.create.media.description")}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
@@ -409,12 +411,12 @@ export default function NewCampaignPage(): ReactNode {
 					{currentStep === 1 && (
 						<div className="space-y-4">
 							<div className="space-y-2">
-								<Label htmlFor="title">Title</Label>
+								<Label htmlFor="title">{t("dashboard.campaigns.create.form.title")}</Label>
 								<Input
 									id="title"
 									value={formData.title}
 									onChange={(e) => updateFormData("title", e.target.value)}
-									placeholder="Enter campaign title"
+									placeholder={t("dashboard.campaigns.create.form.titlePlaceholder")}
 									aria-invalid={!!errors.title}
 								/>
 								{errors.title && (
@@ -423,12 +425,12 @@ export default function NewCampaignPage(): ReactNode {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="description">Description</Label>
+								<Label htmlFor="description">{t("dashboard.campaigns.create.form.description")}</Label>
 								<textarea
 									id="description"
 									value={formData.description}
 									onChange={(e) => updateFormData("description", e.target.value)}
-									placeholder="Describe your campaign"
+									placeholder={t("dashboard.campaigns.create.form.descriptionPlaceholder")}
 									rows={4}
 									aria-invalid={!!errors.description}
 									className="flex min-h-[80px] w-full rounded-[6px] border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -439,7 +441,7 @@ export default function NewCampaignPage(): ReactNode {
 							</div>
 
 							<div className="space-y-2">
-								<Label>Product Details</Label>
+								<Label>{t("dashboard.campaigns.create.form.productDetails")}</Label>
 								<ProductDetailsEditor
 									details={formData.productDetails}
 									onChange={(details) => updateFormData("productDetails", details)}
@@ -450,7 +452,7 @@ export default function NewCampaignPage(): ReactNode {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="targetQuantity">Target Quantity</Label>
+								<Label htmlFor="targetQuantity">{t("dashboard.campaigns.create.form.targetQuantity")}</Label>
 								<Input
 									id="targetQuantity"
 									type="number"
@@ -473,7 +475,7 @@ export default function NewCampaignPage(): ReactNode {
 						<div className="space-y-4">
 							<div className="grid gap-4 sm:grid-cols-2">
 								<div className="space-y-2">
-									<Label htmlFor="startDate">Start Date</Label>
+									<Label htmlFor="startDate">{t("dashboard.common.startDate")}</Label>
 									<Input
 										id="startDate"
 										type="date"
@@ -487,7 +489,7 @@ export default function NewCampaignPage(): ReactNode {
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="endDate">End Date</Label>
+									<Label htmlFor="endDate">{t("dashboard.common.endDate")}</Label>
 									<Input
 										id="endDate"
 										type="date"
@@ -522,7 +524,7 @@ export default function NewCampaignPage(): ReactNode {
 								onDelete={handleMediaDelete}
 							/>
 							<p className="text-sm text-muted-foreground">
-								Add product images and videos to showcase your campaign. Media is optional but helps attract more buyers.
+								{t("dashboard.campaigns.create.media.helperText")}
 							</p>
 						</div>
 					)}
@@ -532,7 +534,7 @@ export default function NewCampaignPage(): ReactNode {
 						<div>
 							{currentStep > 1 && (
 								<Button variant="outline" onClick={handleBack} disabled={isSaving || isPublishing}>
-									Back
+									{t("dashboard.common.back")}
 								</Button>
 							)}
 						</div>
@@ -542,10 +544,10 @@ export default function NewCampaignPage(): ReactNode {
 									{isSaving && currentStep === 3 ? (
 										<>
 											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-											Creating draft...
+											{t("dashboard.campaigns.create.creatingDraft")}
 										</>
 									) : (
-										"Next"
+										t("dashboard.common.next")
 									)}
 								</Button>
 							) : (
@@ -553,10 +555,10 @@ export default function NewCampaignPage(): ReactNode {
 									{isPublishing ? (
 										<>
 											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-											Publishing...
+											{t("dashboard.campaigns.create.publishing")}
 										</>
 									) : (
-										"Publish Campaign"
+										t("dashboard.campaigns.create.publishCampaign")
 									)}
 								</Button>
 							)}

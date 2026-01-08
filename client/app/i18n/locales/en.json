@@ -283,7 +283,14 @@
       "verify": "Verify",
       "reject": "Reject",
       "copiedToClipboard": "{{label}} copied to clipboard",
-      "failedToCopy": "Failed to copy to clipboard"
+      "failedToCopy": "Failed to copy to clipboard",
+      "back": "Back",
+      "next": "Next",
+      "save": "Save",
+      "saveChanges": "Save Changes",
+      "saving": "Saving...",
+      "startDate": "Start Date",
+      "endDate": "End Date"
     },
     "team": {
       "title": "Team",
@@ -354,7 +361,8 @@
       "loading": "Loading campaign...",
       "notFound": {
         "title": "Campaign not found",
-        "description": "The campaign you're looking for doesn't exist or is no longer available."
+        "description": "The campaign you're looking for doesn't exist or is no longer available.",
+        "authRequired": "Authentication required"
       },
       "noActive": {
         "title": "No active campaigns",
@@ -368,8 +376,145 @@
       "publishedSuccessfully": "Campaign published successfully",
       "savedAsDraft": "Campaign saved as draft",
       "pricingUpdated": "Pricing tiers updated successfully",
+      "deletedSuccessfully": "Campaign deleted successfully",
+      "failedToLoad": "Failed to load campaigns",
+      "failedToDelete": "Failed to delete campaign",
       "media": {
         "title": "Media Gallery"
+      },
+      "list": {
+        "title": "Campaigns",
+        "description": "Manage your cooperative procurement campaigns",
+        "createCampaign": "Create Campaign",
+        "noCampaigns": "No campaigns found",
+        "noMatchingCampaigns": "Try adjusting your filters or search term",
+        "noOwnCampaigns": "Create your first campaign to start group buying",
+        "noCampaignsAvailable": "No campaigns are available at this time"
+      },
+      "create": {
+        "title": "Create Campaign",
+        "untitled": "Untitled Campaign",
+        "saveDraft": "Save Draft",
+        "saving": "Saving...",
+        "creatingDraft": "Creating draft...",
+        "publishing": "Publishing...",
+        "publishCampaign": "Publish Campaign",
+        "steps": {
+          "basicInfo": "Basic Info",
+          "timeline": "Timeline",
+          "pricing": "Pricing",
+          "media": "Media"
+        },
+        "basicInformation": {
+          "title": "Basic Information",
+          "description": "Enter the basic details about your campaign"
+        },
+        "form": {
+          "title": "Title",
+          "titlePlaceholder": "Enter campaign title",
+          "description": "Description",
+          "descriptionPlaceholder": "Describe your campaign",
+          "productDetails": "Product Details",
+          "targetQuantity": "Target Quantity",
+          "startDate": "Start Date",
+          "endDate": "End Date"
+        },
+        "validation": {
+          "titleRequired": "Title is required",
+          "descriptionRequired": "Description is required",
+          "productDetailsRequired": "At least one product detail is required",
+          "productDetailsMustHaveBoth": "All product details must have both key and value",
+          "targetQuantityMin": "Target quantity must be at least 1",
+          "startDateRequired": "Start date is required",
+          "endDateRequired": "End date is required",
+          "endDateAfterStart": "End date must be after start date"
+        },
+        "timeline": {
+          "title": "Campaign Timeline",
+          "description": "Set the start and end dates for your campaign"
+        },
+        "pricing": {
+          "title": "Pricing Tiers",
+          "description": "Define volume-based pricing for your campaign"
+        },
+        "media": {
+          "title": "Campaign Media",
+          "description": "Upload images and videos for your campaign",
+          "helperText": "Add product images and videos to showcase your campaign. Media is optional but helps attract more buyers."
+        }
+      },
+      "detail": {
+        "loading": "Loading campaign...",
+        "notFound": "Campaign not found",
+        "notFoundDescription": "The campaign you're looking for doesn't exist or has been removed.",
+        "stats": {
+          "totalPledges": "Total Pledges",
+          "unitsPledged": "units pledged",
+          "currentPrice": "Current Price",
+          "perUnit": "Per unit",
+          "daysRemaining": "Days Remaining",
+          "untilEnds": "Until campaign ends",
+          "target": "Target",
+          "unitsGoal": "Units goal"
+        },
+        "tabs": {
+          "overview": "Overview",
+          "pledges": "Pledges",
+          "analytics": "Analytics"
+        },
+        "cards": {
+          "campaignDetails": "Campaign Details",
+          "productDetails": "Product Details",
+          "campaignMedia": "Campaign Media",
+          "mediaDescriptionOwner": "Upload images and videos for your campaign",
+          "mediaDescriptionViewer": "Images and videos for this campaign",
+          "noMedia": "No media available",
+          "pricingTiers": "Pricing Tiers",
+          "pricingDescription": "Price decreases as more units are pledged",
+          "editTiers": "Edit Tiers",
+          "addTiers": "Add Tiers",
+          "noPricingTiers": "No pricing tiers",
+          "noPricingOwner": "Add pricing tiers to define discount levels",
+          "noPricingViewer": "This campaign has no pricing tiers configured",
+          "quantityRange": "Quantity Range",
+          "pricePerUnit": "Price/Unit",
+          "current": "Current"
+        },
+        "pledges": {
+          "title": "Pledges",
+          "description": "All pledges for this campaign",
+          "table": {
+            "buyerId": "Buyer ID",
+            "quantity": "Quantity",
+            "status": "Status",
+            "date": "Date"
+          },
+          "units": "units",
+          "noPledges": "No pledges yet",
+          "noPledgesDescription": "Pledges will appear here once buyers start committing to this campaign."
+        },
+        "analytics": {
+          "title": "Analytics",
+          "description": "Campaign performance metrics",
+          "comingSoon": "Analytics Coming Soon",
+          "comingSoonDescription": "Detailed campaign analytics will be available in a future update."
+        },
+        "editDialog": {
+          "title": "Edit Pricing Tiers",
+          "description": "Modify the volume-based pricing tiers for this campaign. Changes will be saved immediately."
+        }
+      },
+      "status": {
+        "draft": "Draft",
+        "active": "Active",
+        "finalWindow": "Final Window",
+        "locked": "Locked",
+        "cancelled": "Cancelled",
+        "done": "Done",
+        "unknown": "Unknown"
+      },
+      "statusBadge": {
+        "ariaLabel": "Campaign status: {{status}}"
       }
     },
     "pledges": {
@@ -473,11 +618,30 @@
       }
     },
     "organizations": {
+      "title": "Organizations",
+      "description": "Manage organizations on the platform",
       "loading": "Loading organizations...",
       "loadError": "Failed to load organizations",
       "noOrganizations": {
         "title": "No organizations found",
         "description": "There are no organizations registered on the platform yet"
+      },
+      "noMatchingOrganizations": "No {{status}} organizations found",
+      "status": {
+        "pending": "Pending",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "filter": {
+        "placeholder": "Filter by status",
+        "all": "All Statuses"
+      },
+      "table": {
+        "name": "Name",
+        "type": "Type",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
       },
       "verifyDialog": {
         "title": "Verify Organization",
@@ -605,12 +769,96 @@
       "description": "This page is under development",
       "comingSoon": "This feature will be available soon."
     },
+    "pages": {
+      "moderation": {
+        "title": "Moderation",
+        "description": "Review and moderate platform content"
+      },
+      "reports": {
+        "title": "Reports",
+        "description": "View and generate platform reports"
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Configure your account and preferences"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "View your business analytics and insights"
+      },
+      "messages": {
+        "title": "Messages",
+        "description": "View and send messages to your partners"
+      },
+      "communications": {
+        "title": "Communications",
+        "description": "Manage platform notifications and announcements"
+      },
+      "configuration": {
+        "title": "Configuration",
+        "description": "Configure platform settings and options"
+      },
+      "suppliers": {
+        "title": "Suppliers",
+        "description": "Browse and connect with suppliers"
+      },
+      "users": {
+        "title": "User Management",
+        "description": "Manage platform users and accounts"
+      },
+      "procurement": {
+        "title": "Procurement",
+        "description": "Manage your procurement requests and needs"
+      },
+      "products": {
+        "title": "Products & Catalog",
+        "description": "Manage your product listings and catalog"
+      },
+      "orders": {
+        "title": "Orders",
+        "description": "View and manage your orders"
+      },
+      "buyers": {
+        "title": "Buyers",
+        "description": "View and manage your connected buyers"
+      },
+      "systemSettings": {
+        "title": "System Settings",
+        "description": "Configure platform security and policies"
+      }
+    },
+    "productDetails": {
+      "attribute": "Attribute",
+      "value": "Value",
+      "attributePlaceholder": "e.g., Color",
+      "valuePlaceholder": "e.g., Red",
+      "deleteDetail": "Delete detail",
+      "noDetails": "No product details yet. Add attributes to describe your product.",
+      "addDetail": "Add Detail",
+      "noDetailsAvailable": "No product details available"
+    },
+    "brackets": {
+      "minQty": "Min Qty",
+      "maxQty": "Max Qty",
+      "unitPrice": "Unit Price",
+      "noLimit": "No limit",
+      "deleteBracket": "Delete bracket",
+      "addBracket": "Add Bracket",
+      "validation": {
+        "minLessThanMax": "Min must be less than max quantity",
+        "cannotOverlap": "Brackets cannot overlap"
+      }
+    },
     "browseCampaigns": {
       "title": "Browse Campaigns",
       "description": "Discover group buying campaigns and save through collective purchasing",
       "myPledges": "My Pledges",
       "searchPlaceholder": "Search campaigns...",
       "clearSearch": "Clear search",
+      "checkBackLater": "Check back later for new campaigns",
+      "noActiveCampaigns": "No active campaigns found",
+      "noSearchResults": "No matching campaigns",
+      "tryDifferentSearch": "Try adjusting your search term",
       "filters": {
         "all": "All",
         "active": "Active",
@@ -632,12 +880,39 @@
         "deleteCampaign": "Delete Campaign",
         "deleteConfirmation": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
         "cancel": "Cancel"
+      },
+      "detail": {
+        "productDetails": "Product Details",
+        "campaignPeriod": "Campaign Period:",
+        "pricingTiers": "Pricing Tiers",
+        "currentPrice": "Current Price",
+        "buyers": "Buyers",
+        "unitsPledged": "Units Pledged",
+        "moreUnitsToUnlock": "{{count}} more units to unlock {{price}}",
+        "youHavePledged": "You have pledged {{count}} units",
+        "updatePledge": "Update Pledge",
+        "cancelling": "Cancelling...",
+        "cancelPledge": "Cancel Pledge"
       }
     }
   },
   "pledges": {
     "confirmCommitment": "Confirm Commitment",
-    "commitmentDisabledTooltip": "Commitment is only available during the grace period. The grace period starts when the campaign ends."
+    "commitmentDisabledTooltip": "Commitment is only available during the grace period. The grace period starts when the campaign ends.",
+    "form": {
+      "priceRange": "Price Range",
+      "currentPrice": "Current Price",
+      "bestCasePrice": "Best Case Price",
+      "priceDecreasesHint": "Price decreases as more buyers join the campaign",
+      "quantity": "Quantity",
+      "decreaseQuantity": "Decrease quantity",
+      "increaseQuantity": "Increase quantity",
+      "unitPrice": "Unit price",
+      "perUnit": "per unit",
+      "total": "Total",
+      "joining": "Joining...",
+      "joinCampaign": "Join Campaign"
+    }
   },
   "team": {
     "title": "Team",
@@ -711,6 +986,61 @@
       "cta": "Get Notified"
     },
     "viewAll": "View All Active Campaigns"
+  },
+  "landing": {
+    "campaigns": {
+      "meta": {
+        "title": "Campaign Details - Mashrook",
+        "description": "View campaign details and join group buying to save money."
+      },
+      "detail": {
+        "loading": "Loading campaign...",
+        "backToCampaigns": "Back to Campaigns",
+        "notFound": "Campaign not found",
+        "notFoundDescription": "The campaign you're looking for doesn't exist or is no longer available.",
+        "failedToLoad": "Failed to load campaign",
+        "gracePeriod": {
+          "bannerTitle": "Final Commitment Window - Campaign locks soon",
+          "bannerDescription": "The pledge period has ended. New commitments accepted until final lock.",
+          "locksOn": "Locks on: {{date}}",
+          "endsIn": "Grace Period Ends In",
+          "timeRemaining": "Time Remaining"
+        },
+        "lockInfo": {
+          "title": "What happens when the campaign locks?",
+          "point1": "Final pricing is confirmed based on total pledged quantity",
+          "point2": "Invoices are generated for all committed participants",
+          "point3": "Payment collection begins for confirmed orders",
+          "point4": "No new pledges can be accepted after lock"
+        },
+        "cards": {
+          "productDetails": "Product Details",
+          "campaignPeriod": "Campaign Period:",
+          "productImages": "Product Images",
+          "pricingTiers": "Pricing Tiers"
+        },
+        "stats": {
+          "currentPrice": "Current Price",
+          "buyers": "Buyers",
+          "unitsPledged": "Units Pledged",
+          "moreUnitsToUnlock": "{{count}} more units to unlock {{price}}"
+        },
+        "pledge": {
+          "youHavePledged": "You have pledged {{count}} units",
+          "updatePledge": "Update Pledge",
+          "cancelling": "Cancelling...",
+          "cancelPledge": "Cancel Pledge",
+          "updatedSuccessfully": "Pledge updated successfully",
+          "submittedSuccessfully": "Pledge submitted successfully",
+          "cancelledSuccessfully": "Pledge cancelled successfully"
+        },
+        "auth": {
+          "signInToJoin": "Sign in to join this campaign",
+          "joinCampaignSignIn": "Join Campaign - Sign In"
+        },
+        "notAcceptingPledges": "This campaign is no longer accepting pledges."
+      }
+    }
   },
   "auth": {
     "login": {

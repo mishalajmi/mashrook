@@ -6,8 +6,11 @@
 
 import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { Plus, Megaphone } from "lucide-react";
+import { toast } from "sonner";
 
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 import { Button, LoadingState } from "@/components/ui";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -100,6 +103,7 @@ function filterCampaigns(
  * - Empty state when no campaigns
  */
 export default function CampaignsPage(): ReactNode {
+	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 	const [pledgeSummaries, setPledgeSummaries] = useState<Record<string, CampaignPledgeSummary>>({});
@@ -119,8 +123,8 @@ export default function CampaignsPage(): ReactNode {
 				setCampaigns(transformCampaigns(response));
 				setPledgeSummaries(buildPledgeSummaries(response));
 				setError(null);
-			} catch {
-				setError("Failed to load campaigns");
+			} catch (err) {
+				setError(getTranslatedErrorMessage(err, t));
 			} finally {
 				setLoading(false);
 			}
@@ -143,8 +147,9 @@ export default function CampaignsPage(): ReactNode {
 		try {
 			await campaignService.deleteCampaign(campaign.id);
 			setCampaigns((prev) => prev.filter((c) => c.id !== campaign.id));
-		} catch {
-			setError("Failed to delete campaign");
+			toast.success(t("common.success.deleted"));
+		} catch (err) {
+			toast.error(getTranslatedErrorMessage(err, t));
 		}
 	};
 
@@ -156,16 +161,16 @@ export default function CampaignsPage(): ReactNode {
 			{/* Header */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 className="text-2xl font-bold tracking-tight">Campaigns</h1>
+					<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.campaigns.list.title")}</h1>
 					<p className="text-muted-foreground">
-						Manage your cooperative procurement campaigns
+						{t("dashboard.campaigns.list.description")}
 					</p>
 				</div>
 				{canWrite && (
 					<Button asChild>
 						<Link to="/dashboard/campaigns/new">
-							<Plus className="h-4 w-4 mr-2" />
-							Create Campaign
+							<Plus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+							{t("dashboard.campaigns.list.createCampaign")}
 						</Link>
 					</Button>
 				)}
@@ -211,15 +216,15 @@ export default function CampaignsPage(): ReactNode {
 			) : !loading && !error ? (
 				<EmptyState
 					icon={Megaphone}
-					title="No campaigns found"
+					title={t("dashboard.campaigns.list.noCampaigns")}
 					description={
 						filters.search || filters.status !== "ALL"
-							? "Try adjusting your filters or search term"
+							? t("dashboard.campaigns.list.noMatchingCampaigns")
 							: canWrite
-								? "Create your first campaign to start group buying"
-								: "No campaigns are available at this time"
+								? t("dashboard.campaigns.list.noOwnCampaigns")
+								: t("dashboard.campaigns.list.noCampaignsAvailable")
 					}
-					actionLabel={!filters.search && filters.status === "ALL" && canWrite ? "Create Campaign" : undefined}
+					actionLabel={!filters.search && filters.status === "ALL" && canWrite ? t("dashboard.campaigns.list.createCampaign") : undefined}
 					onAction={
 						!filters.search && filters.status === "ALL" && canWrite
 							? () => navigate("/dashboard/campaigns/new")

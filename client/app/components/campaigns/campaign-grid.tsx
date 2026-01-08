@@ -6,6 +6,7 @@
  */
 
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Megaphone } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -78,10 +79,12 @@ export function CampaignGrid({
 	campaigns,
 	pledgeSummaries,
 	loading = false,
-	emptyMessage = "No campaigns found",
+	emptyMessage,
 	onViewDetails,
 	className,
 }: CampaignGridProps): ReactNode {
+	const { t } = useTranslation();
+
 	// Show loading state
 	if (loading) {
 		return (
@@ -104,8 +107,8 @@ export function CampaignGrid({
 		return (
 			<EmptyState
 				icon={Megaphone}
-				title={emptyMessage}
-				description="Check back later for new campaigns"
+				title={emptyMessage ?? t("dashboard.campaigns.list.noCampaigns")}
+				description={t("dashboard.browseCampaigns.checkBackLater")}
 				className={className}
 			/>
 		);

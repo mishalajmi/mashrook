@@ -6,6 +6,7 @@
  */
 
 import { useState, type ReactNode, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Minus, Loader2, Info, TrendingDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -69,12 +70,13 @@ export function PledgeForm({
 	maxQuantity,
 	initialQuantity = 1,
 	isSubmitting = false,
-	submitButtonText = "Join Campaign",
+	submitButtonText,
 	bestCasePrice,
 	currentPrice,
 	onSubmit,
 	className,
 }: PledgeFormProps): ReactNode {
+	const { t } = useTranslation();
 	const [quantity, setQuantity] = useState(initialQuantity);
 
 	const numericUnitPrice = parseFloat(unitPrice);
@@ -125,13 +127,13 @@ export function PledgeForm({
 				>
 					<div className="flex items-center gap-2 text-sm font-medium">
 						<TrendingDown className="h-4 w-4 text-green-600" />
-						<span>Price Range</span>
+						<span>{t("pledges.form.priceRange")}</span>
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
 						{currentPrice && (
 							<div>
-								<p className="text-xs text-muted-foreground">Current Price</p>
+								<p className="text-xs text-muted-foreground">{t("pledges.form.currentPrice")}</p>
 								<p
 									data-testid="current-price"
 									className="text-base font-semibold"
@@ -142,7 +144,7 @@ export function PledgeForm({
 						)}
 						{bestCasePrice && (
 							<div>
-								<p className="text-xs text-muted-foreground">Best Case Price</p>
+								<p className="text-xs text-muted-foreground">{t("pledges.form.bestCasePrice")}</p>
 								<p
 									data-testid="best-case-price"
 									className="text-base font-semibold text-green-600 dark:text-green-400"
@@ -155,14 +157,14 @@ export function PledgeForm({
 
 					<div className="flex items-start gap-2 text-xs text-muted-foreground">
 						<Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-						<span>Price decreases as more buyers join the campaign</span>
+						<span>{t("pledges.form.priceDecreasesHint")}</span>
 					</div>
 				</div>
 			)}
 
 			{/* Quantity Control */}
 			<div className="space-y-2">
-				<label className="text-sm font-medium text-foreground">Quantity</label>
+				<label className="text-sm font-medium text-foreground">{t("pledges.form.quantity")}</label>
 				<div className="flex items-center gap-2">
 					<Button
 						type="button"
@@ -171,7 +173,7 @@ export function PledgeForm({
 						data-testid="quantity-decrement"
 						onClick={handleDecrement}
 						disabled={!canDecrement}
-						aria-label="Decrease quantity"
+						aria-label={t("pledges.form.decreaseQuantity")}
 					>
 						<Minus className="h-4 w-4" />
 					</Button>
@@ -194,7 +196,7 @@ export function PledgeForm({
 						data-testid="quantity-increment"
 						onClick={handleIncrement}
 						disabled={!canIncrement}
-						aria-label="Increase quantity"
+						aria-label={t("pledges.form.increaseQuantity")}
 					>
 						<Plus className="h-4 w-4" />
 					</Button>
@@ -205,16 +207,16 @@ export function PledgeForm({
 			<div className="space-y-3 py-4 border-t border-b border-border">
 				<div className="flex items-center justify-between text-sm">
 					<span className="text-muted-foreground">
-						Unit price{" "}
+						{t("pledges.form.unitPrice")}{" "}
 						<span data-testid="unit-price" className="font-medium text-foreground">
 							{formatPrice(numericUnitPrice)}
 						</span>
-						{" "}per unit
+						{" "}{t("pledges.form.perUnit")}
 					</span>
 				</div>
 
 				<div className="flex items-center justify-between">
-					<span className="text-sm font-medium text-foreground">Total</span>
+					<span className="text-sm font-medium text-foreground">{t("pledges.form.total")}</span>
 					<span
 						data-testid="total-cost"
 						className="text-lg font-bold text-primary"
@@ -232,11 +234,11 @@ export function PledgeForm({
 			>
 				{isSubmitting ? (
 					<>
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-						Joining...
+						<Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />
+						{t("pledges.form.joining")}
 					</>
 				) : (
-					submitButtonText
+					submitButtonText ?? t("pledges.form.joinCampaign")
 				)}
 			</Button>
 		</form>

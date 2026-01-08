@@ -170,8 +170,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 			const data = await campaignService.getPublicCampaign(id);
 			setCampaign(data);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to load campaign";
-			setError(message);
+			setError(getTranslatedErrorMessage(err, t));
 		} finally {
 			setLoading(false);
 		}
@@ -436,7 +435,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 					{/* Product Details */}
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-lg">Product Details</CardTitle>
+							<CardTitle className="text-lg">{t("dashboard.browseCampaigns.detail.productDetails")}</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="flex items-start gap-3">
@@ -449,7 +448,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 							<div className="flex items-center gap-3">
 								<Calendar className="h-5 w-5 text-muted-foreground" />
 								<div className="text-sm text-muted-foreground">
-									<span className="font-medium text-foreground">Campaign Period:</span>{" "}
+									<span className="font-medium text-foreground">{t("dashboard.browseCampaigns.detail.campaignPeriod")}</span>{" "}
 									{formatLongDate(campaign.startDate)} - {formatLongDate(campaign.endDate)}
 								</div>
 							</div>
@@ -472,7 +471,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 					{brackets.length > 0 && (
 						<Card>
 							<CardHeader>
-								<CardTitle className="text-lg">Pricing Tiers</CardTitle>
+								<CardTitle className="text-lg">{t("dashboard.browseCampaigns.detail.pricingTiers")}</CardTitle>
 							</CardHeader>
 							<CardContent>
 								<BracketProgressVisualization
@@ -498,7 +497,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 										? `$${parseFloat(brackets[0].unitPrice).toFixed(2)}`
 										: "--"}
 								</p>
-								<p className="text-sm text-muted-foreground">Current Price</p>
+								<p className="text-sm text-muted-foreground">{t("dashboard.browseCampaigns.detail.currentPrice")}</p>
 							</div>
 
 							<div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
@@ -506,26 +505,23 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 									<p className="text-xl font-semibold text-foreground">
 										{pledgeSummary.totalPledges}
 									</p>
-									<p className="text-xs text-muted-foreground">Buyers</p>
+									<p className="text-xs text-muted-foreground">{t("dashboard.browseCampaigns.detail.buyers")}</p>
 								</div>
 								<div className="text-center">
 									<p className="text-xl font-semibold text-foreground">
 										{pledgeSummary.totalQuantity}
 									</p>
-									<p className="text-xs text-muted-foreground">Units Pledged</p>
+									<p className="text-xs text-muted-foreground">{t("dashboard.browseCampaigns.detail.unitsPledged")}</p>
 								</div>
 							</div>
 
 							{pledgeSummary.unitsToNextBracket && pledgeSummary.nextBracket && (
 								<div className="pt-4 border-t border-border text-center">
 									<p className="text-sm text-muted-foreground">
-										<span className="font-semibold text-primary">
-											{pledgeSummary.unitsToNextBracket} more units
-										</span>{" "}
-										to unlock{" "}
-										<span className="font-semibold text-foreground">
-											${parseFloat(pledgeSummary.nextBracket.unitPrice).toFixed(2)}
-										</span>
+										{t("dashboard.browseCampaigns.detail.moreUnitsToUnlock", {
+											count: pledgeSummary.unitsToNextBracket,
+											price: `$${parseFloat(pledgeSummary.nextBracket.unitPrice).toFixed(2)}`
+										})}
 									</p>
 								</div>
 							)}
@@ -541,10 +537,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 										<>
 											<div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
 												<p className="text-sm text-center text-muted-foreground">
-													You have pledged{" "}
-													<span className="font-semibold text-foreground">
-														{userPledge.quantity} units
-													</span>
+													{t("dashboard.browseCampaigns.detail.youHavePledged", { count: userPledge.quantity })}
 												</p>
 											</div>
 											<PledgeForm
@@ -553,7 +546,7 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 												maxQuantity={campaign.targetQty}
 												initialQuantity={userPledge.quantity}
 												isSubmitting={isSubmittingPledge}
-												submitButtonText="Update Pledge"
+												submitButtonText={t("dashboard.browseCampaigns.detail.updatePledge")}
 												onSubmit={handlePledgeSubmit}
 											/>
 											<Button
@@ -564,11 +557,11 @@ export default function BrowseCampaignDetailPage(): ReactNode {
 											>
 												{isSubmittingPledge ? (
 													<>
-														<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-														Cancelling...
+														<Loader2 className="ltr:mr-2 rtl:ml-2 h-4 w-4 animate-spin" />
+														{t("dashboard.browseCampaigns.detail.cancelling")}
 													</>
 												) : (
-													"Cancel Pledge"
+													t("dashboard.browseCampaigns.detail.cancelPledge")
 												)}
 											</Button>
 										</>

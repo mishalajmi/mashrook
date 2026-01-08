@@ -10,6 +10,7 @@ import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { ShoppingBag, Megaphone } from "lucide-react";
 
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 import { Button, LoadingState } from "@/components/ui";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CampaignGrid, CampaignFilters } from "@/components/campaigns";
@@ -119,8 +120,8 @@ export default function BrowseCampaignsPage(): ReactNode {
 				setCampaigns(transformed.campaigns);
 				setPledgeSummaries(transformed.pledgeSummaries);
 				setError(null);
-			} catch {
-				setError("Failed to load campaigns");
+			} catch (err) {
+				setError(getTranslatedErrorMessage(err, t));
 			} finally {
 				setLoading(false);
 			}
@@ -151,7 +152,7 @@ export default function BrowseCampaignsPage(): ReactNode {
 				</div>
 				<Button asChild variant="outline">
 					<Link to="/dashboard/pledges">
-						<ShoppingBag className="h-4 w-4 mr-2" />
+						<ShoppingBag className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
 						{t("dashboard.browseCampaigns.myPledges")}
 					</Link>
 				</Button>
@@ -178,7 +179,7 @@ export default function BrowseCampaignsPage(): ReactNode {
 					campaigns={filteredCampaigns}
 					pledgeSummaries={pledgeSummaries}
 					onViewDetails={handleViewDetails}
-					emptyMessage="No active campaigns found"
+					emptyMessage={t("dashboard.browseCampaigns.noActiveCampaigns")}
 				/>
 			)}
 
@@ -186,16 +187,16 @@ export default function BrowseCampaignsPage(): ReactNode {
 			{!loading && !error && campaigns.length === 0 && (
 				<EmptyState
 					icon={Megaphone}
-					title={t("dashboard.campaigns.noActive.title")}
-					description={t("dashboard.campaigns.noActive.description")}
+					title={t("dashboard.browseCampaigns.noActiveCampaigns")}
+					description={t("dashboard.browseCampaigns.checkBackLater")}
 				/>
 			)}
 
 			{!loading && !error && hasSearchWithNoResults && (
 				<EmptyState
 					icon={Megaphone}
-					title={t("dashboard.campaigns.noResults.title")}
-					description={t("dashboard.campaigns.noResults.description")}
+					title={t("dashboard.browseCampaigns.noSearchResults")}
+					description={t("dashboard.browseCampaigns.tryDifferentSearch")}
 				/>
 			)}
 		</div>

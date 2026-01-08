@@ -283,7 +283,14 @@
       "verify": "تحقق",
       "reject": "رفض",
       "copiedToClipboard": "تم نسخ {{label}} إلى الحافظة",
-      "failedToCopy": "فشل النسخ إلى الحافظة"
+      "failedToCopy": "فشل النسخ إلى الحافظة",
+      "back": "السابق",
+      "next": "التالي",
+      "save": "حفظ",
+      "saveChanges": "حفظ التغييرات",
+      "saving": "جارٍ الحفظ...",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء"
     },
     "team": {
       "title": "الفريق",
@@ -370,6 +377,159 @@
       "pricingUpdated": "تم تحديث مستويات الأسعار بنجاح",
       "media": {
         "title": "معرض الوسائط"
+      },
+      "list": {
+        "title": "الحملات",
+        "description": "إدارة حملات الشراء الجماعي التعاونية",
+        "createCampaign": "إنشاء حملة",
+        "noCampaigns": "لم يتم العثور على حملات",
+        "noMatchingCampaigns": "جرب تعديل الفلاتر أو مصطلحات البحث",
+        "noOwnCampaigns": "أنشئ حملتك الأولى لبدء الشراء الجماعي",
+        "noCampaignsAvailable": "لا توجد حملات متاحة في الوقت الحالي"
+      },
+      "create": {
+        "title": "إنشاء حملة",
+        "saveDraft": "حفظ كمسودة",
+        "saving": "جارٍ الحفظ...",
+        "publishing": "جارٍ النشر...",
+        "publishCampaign": "نشر الحملة",
+        "steps": {
+          "basicInfo": "المعلومات الأساسية",
+          "timeline": "الجدول الزمني",
+          "pricing": "التسعير",
+          "media": "الوسائط"
+        },
+        "basicInformation": {
+          "title": "المعلومات الأساسية",
+          "description": "أدخل التفاصيل الأساسية حول حملتك"
+        },
+        "form": {
+          "title": "العنوان",
+          "titlePlaceholder": "أدخل عنوان الحملة",
+          "description": "الوصف",
+          "descriptionPlaceholder": "صف حملتك",
+          "productDetails": "تفاصيل المنتج",
+          "targetQuantity": "الكمية المستهدفة"
+        },
+        "validation": {
+          "titleRequired": "العنوان مطلوب",
+          "descriptionRequired": "الوصف مطلوب",
+          "productDetailsRequired": "مطلوب تفصيل منتج واحد على الأقل",
+          "productDetailsMustHaveBoth": "يجب أن تحتوي جميع تفاصيل المنتج على المفتاح والقيمة",
+          "targetQuantityMin": "يجب أن تكون الكمية المستهدفة 1 على الأقل",
+          "startDateRequired": "تاريخ البدء مطلوب",
+          "endDateRequired": "تاريخ الانتهاء مطلوب",
+          "endDateAfterStart": "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء"
+        },
+        "timeline": {
+          "title": "الجدول الزمني للحملة",
+          "description": "حدد تاريخي البدء والانتهاء لحملتك"
+        },
+        "pricing": {
+          "title": "شرائح التسعير",
+          "description": "حدد التسعير المبني على الكمية لحملتك"
+        },
+        "media": {
+          "title": "وسائط الحملة",
+          "description": "ارفع الصور والفيديوهات لحملتك",
+          "helperText": "أضف صور ومقاطع فيديو للمنتج لعرض حملتك. الوسائط اختيارية لكنها تساعد في جذب المزيد من المشترين."
+        },
+        "creatingDraft": "جارٍ إنشاء المسودة..."
+      },
+      "detail": {
+        "loading": "جارٍ تحميل الحملة...",
+        "notFound": "الحملة غير موجودة",
+        "notFoundDescription": "الحملة التي تبحث عنها غير موجودة أو تمت إزالتها.",
+        "stats": {
+          "totalPledges": "إجمالي التعهدات",
+          "unitsPledged": "وحدة متعهد بها",
+          "currentPrice": "السعر الحالي",
+          "perUnit": "للوحدة",
+          "daysRemaining": "الأيام المتبقية",
+          "untilEnds": "حتى انتهاء الحملة",
+          "target": "الهدف",
+          "unitsGoal": "هدف الوحدات"
+        },
+        "tabs": {
+          "overview": "نظرة عامة",
+          "pledges": "التعهدات",
+          "analytics": "التحليلات"
+        },
+        "cards": {
+          "campaignDetails": "تفاصيل الحملة",
+          "productDetails": "تفاصيل المنتج",
+          "campaignMedia": "وسائط الحملة",
+          "mediaDescriptionOwner": "ارفع الصور والفيديوهات لحملتك",
+          "mediaDescriptionViewer": "الصور والفيديوهات لهذه الحملة",
+          "noMedia": "لا توجد وسائط متاحة",
+          "pricingTiers": "شرائح التسعير",
+          "pricingDescription": "ينخفض السعر كلما زادت الوحدات المتعهد بها",
+          "editTiers": "تعديل الشرائح",
+          "addTiers": "إضافة شرائح",
+          "noPricingTiers": "لا توجد شرائح تسعير",
+          "noPricingOwner": "أضف شرائح تسعير لتحديد مستويات الخصم",
+          "noPricingViewer": "هذه الحملة لا تحتوي على شرائح تسعير محددة",
+          "quantityRange": "نطاق الكمية",
+          "pricePerUnit": "السعر/الوحدة",
+          "current": "الحالي"
+        },
+        "pledges": {
+          "title": "التعهدات",
+          "description": "جميع التعهدات لهذه الحملة",
+          "table": {
+            "buyerId": "معرف المشتري",
+            "quantity": "الكمية",
+            "status": "الحالة",
+            "date": "التاريخ"
+          },
+          "units": "وحدة",
+          "noPledges": "لا توجد تعهدات بعد",
+          "noPledgesDescription": "ستظهر التعهدات هنا عندما يبدأ المشترون بالالتزام بهذه الحملة."
+        },
+        "analytics": {
+          "title": "التحليلات",
+          "description": "مقاييس أداء الحملة",
+          "comingSoon": "التحليلات قادمة قريباً",
+          "comingSoonDescription": "ستتوفر تحليلات الحملة التفصيلية في تحديث مستقبلي."
+        },
+        "editDialog": {
+          "title": "تعديل شرائح التسعير",
+          "description": "عدّل شرائح التسعير المبنية على الكمية لهذه الحملة. سيتم حفظ التغييرات فوراً."
+        }
+      },
+      "status": {
+        "draft": "مسودة",
+        "active": "نشط",
+        "finalWindow": "النافذة النهائية",
+        "locked": "مغلق",
+        "cancelled": "ملغى",
+        "done": "منتهي",
+        "unknown": "غير معروف"
+      },
+      "statusBadge": {
+        "ariaLabel": "حالة الحملة: {{status}}"
+      }
+    },
+    "productDetails": {
+      "attribute": "السمة",
+      "value": "القيمة",
+      "attributePlaceholder": "مثل: اللون",
+      "valuePlaceholder": "مثل: أحمر",
+      "deleteDetail": "حذف التفصيل",
+      "noDetails": "لا توجد تفاصيل منتج بعد. أضف سمات لوصف منتجك.",
+      "addDetail": "إضافة تفصيل",
+      "noDetailsAvailable": "لا توجد تفاصيل منتج متاحة"
+    },
+    "brackets": {
+      "minQty": "الحد الأدنى",
+      "maxQty": "الحد الأقصى",
+      "unitPrice": "سعر الوحدة",
+      "noLimit": "بدون حد",
+      "deleteBracket": "حذف الشريحة",
+      "addBracket": "إضافة شريحة",
+      "validation": {
+        "minLessThanMax": "يجب أن يكون الحد الأدنى أقل من الحد الأقصى",
+        "cannotOverlap": "لا يمكن أن تتداخل الشرائح"
       }
     },
     "pledges": {
@@ -473,11 +633,30 @@
       }
     },
     "organizations": {
+      "title": "المنظمات",
+      "description": "إدارة المنظمات على المنصة",
       "loading": "جارٍ تحميل المنظمات...",
       "loadError": "فشل تحميل المنظمات",
       "noOrganizations": {
         "title": "لم يتم العثور على منظمات",
         "description": "لا توجد منظمات مسجلة على المنصة بعد"
+      },
+      "noMatchingOrganizations": "لا توجد منظمات {{status}}",
+      "status": {
+        "pending": "قيد الانتظار",
+        "active": "نشط",
+        "inactive": "غير نشط"
+      },
+      "filter": {
+        "placeholder": "تصفية حسب الحالة",
+        "all": "جميع الحالات"
+      },
+      "table": {
+        "name": "الاسم",
+        "type": "النوع",
+        "status": "الحالة",
+        "created": "تاريخ الإنشاء",
+        "actions": "الإجراءات"
       },
       "verifyDialog": {
         "title": "تحقق من المنظمة",
@@ -605,12 +784,74 @@
       "description": "هذه الصفحة قيد التطوير",
       "comingSoon": "ستكون هذه الميزة متاحة قريباً."
     },
+    "pages": {
+      "moderation": {
+        "title": "الإشراف",
+        "description": "مراجعة وإدارة محتوى المنصة"
+      },
+      "reports": {
+        "title": "التقارير",
+        "description": "عرض وإنشاء تقارير المنصة"
+      },
+      "settings": {
+        "title": "الإعدادات",
+        "description": "تكوين حسابك وتفضيلاتك"
+      },
+      "analytics": {
+        "title": "التحليلات",
+        "description": "عرض تحليلات ورؤى عملك"
+      },
+      "messages": {
+        "title": "الرسائل",
+        "description": "عرض وإرسال الرسائل إلى شركائك"
+      },
+      "communications": {
+        "title": "الاتصالات",
+        "description": "إدارة إشعارات وإعلانات المنصة"
+      },
+      "configuration": {
+        "title": "التكوين",
+        "description": "تكوين إعدادات وخيارات المنصة"
+      },
+      "suppliers": {
+        "title": "الموردون",
+        "description": "تصفح والتواصل مع الموردين"
+      },
+      "users": {
+        "title": "إدارة المستخدمين",
+        "description": "إدارة مستخدمي وحسابات المنصة"
+      },
+      "procurement": {
+        "title": "المشتريات",
+        "description": "إدارة طلبات واحتياجات المشتريات"
+      },
+      "products": {
+        "title": "المنتجات والكتالوج",
+        "description": "إدارة قوائم المنتجات والكتالوج"
+      },
+      "orders": {
+        "title": "الطلبات",
+        "description": "عرض وإدارة طلباتك"
+      },
+      "buyers": {
+        "title": "المشترون",
+        "description": "عرض وإدارة المشترين المرتبطين"
+      },
+      "systemSettings": {
+        "title": "إعدادات النظام",
+        "description": "تكوين أمان وسياسات المنصة"
+      }
+    },
     "browseCampaigns": {
       "title": "تصفح الحملات",
       "description": "اكتشف حملات الشراء الجماعي ووفر من خلال الشراء التعاوني",
       "myPledges": "تعهداتي",
       "searchPlaceholder": "البحث في الحملات...",
       "clearSearch": "مسح البحث",
+      "checkBackLater": "عد لاحقاً للاطلاع على حملات جديدة",
+      "noActiveCampaigns": "لم يتم العثور على حملات نشطة",
+      "noSearchResults": "لا توجد حملات مطابقة",
+      "tryDifferentSearch": "حاول تعديل عبارة البحث",
       "filters": {
         "all": "الكل",
         "active": "نشط",
@@ -632,12 +873,39 @@
         "deleteCampaign": "حذف الحملة",
         "deleteConfirmation": "هل أنت متأكد أنك تريد حذف \"{{title}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
         "cancel": "إلغاء"
+      },
+      "detail": {
+        "productDetails": "تفاصيل المنتج",
+        "campaignPeriod": "فترة الحملة:",
+        "pricingTiers": "مستويات التسعير",
+        "currentPrice": "السعر الحالي",
+        "buyers": "المشترون",
+        "unitsPledged": "الوحدات المتعهد بها",
+        "moreUnitsToUnlock": "{{count}} وحدة إضافية لفتح {{price}}",
+        "youHavePledged": "لقد تعهدت بـ {{count}} وحدة",
+        "updatePledge": "تحديث التعهد",
+        "cancelling": "جارٍ الإلغاء...",
+        "cancelPledge": "إلغاء التعهد"
       }
     }
   },
   "pledges": {
     "confirmCommitment": "تأكيد الالتزام",
-    "commitmentDisabledTooltip": "التأكيد متاح فقط خلال فترة السماح. تبدأ فترة السماح عند انتهاء الحملة."
+    "commitmentDisabledTooltip": "التأكيد متاح فقط خلال فترة السماح. تبدأ فترة السماح عند انتهاء الحملة.",
+    "form": {
+      "priceRange": "نطاق السعر",
+      "currentPrice": "السعر الحالي",
+      "bestCasePrice": "أفضل سعر",
+      "priceDecreasesHint": "ينخفض السعر كلما انضم المزيد من المشترين للحملة",
+      "quantity": "الكمية",
+      "decreaseQuantity": "تقليل الكمية",
+      "increaseQuantity": "زيادة الكمية",
+      "unitPrice": "سعر الوحدة",
+      "perUnit": "للوحدة",
+      "total": "المجموع",
+      "joining": "جارٍ الانضمام...",
+      "joinCampaign": "انضم للحملة"
+    }
   },
   "featuredCampaigns": {
     "badge": "الحملات النشطة",
@@ -649,6 +917,61 @@
       "cta": "احصل على إشعار"
     },
     "viewAll": "عرض جميع الحملات النشطة"
+  },
+  "landing": {
+    "campaigns": {
+      "meta": {
+        "title": "تفاصيل الحملة - مشروك",
+        "description": "عرض تفاصيل الحملة وانضم للشراء الجماعي لتوفير المال."
+      },
+      "detail": {
+        "loading": "جارٍ تحميل الحملة...",
+        "backToCampaigns": "العودة للحملات",
+        "notFound": "الحملة غير موجودة",
+        "notFoundDescription": "الحملة التي تبحث عنها غير موجودة أو لم تعد متاحة.",
+        "failedToLoad": "فشل في تحميل الحملة",
+        "gracePeriod": {
+          "bannerTitle": "فترة الالتزام النهائي - الحملة ستُقفل قريباً",
+          "bannerDescription": "انتهت فترة التعهد. يُقبل الالتزام الجديد حتى القفل النهائي.",
+          "locksOn": "يُقفل في: {{date}}",
+          "endsIn": "تنتهي فترة السماح خلال",
+          "timeRemaining": "الوقت المتبقي"
+        },
+        "lockInfo": {
+          "title": "ماذا يحدث عند قفل الحملة؟",
+          "point1": "يتم تأكيد السعر النهائي بناءً على إجمالي الكمية المتعهد بها",
+          "point2": "يتم إنشاء الفواتير لجميع المشاركين الملتزمين",
+          "point3": "يبدأ تحصيل المدفوعات للطلبات المؤكدة",
+          "point4": "لا يمكن قبول تعهدات جديدة بعد القفل"
+        },
+        "cards": {
+          "productDetails": "تفاصيل المنتج",
+          "campaignPeriod": "فترة الحملة:",
+          "productImages": "صور المنتج",
+          "pricingTiers": "مستويات الأسعار"
+        },
+        "stats": {
+          "currentPrice": "السعر الحالي",
+          "buyers": "المشترون",
+          "unitsPledged": "الوحدات المتعهد بها",
+          "moreUnitsToUnlock": "{{count}} وحدة إضافية للحصول على {{price}}"
+        },
+        "pledge": {
+          "youHavePledged": "لقد تعهدت بـ {{count}} وحدة",
+          "updatePledge": "تحديث التعهد",
+          "cancelling": "جارٍ الإلغاء...",
+          "cancelPledge": "إلغاء التعهد",
+          "updatedSuccessfully": "تم تحديث التعهد بنجاح",
+          "submittedSuccessfully": "تم تقديم التعهد بنجاح",
+          "cancelledSuccessfully": "تم إلغاء التعهد بنجاح"
+        },
+        "auth": {
+          "signInToJoin": "سجل الدخول للانضمام لهذه الحملة",
+          "joinCampaignSignIn": "انضم للحملة - تسجيل الدخول"
+        },
+        "notAcceptingPledges": "هذه الحملة لم تعد تقبل التعهدات."
+      }
+    }
   },
   "auth": {
     "login": {

@@ -45,18 +45,18 @@ import {
 // Status badge configurations
 const statusConfig: Record<
 	OrganizationStatus,
-	{ label: string; className: string }
+	{ labelKey: string; className: string }
 > = {
 	PENDING: {
-		label: "Pending",
+		labelKey: "dashboard.organizations.status.pending",
 		className: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
 	},
 	ACTIVE: {
-		label: "Active",
+		labelKey: "dashboard.organizations.status.active",
 		className: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
 	},
 	INACTIVE: {
-		label: "Inactive",
+		labelKey: "dashboard.organizations.status.inactive",
 		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 	},
 };
@@ -98,9 +98,7 @@ export default function OrganizationsPage(): ReactNode {
 			const data = await organizationService.getOrganizations(options);
 			setOrganizations(data);
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : "Failed to load organizations";
-			setError(message);
+			setError(getTranslatedErrorMessage(err, t));
 		} finally {
 			setLoading(false);
 		}
@@ -186,9 +184,9 @@ export default function OrganizationsPage(): ReactNode {
 			<div data-testid="organizations-page" className="flex flex-col gap-6 p-6">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-						<h1 className="text-2xl font-bold tracking-tight">Organizations</h1>
+						<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.organizations.title")}</h1>
 						<p className="text-muted-foreground">
-							Manage organizations on the platform
+							{t("dashboard.organizations.description")}
 						</p>
 					</div>
 				</div>
@@ -203,9 +201,9 @@ export default function OrganizationsPage(): ReactNode {
 			<div data-testid="organizations-page" className="flex flex-col gap-6 p-6">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-						<h1 className="text-2xl font-bold tracking-tight">Organizations</h1>
+						<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.organizations.title")}</h1>
 						<p className="text-muted-foreground">
-							Manage organizations on the platform
+							{t("dashboard.organizations.description")}
 						</p>
 					</div>
 				</div>
@@ -227,9 +225,9 @@ export default function OrganizationsPage(): ReactNode {
 			{/* Header */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 className="text-2xl font-bold tracking-tight">Organizations</h1>
+					<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.organizations.title")}</h1>
 					<p className="text-muted-foreground">
-						Manage organizations on the platform
+						{t("dashboard.organizations.description")}
 					</p>
 				</div>
 			</div>
@@ -241,13 +239,13 @@ export default function OrganizationsPage(): ReactNode {
 					onValueChange={handleStatusFilterChange}
 				>
 					<SelectTrigger data-testid="status-filter" className="w-[180px]">
-						<SelectValue placeholder="Filter by status" />
+						<SelectValue placeholder={t("dashboard.organizations.filter.placeholder")} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="ALL">All Statuses</SelectItem>
-						<SelectItem value="PENDING">Pending</SelectItem>
-						<SelectItem value="ACTIVE">Active</SelectItem>
-						<SelectItem value="INACTIVE">Inactive</SelectItem>
+						<SelectItem value="ALL">{t("dashboard.organizations.filter.all")}</SelectItem>
+						<SelectItem value="PENDING">{t("dashboard.organizations.status.pending")}</SelectItem>
+						<SelectItem value="ACTIVE">{t("dashboard.organizations.status.active")}</SelectItem>
+						<SelectItem value="INACTIVE">{t("dashboard.organizations.status.inactive")}</SelectItem>
 					</SelectContent>
 				</Select>
 			</div>
@@ -258,11 +256,11 @@ export default function OrganizationsPage(): ReactNode {
 					<Table data-testid="organizations-table">
 						<TableHeader>
 							<TableRow>
-								<TableHead>Name</TableHead>
-								<TableHead>Type</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Created</TableHead>
-								<TableHead className="text-right">Actions</TableHead>
+								<TableHead>{t("dashboard.organizations.table.name")}</TableHead>
+								<TableHead>{t("dashboard.organizations.table.type")}</TableHead>
+								<TableHead>{t("dashboard.organizations.table.status")}</TableHead>
+								<TableHead>{t("dashboard.organizations.table.created")}</TableHead>
+								<TableHead className="text-right">{t("dashboard.organizations.table.actions")}</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -284,7 +282,7 @@ export default function OrganizationsPage(): ReactNode {
 													config.className
 												)}
 											>
-												{config.label}
+												{t(config.labelKey)}
 											</span>
 										</TableCell>
 										<TableCell className="text-muted-foreground">
@@ -298,7 +296,7 @@ export default function OrganizationsPage(): ReactNode {
 														size="sm"
 														onClick={() => handleVerifyClick(org)}
 													>
-														<Check className="h-4 w-4 mr-1" />
+														<Check className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
 														{t("dashboard.common.verify")}
 													</Button>
 													<Button
@@ -306,7 +304,7 @@ export default function OrganizationsPage(): ReactNode {
 														size="sm"
 														onClick={() => handleRejectClick(org)}
 													>
-														<X className="h-4 w-4 mr-1" />
+														<X className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
 														{t("dashboard.common.reject")}
 													</Button>
 												</div>
@@ -325,7 +323,7 @@ export default function OrganizationsPage(): ReactNode {
 					description={
 						statusFilter === "ALL"
 							? t("dashboard.organizations.noOrganizations.description")
-							: `No ${statusFilter.toLowerCase()} organizations found`
+							: t("dashboard.organizations.noMatchingOrganizations", { status: t(`dashboard.organizations.status.${statusFilter.toLowerCase()}`) })
 					}
 				/>
 			)}
