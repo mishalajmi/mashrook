@@ -13,6 +13,7 @@ public record CampaignMediaResponse(
         UUID campaignId,
         String contentType,
         MediaType mediaType,
+        Long sizeBytes,
         Integer mediaOrder,
         String presignedUrl,
         LocalDateTime createdAt,
@@ -28,6 +29,7 @@ public record CampaignMediaResponse(
                 .campaignId(entity.getCampaignId())
                 .contentType(entity.getContentType())
                 .mediaType(entity.getMediaType())
+                .sizeBytes(entity.getSizeBytes())
                 .mediaOrder(entity.getMediaOrder())
                 .presignedUrl(presignedUrl)
                 .createdAt(entity.getCreatedAt())

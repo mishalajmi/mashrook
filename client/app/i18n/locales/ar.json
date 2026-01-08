@@ -26,8 +26,11 @@
     "payment.gateway.unavailable": "بوابة الدفع غير متاحة حالياً",
     "payment.invalid.status.transition": "انتقال حالة الدفع غير صالح",
     "discount.bracket.not.found": "شريحة الخصم غير موجودة",
-    "media.type.invalid": "نوع الوسائط غير صالح",
-    "file.size.exceeded": "حجم الملف يتجاوز الحد الأقصى",
+    "media.type.invalid": "نوع الوسائط غير صالح. يرجى استخدام JPG أو PNG أو MP4.",
+    "file.size.exceeded": "حجم الملف يتجاوز الحد الأقصى 50MB.",
+    "file.type.unsupported": "نوع الملف غير مدعوم. يرجى استخدام JPG أو PNG أو MP4.",
+    "media.upload.failed": "فشل رفع الملف. يرجى المحاولة مرة أخرى.",
+    "media.delete.failed": "فشل حذف الوسائط. يرجى المحاولة مرة أخرى.",
     "authentication.failed": "فشل المصادقة"
   },
   "common": {
@@ -376,7 +379,9 @@
       "savedAsDraft": "تم حفظ الحملة كمسودة",
       "pricingUpdated": "تم تحديث مستويات الأسعار بنجاح",
       "media": {
-        "title": "معرض الوسائط"
+        "title": "معرض الوسائط",
+        "uploadSuccess": "تم رفع الملف بنجاح",
+        "deleteSuccess": "تم حذف الوسائط بنجاح"
       },
       "list": {
         "title": "الحملات",

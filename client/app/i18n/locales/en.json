@@ -26,8 +26,11 @@
     "payment.gateway.unavailable": "Payment gateway is currently unavailable",
     "payment.invalid.status.transition": "Invalid payment status transition",
     "discount.bracket.not.found": "Discount bracket not found",
-    "media.type.invalid": "Invalid media type",
-    "file.size.exceeded": "File size exceeds the maximum limit",
+    "media.type.invalid": "Invalid media type. Please use JPG, PNG, or MP4.",
+    "file.size.exceeded": "File size exceeds the maximum limit of 50MB.",
+    "file.type.unsupported": "File type not supported. Please use JPG, PNG, or MP4.",
+    "media.upload.failed": "Failed to upload file. Please try again.",
+    "media.delete.failed": "Failed to delete media. Please try again.",
     "authentication.failed": "Authentication failed"
   },
   "common": {
@@ -380,7 +383,9 @@
       "failedToLoad": "Failed to load campaigns",
       "failedToDelete": "Failed to delete campaign",
       "media": {
-        "title": "Media Gallery"
+        "title": "Media Gallery",
+        "uploadSuccess": "File uploaded successfully",
+        "deleteSuccess": "Media deleted successfully"
       },
       "list": {
         "title": "Campaigns",
