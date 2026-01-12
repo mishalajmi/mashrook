@@ -1,15 +1,10 @@
-/**
- * Campaign Detail Page
- *
- * Displays detailed campaign information with tabs for Overview, Pledges, and Analytics.
- * Wired to backend API endpoints for campaign, bracket, and pledge management.
- */
-
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Users, DollarSign, Clock, Calendar, Target, Plus, Loader2, Pencil, X, Save } from "lucide-react";
 import { toast } from "sonner";
+import { calculateDaysRemaining } from "@/lib/date";
+
 
 import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
@@ -56,18 +51,6 @@ function formatPrice(price: string): string {
 	const numericPrice = parseFloat(price);
 	return `$${numericPrice.toFixed(2)}`;
 }
-
-/**
- * Calculate days remaining until campaign end
- */
-function calculateDaysRemaining(endDate: string): number {
-	const end = new Date(endDate);
-	const now = new Date();
-	const diffTime = end.getTime() - now.getTime();
-	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-	return Math.max(0, diffDays);
-}
-
 
 /**
  * Transform media response to component-compatible type

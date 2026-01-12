@@ -220,3 +220,17 @@ export function formatRelativeTime(input: DateInput, locale = "en-US"): string {
 	}
 	return rtf.format(diffSec, "second");
 }
+
+/**
+ * Calculate days remaining until a target date
+ *
+ * @param targetDate - Date string to calculate delta to
+ * @returns Delta days between current date and targetDate
+ */
+export function calculateDaysRemaining(targetDate: string): number {
+    const target = new Date(targetDate);
+    const now = new Date();
+    const diffTime = target.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+}

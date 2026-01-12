@@ -33,6 +33,7 @@ import {
 import type { Campaign, CampaignPledgeSummary } from "@/types/campaign";
 import { CampaignStatusBadge } from "./campaign-status-badge";
 import { BracketProgressIndicator } from "./bracket-progress-indicator";
+import { calculateDaysRemaining } from "@/lib/date";
 
 interface CampaignCardProps {
 	/** Campaign data */
@@ -63,16 +64,7 @@ function formatPrice(price: string): string {
 	return `$${numericPrice.toFixed(2)}`;
 }
 
-/**
- * Calculate days remaining until a target date
- */
-function calculateDaysRemaining(targetDate: string): number {
-	const target = new Date(targetDate);
-	const now = new Date();
-	const diffTime = target.getTime() - now.getTime();
-	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-	return Math.max(0, diffDays);
-}
+
 
 /**
  * CampaignCard - Displays campaign summary in card format
