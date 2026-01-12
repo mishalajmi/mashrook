@@ -1,4 +1,38 @@
 {
+  "errors": {
+    "generic": "An error occurred",
+    "campaign.not.found": "Campaign not found",
+    "campaign.validation.failed": "Campaign validation failed",
+    "campaign.invalid.state": "Invalid campaign state",
+    "campaign.invalid.state.transition": "Invalid campaign state transition",
+    "campaign.media.not.found": "Campaign media not found",
+    "pledge.not.found": "Pledge not found",
+    "pledge.already.exists": "You already have a pledge for this campaign",
+    "pledge.access.denied": "You don't have permission to access this pledge",
+    "pledge.invalid.state": "Invalid pledge state",
+    "invoice.not.found": "Invoice not found",
+    "invoice.validation.failed": "Invoice validation failed",
+    "invoice.invalid.status.transition": "Invalid invoice status transition",
+    "user.not.found": "User not found",
+    "user.already.exists": "A user with this email already exists",
+    "account.validation.failed": "Account validation failed",
+    "organization.not.found": "Organization not found",
+    "organization.pending.verification": "Your organization is pending verification",
+    "team.invitation.not.found": "Team invitation not found",
+    "team.invitation.duplicate": "An invitation has already been sent to this email",
+    "team.invitation.invalid": "Invalid team invitation",
+    "team.operation.failed": "Team operation failed",
+    "payment.already.exists": "Payment already exists",
+    "payment.gateway.unavailable": "Payment gateway is currently unavailable",
+    "payment.invalid.status.transition": "Invalid payment status transition",
+    "discount.bracket.not.found": "Discount bracket not found",
+    "media.type.invalid": "Invalid media type. Please use JPG, PNG, or MP4.",
+    "file.size.exceeded": "File size exceeds the maximum limit of 50MB.",
+    "file.type.unsupported": "File type not supported. Please use JPG, PNG, or MP4.",
+    "media.upload.failed": "Failed to upload file. Please try again.",
+    "media.delete.failed": "Failed to delete media. Please try again.",
+    "authentication.failed": "Authentication failed"
+  },
   "common": {
     "appName": "Mashrook",
     "home": "Home",
@@ -241,6 +275,394 @@
     "switchToDark": "Switch to dark mode"
   },
   "dashboard": {
+    "common": {
+      "loading": "Loading...",
+      "backToCampaigns": "Back to Campaigns",
+      "backToPayments": "Back to Payments",
+      "backToInvoice": "Back to Invoice",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "tryAgain": "Try Again",
+      "verify": "Verify",
+      "reject": "Reject",
+      "copiedToClipboard": "{{label}} copied to clipboard",
+      "failedToCopy": "Failed to copy to clipboard",
+      "back": "Back",
+      "next": "Next",
+      "save": "Save",
+      "saveChanges": "Save Changes",
+      "saving": "Saving...",
+      "edit": "Edit",
+      "startDate": "Start Date",
+      "endDate": "End Date"
+    },
+    "team": {
+      "title": "Team",
+      "description": "Manage your team members and permissions",
+      "inviteMember": "Invite Member",
+      "transferOwnership": "Transfer Ownership",
+      "tabs": {
+        "members": "Members",
+        "invitations": "Invitations"
+      },
+      "table": {
+        "member": "Member",
+        "permissions": "Permissions",
+        "status": "Status",
+        "joined": "Joined",
+        "actions": "Actions"
+      },
+      "badges": {
+        "you": "You",
+        "owner": "Owner",
+        "active": "Active",
+        "pending": "Pending",
+        "pendingActivation": "Pending Activation",
+        "inactive": "Inactive",
+        "accepted": "Accepted",
+        "expired": "Expired",
+        "cancelled": "Cancelled"
+      }
+    },
+    "overview": {
+      "title": "Dashboard Overview",
+      "welcome": "Welcome back",
+      "emptyState": {
+        "title": "Analytics Coming Soon",
+        "description": "Dashboard analytics and insights will be available here. Check back soon for detailed reports on your activity."
+      }
+    },
+    "timer": {
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds",
+      "min": "Min",
+      "sec": "Sec",
+      "ended": "Ended",
+      "finalCommitmentWindow": "Final commitment window",
+      "gracePeriodEndsIn": "Grace Period Ends In",
+      "timeRemaining": "Time Remaining"
+    },
+    "gracePeriod": {
+      "banner": {
+        "title": "Final Commitment Window - Campaign locks soon",
+        "description": "The pledge period has ended. New commitments accepted until final lock.",
+        "locksOn": "Locks on: {{date}}",
+        "pledgeNeedsConfirmation": "{{count}} pledge needs confirmation",
+        "pledgesNeedConfirmation": "{{count}} pledges need confirmation",
+        "gracePeriodEndsIn": "Grace period ends in",
+        "viewPendingConfirmations": "View Pending Confirmations"
+      },
+      "info": {
+        "title": "What happens when the campaign locks?",
+        "point1": "All pledges become final commitments",
+        "point2": "Invoices are generated for committed quantities",
+        "point3": "Payment processing begins"
+      }
+    },
+    "campaigns": {
+      "loading": "Loading campaign...",
+      "notFound": {
+        "title": "Campaign not found",
+        "description": "The campaign you're looking for doesn't exist or is no longer available.",
+        "authRequired": "Authentication required"
+      },
+      "noActive": {
+        "title": "No active campaigns",
+        "description": "There are no active campaigns available at the moment. Check back later for new group buying opportunities."
+      },
+      "noResults": {
+        "title": "No campaigns found",
+        "description": "No campaigns match your search. Try adjusting your search terms."
+      },
+      "notAcceptingPledges": "This campaign is no longer accepting pledges.",
+      "publishedSuccessfully": "Campaign published successfully",
+      "savedAsDraft": "Campaign saved as draft",
+      "pricingUpdated": "Pricing tiers updated successfully",
+      "deletedSuccessfully": "Campaign deleted successfully",
+      "failedToLoad": "Failed to load campaigns",
+      "failedToDelete": "Failed to delete campaign",
+      "media": {
+        "title": "Media Gallery",
+        "uploadSuccess": "File uploaded successfully",
+        "deleteSuccess": "Media deleted successfully"
+      },
+      "list": {
+        "title": "Campaigns",
+        "description": "Manage your cooperative procurement campaigns",
+        "createCampaign": "Create Campaign",
+        "noCampaigns": "No campaigns found",
+        "noMatchingCampaigns": "Try adjusting your filters or search term",
+        "noOwnCampaigns": "Create your first campaign to start group buying",
+        "noCampaignsAvailable": "No campaigns are available at this time"
+      },
+      "create": {
+        "title": "Create Campaign",
+        "untitled": "Untitled Campaign",
+        "saveDraft": "Save Draft",
+        "saving": "Saving...",
+        "creatingDraft": "Creating draft...",
+        "publishing": "Publishing...",
+        "publishCampaign": "Publish Campaign",
+        "steps": {
+          "basicInfo": "Basic Info",
+          "timeline": "Timeline",
+          "pricing": "Pricing",
+          "media": "Media"
+        },
+        "basicInformation": {
+          "title": "Basic Information",
+          "description": "Enter the basic details about your campaign"
+        },
+        "form": {
+          "title": "Title",
+          "titlePlaceholder": "Enter campaign title",
+          "description": "Description",
+          "descriptionPlaceholder": "Describe your campaign",
+          "productDetails": "Product Details",
+          "targetQuantity": "Target Quantity",
+          "startDate": "Start Date",
+          "endDate": "End Date"
+        },
+        "validation": {
+          "titleRequired": "Title is required",
+          "descriptionRequired": "Description is required",
+          "productDetailsRequired": "At least one product detail is required",
+          "productDetailsMustHaveBoth": "All product details must have both key and value",
+          "targetQuantityMin": "Target quantity must be at least 1",
+          "startDateRequired": "Start date is required",
+          "endDateRequired": "End date is required",
+          "endDateAfterStart": "End date must be after start date"
+        },
+        "timeline": {
+          "title": "Campaign Timeline",
+          "description": "Set the start and end dates for your campaign"
+        },
+        "pricing": {
+          "title": "Pricing Tiers",
+          "description": "Define volume-based pricing for your campaign"
+        },
+        "media": {
+          "title": "Campaign Media",
+          "description": "Upload images and videos for your campaign",
+          "helperText": "Add product images and videos to showcase your campaign. Media is optional but helps attract more buyers."
+        }
+      },
+      "detail": {
+        "loading": "Loading campaign...",
+        "notFound": "Campaign not found",
+        "notFoundDescription": "The campaign you're looking for doesn't exist or has been removed.",
+        "updateSuccess": "Campaign updated successfully",
+        "stats": {
+          "totalPledges": "Total Pledges",
+          "unitsPledged": "units pledged",
+          "currentPrice": "Current Price",
+          "perUnit": "Per unit",
+          "daysRemaining": "Days Remaining",
+          "untilEnds": "Until campaign ends",
+          "target": "Target",
+          "unitsGoal": "Units goal"
+        },
+        "tabs": {
+          "overview": "Overview",
+          "pledges": "Pledges",
+          "analytics": "Analytics"
+        },
+        "cards": {
+          "campaignDetails": "Campaign Details",
+          "productDetails": "Product Details",
+          "campaignMedia": "Campaign Media",
+          "mediaDescriptionOwner": "Upload images and videos for your campaign",
+          "mediaDescriptionViewer": "Images and videos for this campaign",
+          "noMedia": "No media available",
+          "pricingTiers": "Pricing Tiers",
+          "pricingDescription": "Price decreases as more units are pledged",
+          "editTiers": "Edit Tiers",
+          "addTiers": "Add Tiers",
+          "noPricingTiers": "No pricing tiers",
+          "noPricingOwner": "Add pricing tiers to define discount levels",
+          "noPricingViewer": "This campaign has no pricing tiers configured",
+          "quantityRange": "Quantity Range",
+          "pricePerUnit": "Price/Unit",
+          "current": "Current"
+        },
+        "pledges": {
+          "title": "Pledges",
+          "description": "All pledges for this campaign",
+          "table": {
+            "buyerId": "Buyer ID",
+            "quantity": "Quantity",
+            "status": "Status",
+            "date": "Date"
+          },
+          "units": "units",
+          "noPledges": "No pledges yet",
+          "noPledgesDescription": "Pledges will appear here once buyers start committing to this campaign."
+        },
+        "analytics": {
+          "title": "Analytics",
+          "description": "Campaign performance metrics",
+          "comingSoon": "Analytics Coming Soon",
+          "comingSoonDescription": "Detailed campaign analytics will be available in a future update."
+        },
+        "editDialog": {
+          "title": "Edit Pricing Tiers",
+          "description": "Modify the volume-based pricing tiers for this campaign. Changes will be saved immediately."
+        }
+      },
+      "status": {
+        "draft": "Draft",
+        "active": "Active",
+        "finalWindow": "Final Window",
+        "locked": "Locked",
+        "cancelled": "Cancelled",
+        "done": "Done",
+        "unknown": "Unknown"
+      },
+      "statusBadge": {
+        "ariaLabel": "Campaign status: {{status}}"
+      }
+    },
+    "pledges": {
+      "title": "My Pledges",
+      "description": "Manage your campaign pledges and track delivery status",
+      "browseCampaigns": "Browse Campaigns",
+      "loading": "Loading pledges...",
+      "loadError": "Failed to load pledges",
+      "noPledges": {
+        "title": "No pledges yet",
+        "description": "Join a campaign to start saving through group buying"
+      },
+      "noResults": "No {{status}} pledges found",
+      "updatedSuccessfully": "Pledge updated successfully",
+      "submittedSuccessfully": "Pledge submitted successfully",
+      "cancelledSuccessfully": "Pledge cancelled successfully",
+      "confirmedSuccessfully": "Commitment confirmed successfully",
+      "tabs": {
+        "all": "All",
+        "pending": "Pending",
+        "committed": "Committed",
+        "withdrawn": "Withdrawn"
+      },
+      "table": {
+        "campaign": "Campaign",
+        "quantity": "Quantity",
+        "total": "Total",
+        "status": "Status",
+        "date": "Date",
+        "actions": "Actions"
+      },
+      "status": {
+        "committed": "Committed",
+        "pending": "Pending",
+        "withdrawn": "Withdrawn"
+      },
+      "units": "units",
+      "view": "View"
+    },
+    "payments": {
+      "title": "Payments",
+      "description": "View and manage your invoices and payment status",
+      "loading": "Loading invoices...",
+      "loadingDetails": "Loading invoice details...",
+      "loadingStatus": "Loading payment status...",
+      "loadError": "Failed to load invoices",
+      "notFound": {
+        "title": "Failed to load invoice",
+        "description": "Invoice not found"
+      },
+      "noInvoices": {
+        "title": "No invoices yet",
+        "description": "You don't have any invoices yet. Invoices will appear here after you commit to campaigns."
+      },
+      "noResults": "No {{status}} invoices found",
+      "markedComplete": "Payment marked as complete. Awaiting admin confirmation.",
+      "status": {
+        "draft": "Draft",
+        "pendingPayment": "Pending Payment",
+        "pendingConfirmation": "Pending Confirmation",
+        "paid": "Paid",
+        "overdue": "Overdue",
+        "cancelled": "Cancelled"
+      },
+      "filters": {
+        "all": "All Invoices"
+      },
+      "table": {
+        "invoiceNumber": "Invoice #",
+        "campaign": "Campaign",
+        "amount": "Amount",
+        "dueDate": "Due Date",
+        "status": "Status"
+      },
+      "paymentMethod": {
+        "title": "Choose Payment Method",
+        "subtitle": "Select how you would like to pay for invoice {{invoiceNumber}}",
+        "invoiceSummary": "Invoice Summary",
+        "invoiceNumber": "Invoice Number",
+        "totalAmount": "Total Amount",
+        "selectMethod": "Payment Method",
+        "selectMethodDescription": "Select your preferred payment option",
+        "onlineUnavailable": "Online payment options are currently unavailable. Please use bank transfer.",
+        "creditCard": "Credit/Debit Card",
+        "creditCardDescription": "Visa, Mastercard, American Express",
+        "mada": "Mada",
+        "madaDescription": "Saudi debit card network",
+        "bankTransfer": "Bank Transfer",
+        "bankTransferDescription": "Manual transfer to our bank account"
+      },
+      "bankDetails": {
+        "bankName": "National Commerce Bank",
+        "accountName": "Mashrook Trading LLC"
+      },
+      "result": {
+        "error": "Error Loading Payment",
+        "processing": "Processing Payment",
+        "success": "Payment Successful",
+        "failed": "Payment Failed",
+        "failedDescription": "We could not process your payment"
+      }
+    },
+    "organizations": {
+      "title": "Organizations",
+      "description": "Manage organizations on the platform",
+      "loading": "Loading organizations...",
+      "loadError": "Failed to load organizations",
+      "noOrganizations": {
+        "title": "No organizations found",
+        "description": "There are no organizations registered on the platform yet"
+      },
+      "noMatchingOrganizations": "No {{status}} organizations found",
+      "status": {
+        "pending": "Pending",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "filter": {
+        "placeholder": "Filter by status",
+        "all": "All Statuses"
+      },
+      "table": {
+        "name": "Name",
+        "type": "Type",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "verifyDialog": {
+        "title": "Verify Organization",
+        "description": "Are you sure you want to verify \"{{name}}\"? This will activate the organization and allow them to participate in campaigns.",
+        "verifying": "Verifying..."
+      },
+      "rejectDialog": {
+        "title": "Reject Organization",
+        "description": "Are you sure you want to reject \"{{name}}\"? This will mark the organization as inactive.",
+        "rejecting": "Rejecting..."
+      },
+      "verifiedSuccessfully": "Organization \"{{name}}\" has been verified successfully",
+      "rejectedSuccessfully": "Organization \"{{name}}\" has been rejected"
+    },
     "sidebar": {
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
@@ -353,11 +775,152 @@
     "placeholder": {
       "description": "This page is under development",
       "comingSoon": "This feature will be available soon."
+    },
+    "pages": {
+      "moderation": {
+        "title": "Moderation",
+        "description": "Review and moderate platform content"
+      },
+      "reports": {
+        "title": "Reports",
+        "description": "View and generate platform reports"
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Configure your account and preferences"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "View your business analytics and insights"
+      },
+      "messages": {
+        "title": "Messages",
+        "description": "View and send messages to your partners"
+      },
+      "communications": {
+        "title": "Communications",
+        "description": "Manage platform notifications and announcements"
+      },
+      "configuration": {
+        "title": "Configuration",
+        "description": "Configure platform settings and options"
+      },
+      "suppliers": {
+        "title": "Suppliers",
+        "description": "Browse and connect with suppliers"
+      },
+      "users": {
+        "title": "User Management",
+        "description": "Manage platform users and accounts"
+      },
+      "procurement": {
+        "title": "Procurement",
+        "description": "Manage your procurement requests and needs"
+      },
+      "products": {
+        "title": "Products & Catalog",
+        "description": "Manage your product listings and catalog"
+      },
+      "orders": {
+        "title": "Orders",
+        "description": "View and manage your orders"
+      },
+      "buyers": {
+        "title": "Buyers",
+        "description": "View and manage your connected buyers"
+      },
+      "systemSettings": {
+        "title": "System Settings",
+        "description": "Configure platform security and policies"
+      }
+    },
+    "productDetails": {
+      "attribute": "Attribute",
+      "value": "Value",
+      "attributePlaceholder": "e.g., Color",
+      "valuePlaceholder": "e.g., Red",
+      "deleteDetail": "Delete detail",
+      "noDetails": "No product details yet. Add attributes to describe your product.",
+      "addDetail": "Add Detail",
+      "noDetailsAvailable": "No product details available"
+    },
+    "brackets": {
+      "minQty": "Min Qty",
+      "maxQty": "Max Qty",
+      "unitPrice": "Unit Price",
+      "noLimit": "No limit",
+      "deleteBracket": "Delete bracket",
+      "addBracket": "Add Bracket",
+      "validation": {
+        "minLessThanMax": "Min must be less than max quantity",
+        "cannotOverlap": "Brackets cannot overlap"
+      }
+    },
+    "browseCampaigns": {
+      "title": "Browse Campaigns",
+      "description": "Discover group buying campaigns and save through collective purchasing",
+      "myPledges": "My Pledges",
+      "searchPlaceholder": "Search campaigns...",
+      "clearSearch": "Clear search",
+      "checkBackLater": "Check back later for new campaigns",
+      "noActiveCampaigns": "No active campaigns found",
+      "noSearchResults": "No matching campaigns",
+      "tryDifferentSearch": "Try adjusting your search term",
+      "filters": {
+        "all": "All",
+        "active": "Active",
+        "draft": "Draft",
+        "locked": "Locked",
+        "done": "Done"
+      },
+      "card": {
+        "endingSoon": "ENDING SOON",
+        "finalWindow": "Final Window",
+        "finalCommitmentMessage": "Final commitment window - pledge now",
+        "days": "Days",
+        "price": "Price",
+        "pledges": "Pledges",
+        "currentPrice": "Current price",
+        "viewDetails": "View Details",
+        "edit": "Edit",
+        "delete": "Delete",
+        "deleteCampaign": "Delete Campaign",
+        "deleteConfirmation": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
+        "cancel": "Cancel",
+        "editDisabledReason": "Only draft campaigns can be edited"
+      },
+      "detail": {
+        "productDetails": "Product Details",
+        "campaignPeriod": "Campaign Period:",
+        "pricingTiers": "Pricing Tiers",
+        "currentPrice": "Current Price",
+        "buyers": "Buyers",
+        "unitsPledged": "Units Pledged",
+        "moreUnitsToUnlock": "{{count}} more units to unlock {{price}}",
+        "youHavePledged": "You have pledged {{count}} units",
+        "updatePledge": "Update Pledge",
+        "cancelling": "Cancelling...",
+        "cancelPledge": "Cancel Pledge"
+      }
     }
   },
   "pledges": {
     "confirmCommitment": "Confirm Commitment",
-    "commitmentDisabledTooltip": "Commitment is only available during the grace period. The grace period starts when the campaign ends."
+    "commitmentDisabledTooltip": "Commitment is only available during the grace period. The grace period starts when the campaign ends.",
+    "form": {
+      "priceRange": "Price Range",
+      "currentPrice": "Current Price",
+      "bestCasePrice": "Best Case Price",
+      "priceDecreasesHint": "Price decreases as more buyers join the campaign",
+      "quantity": "Quantity",
+      "decreaseQuantity": "Decrease quantity",
+      "increaseQuantity": "Increase quantity",
+      "unitPrice": "Unit price",
+      "perUnit": "per unit",
+      "total": "Total",
+      "joining": "Joining...",
+      "joinCampaign": "Join Campaign"
+    }
   },
   "team": {
     "title": "Team",
@@ -431,6 +994,61 @@
       "cta": "Get Notified"
     },
     "viewAll": "View All Active Campaigns"
+  },
+  "landing": {
+    "campaigns": {
+      "meta": {
+        "title": "Campaign Details - Mashrook",
+        "description": "View campaign details and join group buying to save money."
+      },
+      "detail": {
+        "loading": "Loading campaign...",
+        "backToCampaigns": "Back to Campaigns",
+        "notFound": "Campaign not found",
+        "notFoundDescription": "The campaign you're looking for doesn't exist or is no longer available.",
+        "failedToLoad": "Failed to load campaign",
+        "gracePeriod": {
+          "bannerTitle": "Final Commitment Window - Campaign locks soon",
+          "bannerDescription": "The pledge period has ended. New commitments accepted until final lock.",
+          "locksOn": "Locks on: {{date}}",
+          "endsIn": "Grace Period Ends In",
+          "timeRemaining": "Time Remaining"
+        },
+        "lockInfo": {
+          "title": "What happens when the campaign locks?",
+          "point1": "Final pricing is confirmed based on total pledged quantity",
+          "point2": "Invoices are generated for all committed participants",
+          "point3": "Payment collection begins for confirmed orders",
+          "point4": "No new pledges can be accepted after lock"
+        },
+        "cards": {
+          "productDetails": "Product Details",
+          "campaignPeriod": "Campaign Period:",
+          "productImages": "Product Images",
+          "pricingTiers": "Pricing Tiers"
+        },
+        "stats": {
+          "currentPrice": "Current Price",
+          "buyers": "Buyers",
+          "unitsPledged": "Units Pledged",
+          "moreUnitsToUnlock": "{{count}} more units to unlock {{price}}"
+        },
+        "pledge": {
+          "youHavePledged": "You have pledged {{count}} units",
+          "updatePledge": "Update Pledge",
+          "cancelling": "Cancelling...",
+          "cancelPledge": "Cancel Pledge",
+          "updatedSuccessfully": "Pledge updated successfully",
+          "submittedSuccessfully": "Pledge submitted successfully",
+          "cancelledSuccessfully": "Pledge cancelled successfully"
+        },
+        "auth": {
+          "signInToJoin": "Sign in to join this campaign",
+          "joinCampaignSignIn": "Join Campaign - Sign In"
+        },
+        "notAcceptingPledges": "This campaign is no longer accepting pledges."
+      }
+    }
   },
   "auth": {
     "login": {

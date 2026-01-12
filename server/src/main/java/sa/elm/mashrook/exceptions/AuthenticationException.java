@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class AuthenticationException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class AuthenticationException extends MashrookException {
+
     public AuthenticationException(String message) {
-        super(message);
+        super("authentication.failed", HttpStatus.UNAUTHORIZED, message);
     }
 }

@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class InvalidPaymentStatusTransitionException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InvalidPaymentStatusTransitionException extends MashrookException {
+
     public InvalidPaymentStatusTransitionException(String message) {
-        super(message);
+        super("payment.invalid.status.transition", HttpStatus.BAD_REQUEST, message);
     }
 }

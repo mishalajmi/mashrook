@@ -1,8 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class PaymentGatewayUnavailableException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class PaymentGatewayUnavailableException extends MashrookException {
 
     public PaymentGatewayUnavailableException(String message) {
-        super(message);
+        super("payment.gateway.unavailable", HttpStatus.SERVICE_UNAVAILABLE, message);
     }
 }

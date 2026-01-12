@@ -7,6 +7,7 @@
  */
 
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import type { ProductDetail } from "@/types/campaign";
 
@@ -63,10 +64,12 @@ function parseProductDetails(productDetails: string): ProductDetail[] {
  */
 export function ProductDetailsCard({
 	productDetails,
-	emptyMessage = "No product details available",
+	emptyMessage,
 	className,
 }: ProductDetailsCardProps): ReactNode {
+	const { t } = useTranslation();
 	const details = parseProductDetails(productDetails);
+	const displayEmptyMessage = emptyMessage ?? t("dashboard.productDetails.noDetailsAvailable");
 
 	if (details.length === 0) {
 		return (
@@ -74,7 +77,7 @@ export function ProductDetailsCard({
 				data-testid="product-details-card"
 				className={cn("text-sm text-muted-foreground", className)}
 			>
-				{emptyMessage}
+				{displayEmptyMessage}
 			</div>
 		);
 	}

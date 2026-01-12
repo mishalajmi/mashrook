@@ -6,6 +6,7 @@
  */
 
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import type { CampaignStatus } from "@/types/campaign";
@@ -22,7 +23,7 @@ interface CampaignStatusBadgeProps {
 }
 
 interface StatusConfig {
-	label: string;
+	labelKey: string;
 	styles: string;
 	showDot: boolean;
 	dotStyles: string;
@@ -31,42 +32,42 @@ interface StatusConfig {
 
 const statusConfig: Record<CampaignStatus, StatusConfig> = {
 	draft: {
-		label: "Draft",
+		labelKey: "dashboard.campaigns.status.draft",
 		styles: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
 		showDot: false,
 		dotStyles: "",
 		animated: false,
 	},
 	active: {
-		label: "Active",
+		labelKey: "dashboard.campaigns.status.active",
 		styles: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
 		showDot: true,
 		dotStyles: "bg-green-500",
 		animated: true,
 	},
 	grace_period: {
-		label: "Final Window",
-		styles: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+		labelKey: "dashboard.campaigns.status.finalWindow",
+		styles: "bg-amber-600 text-white dark:bg-amber-900/40 dark:text-amber-300",
 		showDot: true,
-		dotStyles: "bg-amber-500",
+		dotStyles: "bg-white dark:bg-amber-600",
 		animated: true,
 	},
 	locked: {
-		label: "Locked",
+		labelKey: "dashboard.campaigns.status.locked",
 		styles: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
 		showDot: true,
 		dotStyles: "bg-blue-500",
 		animated: false,
 	},
 	cancelled: {
-		label: "Cancelled",
+		labelKey: "dashboard.campaigns.status.cancelled",
 		styles: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 		showDot: false,
 		dotStyles: "",
 		animated: false,
 	},
 	done: {
-		label: "Done",
+		labelKey: "dashboard.campaigns.status.done",
 		styles: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
 		showDot: false,
 		dotStyles: "",
@@ -94,7 +95,7 @@ const sizeStyles: Record<BadgeSize, string> = {
  * Default fallback config for unknown status values
  */
 const fallbackConfig: StatusConfig = {
-	label: "Unknown",
+	labelKey: "dashboard.campaigns.status.unknown",
 	styles: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
 	showDot: false,
 	dotStyles: "",
@@ -106,13 +107,15 @@ export function CampaignStatusBadge({
 	size = "md",
 	className,
 }: CampaignStatusBadgeProps): ReactNode {
+	const { t } = useTranslation();
 	const config = statusConfig[status] ?? fallbackConfig;
+	const label = t(config.labelKey);
 
 	return (
 		<span
 			data-testid="campaign-status-badge"
 			data-status={status}
-			aria-label={`Campaign status: ${config.label}`}
+			aria-label={t("dashboard.campaigns.statusBadge.ariaLabel", { status: label })}
 			className={cn(
 				"inline-flex items-center gap-1.5 rounded-full font-medium",
 				config.styles,
@@ -130,7 +133,7 @@ export function CampaignStatusBadge({
 					)}
 				/>
 			)}
-			{config.label}
+			{label}
 		</span>
 	);
 }

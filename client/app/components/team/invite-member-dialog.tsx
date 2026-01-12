@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Loader2, Mail, UserPlus } from "lucide-react";
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import {
 	Dialog,
@@ -81,11 +82,7 @@ export function InviteMemberDialog({
 			const permissions = await teamService.getAvailablePermissions();
 			setAvailablePermissions(permissions);
 		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: "Failed to load permissions";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(error));
 		} finally {
 			setIsLoadingPermissions(false);
 		}
@@ -108,9 +105,7 @@ export function InviteMemberDialog({
 			onOpenChange(false);
 			onSuccess?.();
 		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : "Failed to send invitation";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(error));
 		} finally {
 			setIsLoading(false);
 		}

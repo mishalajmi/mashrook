@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -70,6 +71,7 @@ export function GracePeriodBanner({
 	onViewPending,
 	className,
 }: GracePeriodBannerProps): ReactNode {
+	const { t } = useTranslation();
 	const [timeRemaining, setTimeRemaining] = useState<TimeRemaining>(() =>
 		calculateTimeRemaining(gracePeriodEndDate)
 	);
@@ -96,8 +98,8 @@ export function GracePeriodBanner({
 
 	const pledgeText =
 		pendingPledgeCount === 1
-			? "1 pledge needs confirmation"
-			: `${pendingPledgeCount} pledges need confirmation`;
+			? t("dashboard.gracePeriod.banner.pledgeNeedsConfirmation", { count: 1 })
+			: t("dashboard.gracePeriod.banner.pledgesNeedConfirmation", { count: pendingPledgeCount });
 
 	return (
 		<div
@@ -105,22 +107,22 @@ export function GracePeriodBanner({
 			role="alert"
 			className={cn(
 				"flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
-				"rounded-lg border border-amber-200 bg-amber-50 p-4",
-				"dark:border-amber-800 dark:bg-amber-950",
+				"rounded-lg border p-4",
+				"bg-[var(--color-alert-warning-bg)] border-[var(--color-alert-warning-border)]",
 				className
 			)}
 		>
 			<div className="flex items-start gap-3">
 				<AlertTriangle
 					data-testid="grace-period-icon"
-					className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"
+					className="h-5 w-5 text-[var(--color-alert-warning-icon)] shrink-0 mt-0.5"
 				/>
 				<div className="space-y-1">
-					<p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+					<p className="text-sm font-medium text-[var(--color-alert-warning-text)]">
 						{pledgeText}
 					</p>
-					<p className="text-sm text-amber-700 dark:text-amber-300">
-						Grace period ends in{" "}
+					<p className="text-sm text-[var(--color-alert-warning-text-muted)]">
+						{t("dashboard.gracePeriod.banner.gracePeriodEndsIn")}{" "}
 						<span
 							data-testid="grace-period-countdown"
 							className="font-semibold"
@@ -134,9 +136,9 @@ export function GracePeriodBanner({
 				variant="outline"
 				size="sm"
 				onClick={onViewPending}
-				className="border-amber-300 bg-amber-100 text-amber-800 hover:bg-amber-200 hover:text-amber-900 dark:border-amber-700 dark:bg-amber-900 dark:text-amber-200 dark:hover:bg-amber-800"
+				className="border-[var(--color-alert-warning-border)] bg-[var(--color-alert-warning-bg)] text-[var(--color-alert-warning-text)] hover:opacity-80"
 			>
-				View Pending Confirmations
+				{t("dashboard.gracePeriod.banner.viewPendingConfirmations")}
 			</Button>
 		</div>
 	);

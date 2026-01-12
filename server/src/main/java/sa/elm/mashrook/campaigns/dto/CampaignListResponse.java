@@ -34,7 +34,7 @@ public record CampaignListResponse(
             String supplierName,
             LocalDate startDate,
             LocalDate endDate,
-            Integer targetQty,
+            Integer targetQuantity,
             Integer totalPledged,
             BigDecimal originalPrice,
             BigDecimal currentPrice,

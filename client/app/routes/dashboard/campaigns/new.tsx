@@ -6,8 +6,11 @@
 
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import { cn } from "@/lib/utils";
 import {
@@ -20,9 +23,9 @@ import {
 	Input,
 	Label,
 } from "@/components/ui";
-import { DiscountBracketEditor, ProductDetailsEditor } from "@/components/campaigns";
-import { campaignService, type DiscountBracketRequest } from "@/services/campaign.service";
-import type { CampaignFormData, DiscountBracketFormData, ProductDetail } from "@/types/campaign";
+import { DiscountBracketEditor, ProductDetailsEditor, MediaUploader } from "@/components/campaigns";
+import { campaignService, type DiscountBracketRequest, type CampaignMediaResponse } from "@/services/campaign.service";
+import type { CampaignFormData, DiscountBracketFormData, ProductDetail, CampaignMedia } from "@/types/campaign";
 
 interface FormErrors {
 	title?: string;
@@ -33,11 +36,31 @@ interface FormErrors {
 	endDate?: string;
 }
 
-const steps = [
-	{ id: 1, name: "Basic Info" },
-	{ id: 2, name: "Timeline" },
-	{ id: 3, name: "Pricing" },
+const getSteps = (t: (key: string) => string) => [
+	{ id: 1, name: t("dashboard.campaigns.create.steps.basicInfo") },
+	{ id: 2, name: t("dashboard.campaigns.create.steps.timeline") },
+	{ id: 3, name: t("dashboard.campaigns.create.steps.pricing") },
+	{ id: 4, name: t("dashboard.campaigns.create.steps.media") },
 ];
+
+/**
+ * Transform media response to component-compatible type
+ */
+function toMedia(response: CampaignMediaResponse): CampaignMedia {
+	return {
+		id: response.id,
+		campaignId: response.campaignId,
+		storageKey: response.storageKey,
+		originalFilename: response.originalFilename,
+		contentType: response.contentType,
+		sizeBytes: response.sizeBytes,
+		mediaType: response.mediaType,
+		mediaOrder: response.mediaOrder,
+		presignedUrl: response.presignedUrl,
+		createdAt: response.createdAt,
+		updatedAt: response.updatedAt,
+	};
+}
 
 const initialFormData: CampaignFormData = {
 	title: "",
@@ -125,42 +148,46 @@ function StepIndicator({
  */
 export default function NewCampaignPage(): ReactNode {
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 	const [currentStep, setCurrentStep] = useState(1);
 	const [formData, setFormData] = useState<CampaignFormData>(initialFormData);
 	const [brackets, setBrackets] = useState<DiscountBracketFormData[]>(initialBrackets);
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [isSaving, setIsSaving] = useState(false);
 	const [isPublishing, setIsPublishing] = useState(false);
+	// Campaign ID and media state - populated after draft creation
+	const [campaignId, setCampaignId] = useState<string | null>(null);
+	const [media, setMedia] = useState<CampaignMedia[]>([]);
 
 	const validateStep = (step: number): boolean => {
 		const newErrors: FormErrors = {};
 
 		if (step === 1) {
 			if (!formData.title.trim()) {
-				newErrors.title = "Title is required";
+				newErrors.title = t("dashboard.campaigns.create.validation.titleRequired");
 			}
 			if (!formData.description.trim()) {
-				newErrors.description = "Description is required";
+				newErrors.description = t("dashboard.campaigns.create.validation.descriptionRequired");
 			}
 			if (formData.productDetails.length === 0) {
-				newErrors.productDetails = "At least one product detail is required";
+				newErrors.productDetails = t("dashboard.campaigns.create.validation.productDetailsRequired");
 			} else if (formData.productDetails.some((d) => !d.key.trim() || !d.value.trim())) {
-				newErrors.productDetails = "All product details must have both key and value";
+				newErrors.productDetails = t("dashboard.campaigns.create.validation.productDetailsMustHaveBoth");
 			}
 			if (formData.targetQuantity < 1) {
-				newErrors.targetQuantity = "Target quantity must be at least 1";
+				newErrors.targetQuantity = t("dashboard.campaigns.create.validation.targetQuantityMin");
 			}
 		}
 
 		if (step === 2) {
 			if (!formData.startDate) {
-				newErrors.startDate = "Start date is required";
+				newErrors.startDate = t("dashboard.campaigns.create.validation.startDateRequired");
 			}
 			if (!formData.endDate) {
-				newErrors.endDate = "End date is required";
+				newErrors.endDate = t("dashboard.campaigns.create.validation.endDateRequired");
 			}
 			if (formData.startDate && formData.endDate && formData.startDate >= formData.endDate) {
-				newErrors.endDate = "End date must be after start date";
+				newErrors.endDate = t("dashboard.campaigns.create.validation.endDateAfterStart");
 			}
 		}
 
@@ -168,17 +195,78 @@ export default function NewCampaignPage(): ReactNode {
 		return Object.keys(newErrors).length === 0;
 	};
 
-	const handleNext = () => {
-		if (validateStep(currentStep)) {
-			setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+	const handleNext = async () => {
+		if (!validateStep(currentStep)) {
+			return;
 		}
+
+		// When moving from step 3 to step 4, create draft campaign first
+		if (currentStep === 3 && !campaignId) {
+			try {
+				setIsSaving(true);
+				const bracketRequests: DiscountBracketRequest[] = brackets.map((bracket) => ({
+					minQuantity: bracket.minQuantity,
+					maxQuantity: bracket.maxQuantity,
+					unitPrice: bracket.unitPrice,
+					bracketOrder: bracket.bracketOrder,
+				}));
+
+				const productDetailsJson = JSON.stringify(formData.productDetails);
+
+				const campaign = await campaignService.createCampaign({
+					title: formData.title,
+					description: formData.description,
+					productDetails: productDetailsJson,
+					targetQuantity: formData.targetQuantity,
+					startDate: formData.startDate,
+					endDate: formData.endDate,
+					brackets: bracketRequests,
+				});
+
+				setCampaignId(campaign.id);
+				toast.success(t("dashboard.campaigns.savedAsDraft"));
+			} catch (err) {
+				toast.error(getTranslatedErrorMessage(err));
+				return;
+			} finally {
+				setIsSaving(false);
+			}
+		}
+
+		setCurrentStep((prev) => Math.min(prev + 1, steps.length));
 	};
 
 	const handleBack = () => {
 		setCurrentStep((prev) => Math.max(prev - 1, 1));
 	};
 
+	// Media handlers for step 4
+	const handleMediaUpload = async (file: File) => {
+		if (!campaignId) return;
+
+		await campaignService.uploadMedia(campaignId, file, media.length);
+		// Refresh media list
+		const updatedMedia = await campaignService.listMedia(campaignId);
+		setMedia(updatedMedia.map(toMedia));
+	};
+
+	const handleMediaDelete = async (mediaId: string) => {
+		if (!campaignId) return;
+
+		await campaignService.deleteMedia(campaignId, mediaId);
+		// Refresh media list
+		const updatedMedia = await campaignService.listMedia(campaignId);
+		setMedia(updatedMedia.map(toMedia));
+	};
+
 	const handleSaveDraft = async () => {
+		// If campaign already created (on step 4), just navigate
+		if (campaignId) {
+			toast.success(t("dashboard.campaigns.savedAsDraft"));
+			navigate("/dashboard/campaigns");
+			return;
+		}
+
 		try {
 			setIsSaving(true);
 
@@ -204,54 +292,60 @@ export default function NewCampaignPage(): ReactNode {
 				brackets: bracketRequests,
 			});
 
-			toast.success("Campaign saved as draft");
+			toast.success(t("dashboard.campaigns.savedAsDraft"));
 			navigate("/dashboard/campaigns");
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to save campaign";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsSaving(false);
 		}
 	};
 
 	const handlePublish = async () => {
-		if (!validateStep(currentStep)) {
-			return;
-		}
-
 		try {
 			setIsPublishing(true);
 
-			// Convert brackets to API format
-			const bracketRequests: DiscountBracketRequest[] = brackets.map((bracket) => ({
-				minQuantity: bracket.minQuantity,
-				maxQuantity: bracket.maxQuantity,
-				unitPrice: bracket.unitPrice,
-				bracketOrder: bracket.bracketOrder,
-			}));
+			let idToPublish = campaignId;
 
-			// Serialize product details to JSON
-			const productDetailsJson = JSON.stringify(formData.productDetails);
+			// If campaign not yet created (publishing from step 3 or earlier), create it first
+			if (!idToPublish) {
+				if (!validateStep(currentStep)) {
+					setIsPublishing(false);
+					return;
+				}
 
-			// Create the campaign with brackets included
-			const campaign = await campaignService.createCampaign({
-				title: formData.title,
-				description: formData.description,
-				productDetails: productDetailsJson,
-				targetQuantity: formData.targetQuantity,
-				startDate: formData.startDate,
-				endDate: formData.endDate,
-				brackets: bracketRequests,
-			});
+				// Convert brackets to API format
+				const bracketRequests: DiscountBracketRequest[] = brackets.map((bracket) => ({
+					minQuantity: bracket.minQuantity,
+					maxQuantity: bracket.maxQuantity,
+					unitPrice: bracket.unitPrice,
+					bracketOrder: bracket.bracketOrder,
+				}));
+
+				// Serialize product details to JSON
+				const productDetailsJson = JSON.stringify(formData.productDetails);
+
+				// Create the campaign with brackets included
+				const campaign = await campaignService.createCampaign({
+					title: formData.title,
+					description: formData.description,
+					productDetails: productDetailsJson,
+					targetQuantity: formData.targetQuantity,
+					startDate: formData.startDate,
+					endDate: formData.endDate,
+					brackets: bracketRequests,
+				});
+
+				idToPublish = campaign.id;
+			}
 
 			// Publish the campaign
-			await campaignService.publishCampaign(campaign.id);
+			await campaignService.publishCampaign(idToPublish);
 
-			toast.success("Campaign published successfully");
+			toast.success(t("dashboard.campaigns.publishedSuccessfully"));
 			navigate("/dashboard/campaigns");
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to publish campaign";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsPublishing(false);
 		}
@@ -265,6 +359,8 @@ export default function NewCampaignPage(): ReactNode {
 		}
 	};
 
+	const steps = getSteps(t);
+
 	return (
 		<div className="flex flex-col gap-6 p-6">
 			{/* Header */}
@@ -274,18 +370,18 @@ export default function NewCampaignPage(): ReactNode {
 					className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Campaigns
+					{t("dashboard.common.backToCampaigns")}
 				</Link>
 				<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-					<h1 className="text-2xl font-bold tracking-tight">Create Campaign</h1>
+					<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.campaigns.create.title")}</h1>
 					<Button variant="outline" onClick={handleSaveDraft} disabled={isSaving || isPublishing}>
 						{isSaving ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Saving...
+								{t("dashboard.common.saving")}
 							</>
 						) : (
-							"Save Draft"
+							t("dashboard.campaigns.create.saveDraft")
 						)}
 					</Button>
 				</div>
@@ -298,14 +394,16 @@ export default function NewCampaignPage(): ReactNode {
 			<Card>
 				<CardHeader>
 					<CardTitle>
-						{currentStep === 1 && "Basic Information"}
-						{currentStep === 2 && "Campaign Timeline"}
-						{currentStep === 3 && "Pricing Tiers"}
+						{currentStep === 1 && t("dashboard.campaigns.create.basicInformation.title")}
+						{currentStep === 2 && t("dashboard.campaigns.create.timeline.title")}
+						{currentStep === 3 && t("dashboard.campaigns.create.pricing.title")}
+						{currentStep === 4 && t("dashboard.campaigns.create.media.title")}
 					</CardTitle>
 					<CardDescription>
-						{currentStep === 1 && "Enter the basic details about your campaign"}
-						{currentStep === 2 && "Set the start and end dates for your campaign"}
-						{currentStep === 3 && "Define discount brackets based on quantity"}
+						{currentStep === 1 && t("dashboard.campaigns.create.basicInformation.description")}
+						{currentStep === 2 && t("dashboard.campaigns.create.timeline.description")}
+						{currentStep === 3 && t("dashboard.campaigns.create.pricing.description")}
+						{currentStep === 4 && t("dashboard.campaigns.create.media.description")}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
@@ -313,12 +411,12 @@ export default function NewCampaignPage(): ReactNode {
 					{currentStep === 1 && (
 						<div className="space-y-4">
 							<div className="space-y-2">
-								<Label htmlFor="title">Title</Label>
+								<Label htmlFor="title">{t("dashboard.campaigns.create.form.title")}</Label>
 								<Input
 									id="title"
 									value={formData.title}
 									onChange={(e) => updateFormData("title", e.target.value)}
-									placeholder="Enter campaign title"
+									placeholder={t("dashboard.campaigns.create.form.titlePlaceholder")}
 									aria-invalid={!!errors.title}
 								/>
 								{errors.title && (
@@ -327,12 +425,12 @@ export default function NewCampaignPage(): ReactNode {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="description">Description</Label>
+								<Label htmlFor="description">{t("dashboard.campaigns.create.form.description")}</Label>
 								<textarea
 									id="description"
 									value={formData.description}
 									onChange={(e) => updateFormData("description", e.target.value)}
-									placeholder="Describe your campaign"
+									placeholder={t("dashboard.campaigns.create.form.descriptionPlaceholder")}
 									rows={4}
 									aria-invalid={!!errors.description}
 									className="flex min-h-[80px] w-full rounded-[6px] border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -343,7 +441,7 @@ export default function NewCampaignPage(): ReactNode {
 							</div>
 
 							<div className="space-y-2">
-								<Label>Product Details</Label>
+								<Label>{t("dashboard.campaigns.create.form.productDetails")}</Label>
 								<ProductDetailsEditor
 									details={formData.productDetails}
 									onChange={(details) => updateFormData("productDetails", details)}
@@ -354,7 +452,7 @@ export default function NewCampaignPage(): ReactNode {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="targetQuantity">Target Quantity</Label>
+								<Label htmlFor="targetQuantity">{t("dashboard.campaigns.create.form.targetQuantity")}</Label>
 								<Input
 									id="targetQuantity"
 									type="number"
@@ -377,7 +475,7 @@ export default function NewCampaignPage(): ReactNode {
 						<div className="space-y-4">
 							<div className="grid gap-4 sm:grid-cols-2">
 								<div className="space-y-2">
-									<Label htmlFor="startDate">Start Date</Label>
+									<Label htmlFor="startDate">{t("dashboard.common.startDate")}</Label>
 									<Input
 										id="startDate"
 										type="date"
@@ -391,7 +489,7 @@ export default function NewCampaignPage(): ReactNode {
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="endDate">End Date</Label>
+									<Label htmlFor="endDate">{t("dashboard.common.endDate")}</Label>
 									<Input
 										id="endDate"
 										type="date"
@@ -417,27 +515,50 @@ export default function NewCampaignPage(): ReactNode {
 						</div>
 					)}
 
+					{/* Step 4: Media */}
+					{currentStep === 4 && (
+						<div className="space-y-4">
+							<MediaUploader
+								media={media}
+								onUpload={handleMediaUpload}
+								onDelete={handleMediaDelete}
+							/>
+							<p className="text-sm text-muted-foreground">
+								{t("dashboard.campaigns.create.media.helperText")}
+							</p>
+						</div>
+					)}
+
 					{/* Navigation Buttons */}
 					<div className="flex justify-between pt-4 border-t">
 						<div>
 							{currentStep > 1 && (
 								<Button variant="outline" onClick={handleBack} disabled={isSaving || isPublishing}>
-									Back
+									{t("dashboard.common.back")}
 								</Button>
 							)}
 						</div>
 						<div className="flex gap-2">
 							{currentStep < steps.length ? (
-								<Button onClick={handleNext} disabled={isSaving || isPublishing}>Next</Button>
+								<Button onClick={handleNext} disabled={isSaving || isPublishing}>
+									{isSaving && currentStep === 3 ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											{t("dashboard.campaigns.create.creatingDraft")}
+										</>
+									) : (
+										t("dashboard.common.next")
+									)}
+								</Button>
 							) : (
 								<Button onClick={handlePublish} disabled={isSaving || isPublishing}>
 									{isPublishing ? (
 										<>
 											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-											Publishing...
+											{t("dashboard.campaigns.create.publishing")}
 										</>
 									) : (
-										"Publish Campaign"
+										t("dashboard.campaigns.create.publishCampaign")
 									)}
 								</Button>
 							)}

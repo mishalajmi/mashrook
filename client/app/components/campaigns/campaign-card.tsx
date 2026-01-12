@@ -6,6 +6,7 @@
  */
 
 import { useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Users, DollarSign, Clock, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -24,10 +25,15 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger,
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
 } from "@/components/ui";
 import type { Campaign, CampaignPledgeSummary } from "@/types/campaign";
 import { CampaignStatusBadge } from "./campaign-status-badge";
 import { BracketProgressIndicator } from "./bracket-progress-indicator";
+import { calculateDaysRemaining } from "@/lib/date";
 
 interface CampaignCardProps {
 	/** Campaign data */
@@ -58,16 +64,7 @@ function formatPrice(price: string): string {
 	return `$${numericPrice.toFixed(2)}`;
 }
 
-/**
- * Calculate days remaining until a target date
- */
-function calculateDaysRemaining(targetDate: string): number {
-	const target = new Date(targetDate);
-	const now = new Date();
-	const diffTime = target.getTime() - now.getTime();
-	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-	return Math.max(0, diffDays);
-}
+
 
 /**
  * CampaignCard - Displays campaign summary in card format
@@ -90,6 +87,7 @@ export function CampaignCard({
 	onDelete,
 	className,
 }: CampaignCardProps): ReactNode {
+	const { t } = useTranslation();
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
 	// For grace period campaigns, show days until grace period ends
@@ -123,7 +121,7 @@ export function CampaignCard({
 					data-testid="ending-soon-badge"
 					className="absolute -top-2 -right-2 px-2 py-1 bg-amber-500 text-white text-xs font-bold uppercase tracking-wide rounded-full shadow-md animate-pulse z-10"
 				>
-					Ending Soon
+					{t("dashboard.browseCampaigns.card.endingSoon")}
 				</div>
 			)}
 			<CardHeader className="space-y-3">
@@ -142,7 +140,7 @@ export function CampaignCard({
 				{/* Grace Period Urgency Message */}
 				{isGracePeriod && (
 					<p className="text-sm font-medium text-amber-600 dark:text-amber-500">
-						Final commitment window - pledge now
+						{t("dashboard.browseCampaigns.card.finalCommitmentMessage")}
 					</p>
 				)}
 			</CardHeader>
@@ -158,7 +156,7 @@ export function CampaignCard({
 						>
 							{totalPledges}
 						</span>
-						<span className="text-xs text-muted-foreground">Pledges</span>
+						<span className="text-xs text-muted-foreground">{t("dashboard.browseCampaigns.card.pledges")}</span>
 					</div>
 
 					<div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
@@ -169,7 +167,7 @@ export function CampaignCard({
 						>
 							{currentPrice ? formatPrice(currentPrice) : "--"}
 						</span>
-						<span className="text-xs text-muted-foreground">Price</span>
+						<span className="text-xs text-muted-foreground">{t("dashboard.browseCampaigns.card.price")}</span>
 					</div>
 
 					<div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
@@ -180,7 +178,7 @@ export function CampaignCard({
 						>
 							{daysRemaining}
 						</span>
-						<span className="text-xs text-muted-foreground">Days</span>
+						<span className="text-xs text-muted-foreground">{t("dashboard.browseCampaigns.card.days")}</span>
 					</div>
 				</div>
 
@@ -201,16 +199,30 @@ export function CampaignCard({
 					className="flex-1"
 					onClick={() => onViewDetails?.(campaign)}
 				>
-					View Details
+					{t("dashboard.browseCampaigns.card.viewDetails")}
 				</Button>
-				{showActions && isDraft && canEdit && (
-					<Button
-						variant="secondary"
-						className="flex-1"
-						onClick={() => onEdit?.(campaign)}
-					>
-						Edit
-					</Button>
+				{showActions && canEdit && (
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<span className="flex-1">
+									<Button
+										variant="secondary"
+										className="w-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed"
+										onClick={() => onEdit?.(campaign)}
+										disabled={!isDraft}
+									>
+										{t("dashboard.browseCampaigns.card.edit")}
+									</Button>
+								</span>
+							</TooltipTrigger>
+							{!isDraft && (
+								<TooltipContent>
+									<p>{t("dashboard.browseCampaigns.card.editDisabledReason")}</p>
+								</TooltipContent>
+							)}
+						</Tooltip>
+					</TooltipProvider>
 				)}
 				{showActions && canDelete && (
 					<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -218,25 +230,25 @@ export function CampaignCard({
 							<Button
 								variant="destructive"
 								size="icon"
-								aria-label="Delete campaign"
+								aria-label={t("dashboard.browseCampaigns.card.delete")}
 							>
 								<Trash2 className="h-4 w-4" />
 							</Button>
 						</AlertDialogTrigger>
 						<AlertDialogContent>
 							<AlertDialogHeader>
-								<AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+								<AlertDialogTitle>{t("dashboard.browseCampaigns.card.deleteCampaign")}</AlertDialogTitle>
 								<AlertDialogDescription>
-									Are you sure you want to delete "{campaign.title}"? This action cannot be undone.
+									{t("dashboard.browseCampaigns.card.deleteConfirmation", { title: campaign.title })}
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
-								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<AlertDialogCancel>{t("dashboard.browseCampaigns.card.cancel")}</AlertDialogCancel>
 								<AlertDialogAction
 									onClick={handleDeleteConfirm}
 									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 								>
-									Delete
+									{t("dashboard.browseCampaigns.card.delete")}
 								</AlertDialogAction>
 							</AlertDialogFooter>
 						</AlertDialogContent>

@@ -6,8 +6,11 @@
  */
 
 import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Building2, Check, X } from "lucide-react";
 import { toast } from "sonner";
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date";
@@ -42,18 +45,18 @@ import {
 // Status badge configurations
 const statusConfig: Record<
 	OrganizationStatus,
-	{ label: string; className: string }
+	{ labelKey: string; className: string }
 > = {
 	PENDING: {
-		label: "Pending",
+		labelKey: "dashboard.organizations.status.pending",
 		className: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
 	},
 	ACTIVE: {
-		label: "Active",
+		labelKey: "dashboard.organizations.status.active",
 		className: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
 	},
 	INACTIVE: {
-		label: "Inactive",
+		labelKey: "dashboard.organizations.status.inactive",
 		className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 	},
 };
@@ -72,6 +75,8 @@ type StatusFilter = OrganizationStatus | "ALL";
  * - Toast notifications on success/error
  */
 export default function OrganizationsPage(): ReactNode {
+	const { t } = useTranslation();
+
 	// State
 	const [organizations, setOrganizations] = useState<Organization[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -93,9 +98,7 @@ export default function OrganizationsPage(): ReactNode {
 			const data = await organizationService.getOrganizations(options);
 			setOrganizations(data);
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : "Failed to load organizations";
-			setError(message);
+			setError(getTranslatedErrorMessage(err, t));
 		} finally {
 			setLoading(false);
 		}
@@ -124,16 +127,14 @@ export default function OrganizationsPage(): ReactNode {
 		try {
 			setIsProcessing(true);
 			await organizationService.verifyOrganization(selectedOrg.id);
-			toast.success(`Organization "${selectedOrg.nameEn}" has been verified successfully`);
+			toast.success(t("dashboard.organizations.verifiedSuccessfully", { name: selectedOrg.nameEn }));
 			setIsVerifyDialogOpen(false);
 			setSelectedOrg(null);
 			// Refresh the list
 			const status = statusFilter === "ALL" ? undefined : statusFilter;
 			await fetchOrganizations(status);
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : "Failed to verify organization";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsProcessing(false);
 		}
@@ -156,16 +157,14 @@ export default function OrganizationsPage(): ReactNode {
 		try {
 			setIsProcessing(true);
 			await organizationService.rejectOrganization(selectedOrg.id);
-			toast.success(`Organization "${selectedOrg.nameEn}" has been rejected`);
+			toast.success(t("dashboard.organizations.rejectedSuccessfully", { name: selectedOrg.nameEn }));
 			setIsRejectDialogOpen(false);
 			setSelectedOrg(null);
 			// Refresh the list
 			const status = statusFilter === "ALL" ? undefined : statusFilter;
 			await fetchOrganizations(status);
 		} catch (err) {
-			const message =
-				err instanceof Error ? err.message : "Failed to reject organization";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsProcessing(false);
 		}
@@ -185,13 +184,13 @@ export default function OrganizationsPage(): ReactNode {
 			<div data-testid="organizations-page" className="flex flex-col gap-6 p-6">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-						<h1 className="text-2xl font-bold tracking-tight">Organizations</h1>
+						<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.organizations.title")}</h1>
 						<p className="text-muted-foreground">
-							Manage organizations on the platform
+							{t("dashboard.organizations.description")}
 						</p>
 					</div>
 				</div>
-				<LoadingState message="Loading organizations..." />
+				<LoadingState message={t("dashboard.organizations.loading")} />
 			</div>
 		);
 	}
@@ -202,16 +201,16 @@ export default function OrganizationsPage(): ReactNode {
 			<div data-testid="organizations-page" className="flex flex-col gap-6 p-6">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-						<h1 className="text-2xl font-bold tracking-tight">Organizations</h1>
+						<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.organizations.title")}</h1>
 						<p className="text-muted-foreground">
-							Manage organizations on the platform
+							{t("dashboard.organizations.description")}
 						</p>
 					</div>
 				</div>
 				<EmptyState
-					title="Failed to load organizations"
+					title={t("dashboard.organizations.loadError")}
 					description={error}
-					actionLabel="Try Again"
+					actionLabel={t("dashboard.common.tryAgain")}
 					onAction={() => {
 						const status = statusFilter === "ALL" ? undefined : statusFilter;
 						fetchOrganizations(status);
@@ -226,9 +225,9 @@ export default function OrganizationsPage(): ReactNode {
 			{/* Header */}
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 className="text-2xl font-bold tracking-tight">Organizations</h1>
+					<h1 className="text-2xl font-bold tracking-tight">{t("dashboard.organizations.title")}</h1>
 					<p className="text-muted-foreground">
-						Manage organizations on the platform
+						{t("dashboard.organizations.description")}
 					</p>
 				</div>
 			</div>
@@ -240,13 +239,13 @@ export default function OrganizationsPage(): ReactNode {
 					onValueChange={handleStatusFilterChange}
 				>
 					<SelectTrigger data-testid="status-filter" className="w-[180px]">
-						<SelectValue placeholder="Filter by status" />
+						<SelectValue placeholder={t("dashboard.organizations.filter.placeholder")} />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="ALL">All Statuses</SelectItem>
-						<SelectItem value="PENDING">Pending</SelectItem>
-						<SelectItem value="ACTIVE">Active</SelectItem>
-						<SelectItem value="INACTIVE">Inactive</SelectItem>
+						<SelectItem value="ALL">{t("dashboard.organizations.filter.all")}</SelectItem>
+						<SelectItem value="PENDING">{t("dashboard.organizations.status.pending")}</SelectItem>
+						<SelectItem value="ACTIVE">{t("dashboard.organizations.status.active")}</SelectItem>
+						<SelectItem value="INACTIVE">{t("dashboard.organizations.status.inactive")}</SelectItem>
 					</SelectContent>
 				</Select>
 			</div>
@@ -257,11 +256,11 @@ export default function OrganizationsPage(): ReactNode {
 					<Table data-testid="organizations-table">
 						<TableHeader>
 							<TableRow>
-								<TableHead>Name</TableHead>
-								<TableHead>Type</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Created</TableHead>
-								<TableHead className="text-right">Actions</TableHead>
+								<TableHead>{t("dashboard.organizations.table.name")}</TableHead>
+								<TableHead>{t("dashboard.organizations.table.type")}</TableHead>
+								<TableHead>{t("dashboard.organizations.table.status")}</TableHead>
+								<TableHead>{t("dashboard.organizations.table.created")}</TableHead>
+								<TableHead className="text-right">{t("dashboard.organizations.table.actions")}</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -283,7 +282,7 @@ export default function OrganizationsPage(): ReactNode {
 													config.className
 												)}
 											>
-												{config.label}
+												{t(config.labelKey)}
 											</span>
 										</TableCell>
 										<TableCell className="text-muted-foreground">
@@ -297,16 +296,16 @@ export default function OrganizationsPage(): ReactNode {
 														size="sm"
 														onClick={() => handleVerifyClick(org)}
 													>
-														<Check className="h-4 w-4 mr-1" />
-														Verify
+														<Check className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
+														{t("dashboard.common.verify")}
 													</Button>
 													<Button
 														variant="destructive"
 														size="sm"
 														onClick={() => handleRejectClick(org)}
 													>
-														<X className="h-4 w-4 mr-1" />
-														Reject
+														<X className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
+														{t("dashboard.common.reject")}
 													</Button>
 												</div>
 											)}
@@ -320,11 +319,11 @@ export default function OrganizationsPage(): ReactNode {
 			) : (
 				<EmptyState
 					icon={Building2}
-					title="No organizations found"
+					title={t("dashboard.organizations.noOrganizations.title")}
 					description={
 						statusFilter === "ALL"
-							? "There are no organizations registered on the platform yet"
-							: `No ${statusFilter.toLowerCase()} organizations found`
+							? t("dashboard.organizations.noOrganizations.description")
+							: t("dashboard.organizations.noMatchingOrganizations", { status: t(`dashboard.organizations.status.${statusFilter.toLowerCase()}`) })
 					}
 				/>
 			)}
@@ -333,12 +332,9 @@ export default function OrganizationsPage(): ReactNode {
 			<Dialog open={isVerifyDialogOpen} onOpenChange={setIsVerifyDialogOpen}>
 				<DialogContent data-testid="verify-dialog">
 					<DialogHeader>
-						<DialogTitle>Verify Organization</DialogTitle>
+						<DialogTitle>{t("dashboard.organizations.verifyDialog.title")}</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to verify{" "}
-							<span className="font-semibold">{selectedOrg?.nameEn}</span>?
-							This will activate the organization and allow them to use the
-							platform.
+							{t("dashboard.organizations.verifyDialog.description", { name: selectedOrg?.nameEn })}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
@@ -347,10 +343,10 @@ export default function OrganizationsPage(): ReactNode {
 							onClick={handleVerifyCancel}
 							disabled={isProcessing}
 						>
-							Cancel
+							{t("dashboard.common.cancel")}
 						</Button>
 						<Button onClick={handleVerifyConfirm} disabled={isProcessing}>
-							{isProcessing ? "Verifying..." : "Confirm"}
+							{isProcessing ? t("dashboard.organizations.verifyDialog.verifying") : t("dashboard.common.confirm")}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
@@ -360,11 +356,9 @@ export default function OrganizationsPage(): ReactNode {
 			<Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
 				<DialogContent data-testid="reject-dialog">
 					<DialogHeader>
-						<DialogTitle>Reject Organization</DialogTitle>
+						<DialogTitle>{t("dashboard.organizations.rejectDialog.title")}</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to reject{" "}
-							<span className="font-semibold">{selectedOrg?.nameEn}</span>?
-							This will mark the organization as inactive.
+							{t("dashboard.organizations.rejectDialog.description", { name: selectedOrg?.nameEn })}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
@@ -373,14 +367,14 @@ export default function OrganizationsPage(): ReactNode {
 							onClick={handleRejectCancel}
 							disabled={isProcessing}
 						>
-							Cancel
+							{t("dashboard.common.cancel")}
 						</Button>
 						<Button
 							variant="destructive"
 							onClick={handleRejectConfirm}
 							disabled={isProcessing}
 						>
-							{isProcessing ? "Rejecting..." : "Confirm"}
+							{isProcessing ? t("dashboard.organizations.rejectDialog.rejecting") : t("dashboard.common.confirm")}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

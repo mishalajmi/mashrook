@@ -117,7 +117,7 @@ class CampaignControllerTest {
                 .durationDays(30)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusDays(30))
-                .targetQty(100)
+                .targetQuantity(100)
                 .status(status)
                 .brackets(List.of())
                 .createdAt(LocalDateTime.now())
@@ -191,7 +191,7 @@ class CampaignControllerTest {
                     .durationDays(30)
                     .startDate(LocalDate.now())
                     .endDate(LocalDate.now().plusDays(30))
-                    .targetQty(100)
+                    .targetQuantity(100)
                     .status(CampaignStatus.DRAFT)
                     .brackets(List.of())
                     .createdAt(LocalDateTime.now())
@@ -507,7 +507,8 @@ class CampaignControllerTest {
                     100,
                     50,
                     "active",
-                    brackets
+                    brackets,
+                    List.of()  // media
             );
 
             when(campaignService.getPublicCampaignDetails(campaignId)).thenReturn(response);

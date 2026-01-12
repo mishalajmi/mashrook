@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class UserAlreadyExistsException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class UserAlreadyExistsException extends MashrookException {
+
     public UserAlreadyExistsException(String message) {
-        super(message);
+        super("user.already.exists", HttpStatus.BAD_REQUEST, message);
     }
 }

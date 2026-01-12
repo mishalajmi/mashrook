@@ -134,6 +134,20 @@
 	--color-sidebar-accent-foreground: #f0f0f5;
 	--color-sidebar-border: #1f2a28;
 	--color-sidebar-ring: #14B8A6;
+
+	/* Alert colors - Warning (amber) - Dark mode - using dark text for readability */
+	--color-alert-warning-bg: #fef3c7; /* Light amber background */
+	--color-alert-warning-border: #d97706;
+	--color-alert-warning-text: #78350f; /* Dark text */
+	--color-alert-warning-text-muted: #92400e; /* Dark muted text */
+	--color-alert-warning-icon: #d97706;
+
+	/* Alert colors - Info (slate/neutral) - Dark mode - using dark text for readability */
+	--color-alert-info-bg: #e0f2fe; /* Light blue background */
+	--color-alert-info-border: #0284c7;
+	--color-alert-info-text: #0c4a6e; /* Dark text */
+	--color-alert-info-text-muted: #0369a1; /* Dark muted text */
+	--color-alert-info-icon: #0284c7;
 }
 
 @keyframes fade-in {
@@ -252,6 +266,35 @@
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+
+	/* Alert colors - Warning (amber) - Light mode */
+	--color-alert-warning-bg: #fffbeb;
+	--color-alert-warning-border: #f59e0b; /* Changed from #fcd34d */
+	--color-alert-warning-text: #78350f;
+	--color-alert-warning-text-muted: #92400e;
+	--color-alert-warning-icon: #d97706;
+
+	/* Alert colors - Info (slate/neutral) - Light mode */
+	--color-alert-info-bg: #f1f5f9; /* Changed from #f8fafc - slightly darker */
+	--color-alert-info-border: #64748b; /* Changed from #cbd5e1 - more pronounced */
+	--color-alert-info-text: #0f172a; /* Changed from #1e293b - darker */
+	--color-alert-info-text-muted: #334155; /* Changed from #475569 - darker */
+	--color-alert-info-icon: #2563eb; /* Changed from #3b82f6 - more saturated */
+}
+
+/* Dark mode alert overrides - must come after :root */
+.dark {
+	--color-alert-warning-bg: #fef3c7;
+	--color-alert-warning-border: #d97706;
+	--color-alert-warning-text: #78350f;
+	--color-alert-warning-text-muted: #92400e;
+	--color-alert-warning-icon: #d97706;
+
+	--color-alert-info-bg: #e0f2fe;
+	--color-alert-info-border: #0284c7;
+	--color-alert-info-text: #0c4a6e;
+	--color-alert-info-text-muted: #0369a1;
+	--color-alert-info-icon: #0284c7;
 }
 
 html {

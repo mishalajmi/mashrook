@@ -18,6 +18,7 @@ import sa.elm.mashrook.campaigns.domain.CampaignRepository;
 import sa.elm.mashrook.campaigns.domain.CampaignStatus;
 import sa.elm.mashrook.campaigns.dto.CampaignCreateRequest;
 import sa.elm.mashrook.campaigns.dto.CampaignListResponse;
+import sa.elm.mashrook.campaigns.dto.CampaignMediaResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignPublicResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignResponse;
 import sa.elm.mashrook.campaigns.dto.CampaignUpdateRequest;
@@ -38,6 +39,7 @@ import java.math.RoundingMode;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -51,6 +53,7 @@ public class CampaignService {
     private final PledgeService pledgeService;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final CampaignMediaService campaignMediaService;
 
 
     @Transactional
@@ -192,7 +195,8 @@ public class CampaignService {
 
     @Transactional(readOnly = true)
     public CampaignListResponse findActiveCampaigns(String search, UUID supplierId, Pageable pageable) {
-        List<CampaignEntity> activeCampaigns = campaignRepository.findAllByStatus(CampaignStatus.ACTIVE);
+        List<CampaignEntity> activeCampaigns = campaignRepository.findAllByStatusIn(Set.of(
+                CampaignStatus.ACTIVE,CampaignStatus.GRACE_PERIOD));
 
         List<CampaignEntity> filtered = activeCampaigns.stream()
                 .filter(campaign -> filterBySearch(campaign, search))
@@ -234,6 +238,8 @@ public class CampaignService {
                 .map(DiscountBracketDto::from)
                 .toList();
 
+        List<CampaignMediaResponse> media = campaignMediaService.getMediaForCampaign(campaignId);
+
         return CampaignPublicResponse.builder()
                 .id(campaign.getId())
                 .title(campaign.getTitle())
@@ -244,10 +250,11 @@ public class CampaignService {
                 .startDate(campaign.getStartDate())
                 .endDate(campaign.getEndDate())
                 .gracePeriodEndDate(campaign.getGracePeriodEndDate())
-                .targetQty(campaign.getTargetQty())
+                .targetQuantity(campaign.getTargetQty())
                 .totalPledged(totalPledged)
                 .status(campaign.getStatus().getValue())
                 .brackets(bracketDtos)
+                .media(media)
                 .build();
     }
 
@@ -340,7 +347,7 @@ public class CampaignService {
                 .supplierName(supplier.getNameEn())
                 .startDate(campaign.getStartDate())
                 .endDate(campaign.getEndDate())
-                .targetQty(campaign.getTargetQty())
+                .targetQuantity(campaign.getTargetQty())
                 .totalPledged(totalPledged)
                 .originalPrice(originalPrice)
                 .currentPrice(currentPrice)

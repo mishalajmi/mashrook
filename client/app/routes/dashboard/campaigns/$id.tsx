@@ -1,14 +1,12 @@
-/**
- * Campaign Detail Page
- *
- * Displays detailed campaign information with tabs for Overview, Pledges, and Analytics.
- * Wired to backend API endpoints for campaign, bracket, and pledge management.
- */
-
 import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Link, useParams } from "react-router";
-import { ArrowLeft, Users, DollarSign, Clock, Calendar, Target, Plus, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { ArrowLeft, Users, DollarSign, Clock, Calendar, Target, Plus, Loader2, Pencil, X, Save } from "lucide-react";
 import { toast } from "sonner";
+import { calculateDaysRemaining } from "@/lib/date";
+
+
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 
 import {
 	Button,
@@ -39,7 +37,8 @@ import {
 } from "@/components/ui";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CampaignStatusBadge, BracketProgressIndicator, DiscountBracketEditor, MediaUploader, ProductDetailsCard } from "@/components/campaigns";
-import { campaignService, type CampaignResponse, type BracketRequest, type CampaignMediaResponse } from "@/services/campaign.service";
+import { MediaGallery } from "@/components/ui";
+import { campaignService, type CampaignResponse, type BracketRequest, type CampaignMediaResponse, type CampaignUpdateRequest } from "@/services/campaign.service";
 import { pledgeService, type PledgeResponse } from "@/services/pledge.service";
 import type { DiscountBracket, CampaignPledgeSummary, DiscountBracketFormData, CampaignMedia } from "@/types/campaign";
 import { useResourceAuthorities } from "@/hooks/use-authority";
@@ -52,18 +51,6 @@ function formatPrice(price: string): string {
 	const numericPrice = parseFloat(price);
 	return `$${numericPrice.toFixed(2)}`;
 }
-
-/**
- * Calculate days remaining until campaign end
- */
-function calculateDaysRemaining(endDate: string): number {
-	const end = new Date(endDate);
-	const now = new Date();
-	const diffTime = end.getTime() - now.getTime();
-	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-	return Math.max(0, diffDays);
-}
-
 
 /**
  * Transform media response to component-compatible type
@@ -160,6 +147,7 @@ function calculatePledgeSummary(
  */
 export default function CampaignDetailPage(): ReactNode {
 	const { id } = useParams();
+	const { t } = useTranslation();
 
 	// Get user authorities for campaigns resource
 	const { canUpdate } = useResourceAuthorities("campaigns");
@@ -178,6 +166,17 @@ export default function CampaignDetailPage(): ReactNode {
 
 	// State for publishing
 	const [isPublishing, setIsPublishing] = useState(false);
+
+	// State for campaign editing
+	const [isEditing, setIsEditing] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
+	const [editForm, setEditForm] = useState({
+		title: "",
+		description: "",
+		startDate: "",
+		endDate: "",
+		targetQuantity: 0,
+	});
 
 	// Fetch campaign data
 	const fetchCampaign = useCallback(async () => {
@@ -252,13 +251,66 @@ export default function CampaignDetailPage(): ReactNode {
 			setIsPublishing(true);
 			const updated = await campaignService.publishCampaign(id);
 			setCampaign(updated);
-			toast.success("Campaign published successfully");
+			toast.success(t("dashboard.campaigns.publishedSuccessfully"));
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to publish campaign";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsPublishing(false);
 		}
+	};
+
+	// Start editing campaign
+	const handleStartEdit = () => {
+		if (!campaign) return;
+		setEditForm({
+			title: campaign.title,
+			description: campaign.description,
+			startDate: campaign.startDate,
+			endDate: campaign.endDate,
+			targetQuantity: campaign.targetQuantity ?? 0,
+		});
+		setIsEditing(true);
+	};
+
+	// Cancel editing campaign
+	const handleCancelEdit = () => {
+		setIsEditing(false);
+		setEditForm({
+			title: "",
+			description: "",
+			startDate: "",
+			endDate: "",
+			targetQuantity: 0,
+		});
+	};
+
+	// Save campaign changes
+	const handleSaveCampaign = async () => {
+		if (!id || !campaign) return;
+
+		try {
+			setIsSaving(true);
+			const updateData: CampaignUpdateRequest = {
+				title: editForm.title,
+				description: editForm.description,
+				startDate: editForm.startDate,
+				endDate: editForm.endDate,
+				targetQuantity: editForm.targetQuantity,
+			};
+			const updated = await campaignService.updateCampaign(id, updateData);
+			setCampaign(updated);
+			setIsEditing(false);
+			toast.success(t("dashboard.campaigns.detail.updateSuccess"));
+		} catch (err) {
+			toast.error(getTranslatedErrorMessage(err));
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
+	// Update edit form field
+	const updateEditForm = (field: keyof typeof editForm, value: string | number) => {
+		setEditForm((prev) => ({ ...prev, [field]: value }));
 	};
 
 	// Start editing brackets
@@ -316,10 +368,9 @@ export default function CampaignDetailPage(): ReactNode {
 			// Refresh campaign data
 			await fetchCampaign();
 			setIsEditingBrackets(false);
-			toast.success("Pricing tiers updated successfully");
+			toast.success(t("dashboard.campaigns.pricingUpdated"));
 		} catch (err) {
-			const message = err instanceof Error ? err.message : "Failed to save pricing tiers";
-			toast.error(message);
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setIsSavingBrackets(false);
 		}
@@ -335,7 +386,7 @@ export default function CampaignDetailPage(): ReactNode {
 	if (loading) {
 		return (
 			<div className="flex flex-col gap-6 p-6">
-				<LoadingState message="Loading campaign..." />
+				<LoadingState message={t("dashboard.campaigns.detail.loading")} />
 			</div>
 		);
 	}
@@ -349,11 +400,11 @@ export default function CampaignDetailPage(): ReactNode {
 					className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Campaigns
+					{t("dashboard.common.backToCampaigns")}
 				</Link>
 				<EmptyState
-					title="Campaign not found"
-					description={error || "The campaign you're looking for doesn't exist or you don't have access to it."}
+					title={t("dashboard.campaigns.detail.notFound")}
+					description={error || t("dashboard.campaigns.detail.notFoundDescription")}
 				/>
 			</div>
 		);
@@ -367,6 +418,7 @@ export default function CampaignDetailPage(): ReactNode {
 
 	const daysRemaining = calculateDaysRemaining(campaign.endDate);
 	const isDraft = campaign.status === "draft";
+	const isEditable = campaign.status === "draft" || campaign.status === "active";
 
 	return (
 		<div className="flex flex-col gap-6 p-6">
@@ -377,38 +429,100 @@ export default function CampaignDetailPage(): ReactNode {
 					className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Campaigns
+					{t("dashboard.common.backToCampaigns")}
 				</Link>
 
-				<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-					<div className="flex flex-col gap-2">
-						<div className="flex items-center gap-3">
-							<h1 className="text-2xl font-bold tracking-tight">{campaign.title}</h1>
-							<CampaignStatusBadge status={campaign.status} />
+				{isEditing ? (
+					/* Edit Mode Header */
+					<div className="flex flex-col gap-4">
+						<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+							<div className="flex-1 space-y-4">
+								<div className="space-y-2">
+									<Label htmlFor="edit-title">{t("dashboard.campaigns.create.form.title")}</Label>
+									<Input
+										id="edit-title"
+										value={editForm.title}
+										onChange={(e) => updateEditForm("title", e.target.value)}
+										placeholder={t("dashboard.campaigns.create.form.titlePlaceholder")}
+										disabled={isSaving}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="edit-description">{t("dashboard.campaigns.create.form.description")}</Label>
+									<textarea
+										id="edit-description"
+										value={editForm.description}
+										onChange={(e) => updateEditForm("description", e.target.value)}
+										placeholder={t("dashboard.campaigns.create.form.descriptionPlaceholder")}
+										rows={3}
+										disabled={isSaving}
+										className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+									/>
+								</div>
+							</div>
+							<div className="flex gap-2 sm:flex-col">
+								<Button
+									variant="outline"
+									onClick={handleCancelEdit}
+									disabled={isSaving}
+								>
+									<X className="mr-2 h-4 w-4" />
+									{t("dashboard.common.cancel")}
+								</Button>
+								<Button onClick={handleSaveCampaign} disabled={isSaving}>
+									{isSaving ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											{t("dashboard.common.saving")}
+										</>
+									) : (
+										<>
+											<Save className="mr-2 h-4 w-4" />
+											{t("dashboard.common.saveChanges")}
+										</>
+									)}
+								</Button>
+							</div>
 						</div>
-						<p className="text-muted-foreground max-w-2xl">{campaign.description}</p>
 					</div>
+				) : (
+					/* View Mode Header */
+					<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+						<div className="flex flex-col gap-2">
+							<div className="flex items-center gap-3">
+								<h1 className="text-2xl font-bold tracking-tight">{campaign.title}</h1>
+								<CampaignStatusBadge status={campaign.status} />
+							</div>
+							<p className="text-muted-foreground max-w-2xl">{campaign.description}</p>
+						</div>
 
-					{isDraft && canUpdate && (
-						<Button onClick={handlePublish} disabled={isPublishing}>
-							{isPublishing ? (
-								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Publishing...
-								</>
-							) : (
-								"Publish Campaign"
-							)}
-						</Button>
-					)}
-				</div>
+						{isDraft && canUpdate && (
+							<div className="flex gap-2">
+								<Button variant="outline" onClick={handleStartEdit}>
+									<Pencil className="mr-2 h-4 w-4" />
+									{t("dashboard.common.edit")}
+								</Button>
+								<Button onClick={handlePublish} disabled={isPublishing}>
+									{isPublishing ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											{t("dashboard.campaigns.create.publishing")}
+										</>
+									) : (
+										t("dashboard.campaigns.create.publishCampaign")
+									)}
+								</Button>
+							</div>
+						)}
+					</div>
+				)}
 			</div>
 
 			{/* Stats Cards */}
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Total Pledges</CardTitle>
+						<CardTitle className="text-sm font-medium">{t("dashboard.campaigns.detail.stats.totalPledges")}</CardTitle>
 						<Users className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
@@ -416,14 +530,14 @@ export default function CampaignDetailPage(): ReactNode {
 							{pledgeSummary.totalPledges}
 						</div>
 						<p className="text-xs text-muted-foreground">
-							{pledgeSummary.totalQuantity} units pledged
+							{pledgeSummary.totalQuantity} {t("dashboard.campaigns.detail.stats.unitsPledged")}
 						</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Current Price</CardTitle>
+						<CardTitle className="text-sm font-medium">{t("dashboard.campaigns.detail.stats.currentPrice")}</CardTitle>
 						<DollarSign className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
@@ -432,31 +546,31 @@ export default function CampaignDetailPage(): ReactNode {
 								? formatPrice(pledgeSummary.currentBracket.unitPrice)
 								: "--"}
 						</div>
-						<p className="text-xs text-muted-foreground">Per unit</p>
+						<p className="text-xs text-muted-foreground">{t("dashboard.campaigns.detail.stats.perUnit")}</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Days Remaining</CardTitle>
+						<CardTitle className="text-sm font-medium">{t("dashboard.campaigns.detail.stats.daysRemaining")}</CardTitle>
 						<Clock className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div data-testid="detail-days-remaining" className="text-2xl font-bold">
 							{daysRemaining}
 						</div>
-						<p className="text-xs text-muted-foreground">Until campaign ends</p>
+						<p className="text-xs text-muted-foreground">{t("dashboard.campaigns.detail.stats.untilEnds")}</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Target</CardTitle>
+						<CardTitle className="text-sm font-medium">{t("dashboard.campaigns.detail.stats.target")}</CardTitle>
 						<Target className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{campaign.targetQuantity}</div>
-						<p className="text-xs text-muted-foreground">Units goal</p>
+						<div className="text-2xl font-bold">{campaign.targetQuantity ?? "--"}</div>
+						<p className="text-xs text-muted-foreground">{t("dashboard.campaigns.detail.stats.unitsGoal")}</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -464,9 +578,9 @@ export default function CampaignDetailPage(): ReactNode {
 			{/* Tabs */}
 			<Tabs defaultValue="overview" className="space-y-4">
 				<TabsList>
-					<TabsTrigger value="overview">Overview</TabsTrigger>
-					<TabsTrigger value="pledges">Pledges</TabsTrigger>
-					<TabsTrigger value="analytics">Analytics</TabsTrigger>
+					<TabsTrigger value="overview">{t("dashboard.campaigns.detail.tabs.overview")}</TabsTrigger>
+					<TabsTrigger value="pledges">{t("dashboard.campaigns.detail.tabs.pledges")}</TabsTrigger>
+					<TabsTrigger value="analytics">{t("dashboard.campaigns.detail.tabs.analytics")}</TabsTrigger>
 				</TabsList>
 
 				{/* Overview Tab */}
@@ -475,43 +589,92 @@ export default function CampaignDetailPage(): ReactNode {
 						{/* Campaign Details */}
 						<Card>
 							<CardHeader>
-								<CardTitle>Campaign Details</CardTitle>
+								<CardTitle>{t("dashboard.campaigns.detail.cards.campaignDetails")}</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<div>
 									<h4 className="text-sm font-medium text-muted-foreground mb-2">
-										Product Details
+										{t("dashboard.campaigns.detail.cards.productDetails")}
 									</h4>
 									<ProductDetailsCard productDetails={campaign.productDetails} />
 								</div>
 
-								<div className="grid grid-cols-2 gap-4">
-									<div>
-										<h4 className="text-sm font-medium text-muted-foreground mb-1">
-											<Calendar className="h-3 w-3 inline mr-1" />
-											Start Date
-										</h4>
-										<p className="text-sm">{formatDate(campaign.startDate)}</p>
+								{isEditing ? (
+									/* Edit Mode - Editable fields */
+									<div className="space-y-4">
+										<div className="grid grid-cols-2 gap-4">
+											<div className="space-y-2">
+												<Label htmlFor="edit-startDate">
+													<Calendar className="h-3 w-3 inline mr-1" />
+													{t("dashboard.common.startDate")}
+												</Label>
+												<Input
+													id="edit-startDate"
+													type="date"
+													value={editForm.startDate}
+													onChange={(e) => updateEditForm("startDate", e.target.value)}
+													disabled={isSaving}
+												/>
+											</div>
+											<div className="space-y-2">
+												<Label htmlFor="edit-endDate">
+													<Calendar className="h-3 w-3 inline mr-1" />
+													{t("dashboard.common.endDate")}
+												</Label>
+												<Input
+													id="edit-endDate"
+													type="date"
+													value={editForm.endDate}
+													onChange={(e) => updateEditForm("endDate", e.target.value)}
+													disabled={isSaving}
+												/>
+											</div>
+										</div>
+										<div className="space-y-2">
+											<Label htmlFor="edit-targetQuantity">
+												<Target className="h-3 w-3 inline mr-1" />
+												{t("dashboard.campaigns.detail.stats.target")}
+											</Label>
+											<Input
+												id="edit-targetQuantity"
+												type="number"
+												min={1}
+												value={editForm.targetQuantity}
+												onChange={(e) => updateEditForm("targetQuantity", parseInt(e.target.value) || 0)}
+												disabled={isSaving}
+											/>
+										</div>
 									</div>
-									<div>
-										<h4 className="text-sm font-medium text-muted-foreground mb-1">
-											<Calendar className="h-3 w-3 inline mr-1" />
-											End Date
-										</h4>
-										<p className="text-sm">{formatDate(campaign.endDate)}</p>
+								) : (
+									/* View Mode - Display only */
+									<div className="grid grid-cols-2 gap-4">
+										<div>
+											<h4 className="text-sm font-medium text-muted-foreground mb-1">
+												<Calendar className="h-3 w-3 inline mr-1" />
+												{t("dashboard.common.startDate")}
+											</h4>
+											<p className="text-sm">{formatDate(campaign.startDate)}</p>
+										</div>
+										<div>
+											<h4 className="text-sm font-medium text-muted-foreground mb-1">
+												<Calendar className="h-3 w-3 inline mr-1" />
+												{t("dashboard.common.endDate")}
+											</h4>
+											<p className="text-sm">{formatDate(campaign.endDate)}</p>
+										</div>
 									</div>
-								</div>
+								)}
 							</CardContent>
 						</Card>
 
 						{/* Media - Only show upload UI for users with update permission */}
 						<Card className="lg:col-span-2">
 							<CardHeader>
-								<CardTitle>Campaign Media</CardTitle>
+								<CardTitle>{t("dashboard.campaigns.detail.cards.campaignMedia")}</CardTitle>
 								<CardDescription>
-									{isDraft && canUpdate
-										? "Upload images and videos for your campaign"
-										: "Images and videos for this campaign"}
+									{isEditable && canUpdate
+										? t("dashboard.campaigns.detail.cards.mediaDescriptionOwner")
+										: t("dashboard.campaigns.detail.cards.mediaDescriptionViewer")}
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
@@ -520,33 +683,15 @@ export default function CampaignDetailPage(): ReactNode {
 										media={media}
 										onUpload={handleMediaUpload}
 										onDelete={handleMediaDelete}
-										disabled={!isDraft}
+										disabled={!isEditable}
 									/>
 								) : (
-									// Read-only media display for users without update permission
-									<div className="space-y-4">
-										{media.length > 0 ? (
-											<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-												{media.map((item) => (
-													<div key={item.id} className="relative aspect-video rounded-lg overflow-hidden border bg-muted">
-														{item.mediaType === "IMAGE" && item.presignedUrl ? (
-															<img
-																src={item.presignedUrl}
-																alt={item.originalFilename}
-																className="w-full h-full object-cover"
-															/>
-														) : (
-															<div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
-																{item.originalFilename}
-															</div>
-														)}
-													</div>
-												))}
-											</div>
-										) : (
-											<p className="text-sm text-muted-foreground">No media available</p>
-										)}
-									</div>
+									// Read-only media gallery for users without update permission
+									media.length > 0 ? (
+										<MediaGallery media={media} columns={3} showThumbnails />
+									) : (
+										<p className="text-sm text-muted-foreground">{t("dashboard.campaigns.detail.cards.noMedia")}</p>
+									)
 								)}
 							</CardContent>
 						</Card>
@@ -555,9 +700,9 @@ export default function CampaignDetailPage(): ReactNode {
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between">
 								<div>
-									<CardTitle>Pricing Tiers</CardTitle>
+									<CardTitle>{t("dashboard.campaigns.detail.cards.pricingTiers")}</CardTitle>
 									<CardDescription>
-										Price decreases as more units are pledged
+										{t("dashboard.campaigns.detail.cards.pricingDescription")}
 									</CardDescription>
 								</div>
 								{isDraft && canUpdate && (
@@ -567,7 +712,7 @@ export default function CampaignDetailPage(): ReactNode {
 										onClick={handleStartEditBrackets}
 									>
 										<Plus className="h-4 w-4 mr-1" />
-										Edit Tiers
+										{t("dashboard.campaigns.detail.cards.editTiers")}
 									</Button>
 								)}
 							</CardHeader>
@@ -583,8 +728,8 @@ export default function CampaignDetailPage(): ReactNode {
 										<Table>
 											<TableHeader>
 												<TableRow>
-													<TableHead>Quantity Range</TableHead>
-													<TableHead className="text-right">Price/Unit</TableHead>
+													<TableHead>{t("dashboard.campaigns.detail.cards.quantityRange")}</TableHead>
+													<TableHead className="text-right">{t("dashboard.campaigns.detail.cards.pricePerUnit")}</TableHead>
 												</TableRow>
 											</TableHeader>
 											<TableBody>
@@ -599,10 +744,10 @@ export default function CampaignDetailPage(): ReactNode {
 													>
 														<TableCell>
 															{bracket.minQuantity} -{" "}
-															{bracket.maxQuantity ?? "unlimited"}
+															{bracket.maxQuantity ?? t("dashboard.brackets.noLimit")}
 															{pledgeSummary.currentBracket?.id === bracket.id && (
 																<span className="ml-2 text-xs text-primary font-medium">
-																	Current
+																	{t("dashboard.campaigns.detail.cards.current")}
 																</span>
 															)}
 														</TableCell>
@@ -616,9 +761,9 @@ export default function CampaignDetailPage(): ReactNode {
 									</>
 								) : (
 									<EmptyState
-										title="No pricing tiers"
-										description={isDraft ? "Add pricing tiers to define discount levels" : "This campaign has no pricing tiers configured"}
-										actionLabel={isDraft ? "Add Tiers" : undefined}
+										title={t("dashboard.campaigns.detail.cards.noPricingTiers")}
+										description={isDraft ? t("dashboard.campaigns.detail.cards.noPricingOwner") : t("dashboard.campaigns.detail.cards.noPricingViewer")}
+										actionLabel={isDraft ? t("dashboard.campaigns.detail.cards.addTiers") : undefined}
 										onAction={isDraft ? handleStartEditBrackets : undefined}
 									/>
 								)}
@@ -631,9 +776,9 @@ export default function CampaignDetailPage(): ReactNode {
 				<TabsContent value="pledges">
 					<Card>
 						<CardHeader>
-							<CardTitle>Pledges</CardTitle>
+							<CardTitle>{t("dashboard.campaigns.detail.pledges.title")}</CardTitle>
 							<CardDescription>
-								All pledges for this campaign
+								{t("dashboard.campaigns.detail.pledges.description")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
@@ -641,10 +786,10 @@ export default function CampaignDetailPage(): ReactNode {
 								<Table>
 									<TableHeader>
 										<TableRow>
-											<TableHead>Buyer ID</TableHead>
-											<TableHead className="text-right">Quantity</TableHead>
-											<TableHead>Status</TableHead>
-											<TableHead className="text-right">Date</TableHead>
+											<TableHead>{t("dashboard.campaigns.detail.pledges.table.buyerId")}</TableHead>
+											<TableHead className="text-right">{t("dashboard.campaigns.detail.pledges.table.quantity")}</TableHead>
+											<TableHead>{t("dashboard.campaigns.detail.pledges.table.status")}</TableHead>
+											<TableHead className="text-right">{t("dashboard.campaigns.detail.pledges.table.date")}</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
@@ -654,7 +799,7 @@ export default function CampaignDetailPage(): ReactNode {
 													{pledge.buyerOrgId.slice(0, 8)}...
 												</TableCell>
 												<TableCell className="text-right">
-													{pledge.quantity} units
+													{pledge.quantity} {t("dashboard.campaigns.detail.pledges.units")}
 												</TableCell>
 												<TableCell>
 													<span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
@@ -676,8 +821,8 @@ export default function CampaignDetailPage(): ReactNode {
 								</Table>
 							) : (
 								<EmptyState
-									title="No pledges yet"
-									description="Pledges will appear here once buyers start committing to your campaign"
+									title={t("dashboard.campaigns.detail.pledges.noPledges")}
+									description={t("dashboard.campaigns.detail.pledges.noPledgesDescription")}
 								/>
 							)}
 						</CardContent>
@@ -688,15 +833,15 @@ export default function CampaignDetailPage(): ReactNode {
 				<TabsContent value="analytics">
 					<Card>
 						<CardHeader>
-							<CardTitle>Analytics</CardTitle>
+							<CardTitle>{t("dashboard.campaigns.detail.analytics.title")}</CardTitle>
 							<CardDescription>
-								Campaign performance metrics
+								{t("dashboard.campaigns.detail.analytics.description")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<EmptyState
-								title="Analytics Coming Soon"
-								description="Detailed campaign analytics will be available here in a future update"
+								title={t("dashboard.campaigns.detail.analytics.comingSoon")}
+								description={t("dashboard.campaigns.detail.analytics.comingSoonDescription")}
 							/>
 						</CardContent>
 					</Card>
@@ -707,10 +852,9 @@ export default function CampaignDetailPage(): ReactNode {
 			<Dialog open={isEditingBrackets} onOpenChange={(open) => !open && handleCancelEditBrackets()}>
 				<DialogContent className="max-w-2xl">
 					<DialogHeader>
-						<DialogTitle>Edit Pricing Tiers</DialogTitle>
+						<DialogTitle>{t("dashboard.campaigns.detail.editDialog.title")}</DialogTitle>
 						<DialogDescription>
-							Define quantity ranges and their corresponding unit prices.
-							Lower prices for higher quantities encourage group buying.
+							{t("dashboard.campaigns.detail.editDialog.description")}
 						</DialogDescription>
 					</DialogHeader>
 
@@ -728,7 +872,7 @@ export default function CampaignDetailPage(): ReactNode {
 							onClick={handleCancelEditBrackets}
 							disabled={isSavingBrackets}
 						>
-							Cancel
+							{t("dashboard.common.cancel")}
 						</Button>
 						<Button
 							onClick={handleSaveBrackets}
@@ -737,10 +881,10 @@ export default function CampaignDetailPage(): ReactNode {
 							{isSavingBrackets ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Saving...
+									{t("dashboard.common.saving")}
 								</>
 							) : (
-								"Save Changes"
+								t("dashboard.common.saveChanges")
 							)}
 						</Button>
 					</DialogFooter>

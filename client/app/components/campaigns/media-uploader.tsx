@@ -6,9 +6,12 @@
  */
 
 import { useState, useRef, useCallback, type ReactNode, type DragEvent, type ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Upload, X, Image, Video, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { getTranslatedErrorMessage } from "@/lib/error-utils";
 import { Button } from "@/components/ui";
 import type { CampaignMedia, MediaType } from "@/types/campaign";
 
@@ -58,18 +61,18 @@ export function MediaUploader({
 	disabled = false,
 	className,
 }: MediaUploaderProps): ReactNode {
+	const { t } = useTranslation();
 	const [isDragOver, setIsDragOver] = useState(false);
 	const [uploading, setUploading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const validateFile = (file: File): string | null => {
 		if (!ACCEPTED_TYPES.includes(file.type)) {
-			return "File type not supported. Please use JPG, PNG, or MP4.";
+			return t("errors.file.type.unsupported");
 		}
 		if (file.size > MAX_FILE_SIZE) {
-			return "File size exceeds 50MB limit.";
+			return t("errors.file.size.exceeded");
 		}
 		return null;
 	};
@@ -77,20 +80,20 @@ export function MediaUploader({
 	const handleUpload = useCallback(async (file: File) => {
 		const validationError = validateFile(file);
 		if (validationError) {
-			setError(validationError);
+			toast.error(validationError);
 			return;
 		}
 
-		setError(null);
 		setUploading(true);
 		try {
 			await onUpload(file);
-		} catch {
-			setError("Failed to upload file. Please try again.");
+			toast.success(t("dashboard.campaigns.media.uploadSuccess"));
+		} catch (err) {
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setUploading(false);
 		}
-	}, [onUpload]);
+	}, [onUpload, t]);
 
 	const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
 		e.preventDefault();
@@ -131,8 +134,9 @@ export function MediaUploader({
 		setDeletingId(mediaId);
 		try {
 			await onDelete(mediaId);
-		} catch {
-			setError("Failed to delete media. Please try again.");
+			toast.success(t("dashboard.campaigns.media.deleteSuccess"));
+		} catch (err) {
+			toast.error(getTranslatedErrorMessage(err));
 		} finally {
 			setDeletingId(null);
 		}
@@ -192,13 +196,6 @@ export function MediaUploader({
 					</div>
 				</div>
 			</div>
-
-			{/* Error Message */}
-			{error && (
-				<div className="text-sm text-destructive" data-testid="upload-error">
-					{error}
-				</div>
-			)}
 
 			{/* Media Grid */}
 			{media.length > 0 && (

@@ -1,7 +1,10 @@
 package sa.elm.mashrook.exceptions;
 
-public class FileSizeExceededException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class FileSizeExceededException extends MashrookException {
+
     public FileSizeExceededException(String message) {
-        super(message);
+        super("file.size.exceeded", HttpStatus.BAD_REQUEST, message);
     }
 }

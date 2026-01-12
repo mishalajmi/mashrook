@@ -110,11 +110,12 @@ public class AuthorityEntity {
 
     /**
      * Returns the authority string representation of this permission.
+     * Delegates to ResourcePermission to ensure consistent format across the codebase.
      *
-     * @return the authority string in "RESOURCE:PERMISSION" format
+     * @return the authority string in "resource:permission" format (e.g., "campaigns:update")
      */
     public String toAuthorityString() {
-        return resource.name().toLowerCase() + ":" + permission.name().toLowerCase();
+        return toResourcePermission().toAuthorityString();
     }
 
     /**

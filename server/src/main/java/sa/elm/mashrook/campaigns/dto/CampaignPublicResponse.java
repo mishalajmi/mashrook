@@ -18,8 +18,9 @@ public record CampaignPublicResponse(
         LocalDate startDate,
         LocalDate endDate,
         LocalDate gracePeriodEndDate,
-        Integer targetQty,
+        Integer targetQuantity,
         Integer totalPledged,
         String status,
-        List<DiscountBracketDto> brackets
+        List<DiscountBracketDto> brackets,
+        List<CampaignMediaResponse> media
 ) {}

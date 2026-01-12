@@ -20,7 +20,7 @@ public record CampaignResponse(
         Integer durationDays,
         LocalDate startDate,
         LocalDate endDate,
-        Integer targetQty,
+        Integer targetQuantity,
         CampaignStatus status,
         List<DiscountBracketResponse> brackets,
         List<CampaignMediaResponse> media,
@@ -46,7 +46,7 @@ public record CampaignResponse(
                 .durationDays(entity.getDurationDays())
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())
-                .targetQty(entity.getTargetQty())
+                .targetQuantity(entity.getTargetQty())
                 .status(entity.getStatus())
                 .brackets(brackets)
                 .media(media)

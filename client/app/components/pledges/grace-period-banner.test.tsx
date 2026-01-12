@@ -47,7 +47,7 @@ describe("GracePeriodBanner", () => {
 			renderWithRouter(<GracePeriodBanner {...defaultProps} />);
 
 			const banner = screen.getByTestId("grace-period-banner");
-			expect(banner).toHaveClass("bg-amber-50");
+			expect(banner).toHaveClass("bg-[var(--color-alert-warning-bg)]");
 		});
 
 		it("should display warning icon", () => {
