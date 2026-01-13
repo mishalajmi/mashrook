@@ -31,7 +31,8 @@
     "file.type.unsupported": "File type not supported. Please use JPG, PNG, or MP4.",
     "media.upload.failed": "Failed to upload file. Please try again.",
     "media.delete.failed": "Failed to delete media. Please try again.",
-    "authentication.failed": "Authentication failed"
+    "authentication.failed": "Authentication failed",
+    "order.invalid.status.transition": "Cannot cancel an order that has already been delivered"
   },
   "common": {
     "appName": "Mashrook",
@@ -294,7 +295,8 @@
       "saving": "Saving...",
       "edit": "Edit",
       "startDate": "Start Date",
-      "endDate": "End Date"
+      "endDate": "End Date",
+      "processing": "Processing..."
     },
     "team": {
       "title": "Team",
@@ -623,6 +625,241 @@
         "failed": "Payment Failed",
         "failedDescription": "We could not process your payment"
       }
+    },
+    "orders": {
+      "title": "Orders",
+      "description": "View and manage your orders",
+      "loading": "Loading orders...",
+      "loadingDetail": "Loading order details...",
+      "loadError": "Failed to load orders",
+      "backToOrders": "Back to Orders",
+      "orderNumber": "Order #{{number}}",
+      "createdOn": "Created on {{date}}",
+      "exportCsv": "Export CSV",
+      "exporting": "Exporting...",
+      "exportSuccess": "Orders exported successfully",
+      "selectedCount": "{{count}} orders selected",
+      "clearSelection": "Clear Selection",
+      "markedAsShipped": "Order marked as shipped",
+      "markedAsDelivered": "Order marked as delivered",
+      "noOrders": {
+        "title": "No orders yet",
+        "description": "Orders will appear here once campaigns are fulfilled"
+      },
+      "noResults": "No orders match the current filters",
+      "notFound": {
+        "title": "Order not found",
+        "description": "The order you're looking for doesn't exist or you don't have access to it"
+      },
+      "status": {
+        "pending": "Pending",
+        "processing": "Processing",
+        "onHold": "On Hold",
+        "shipped": "Shipped",
+        "partiallyShipped": "Partially Shipped",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      },
+      "filters": {
+        "allStatuses": "All Statuses",
+        "allTime": "All Time",
+        "last7Days": "Last 7 Days",
+        "last15Days": "Last 15 Days",
+        "last30Days": "Last 30 Days"
+      },
+      "table": {
+        "orderNumber": "Order #",
+        "campaign": "Campaign",
+        "buyer": "Buyer",
+        "quantity": "Qty",
+        "total": "Total",
+        "date": "Date",
+        "status": "Status",
+        "selectAll": "Select all orders",
+        "selectOrder": "Select order {{orderNumber}}"
+      },
+      "actions": {
+        "markShipped": "Mark Shipped",
+        "markDelivered": "Mark Delivered",
+        "updateShipment": "Update Shipment",
+        "fulfillDigital": "Fulfill Digital",
+        "cancel": "Cancel Order",
+        "requestCancellation": "Request Cancellation"
+      },
+      "summary": {
+        "title": "Order Summary",
+        "campaign": "Campaign",
+        "quantity": "Quantity",
+        "units": "units",
+        "unitPrice": "Unit Price",
+        "total": "Total Amount",
+        "buyer": "Buyer",
+        "supplier": "Supplier",
+        "productType": "Product Type",
+        "digital": "Digital Product",
+        "physical": "Physical Product"
+      },
+      "delivery": {
+        "title": "Delivery Information",
+        "trackingNumber": "Tracking Number",
+        "via": "via {{carrier}}",
+        "estimatedDelivery": "Estimated Delivery",
+        "deliveredOn": "Delivered On",
+        "noInfo": "No delivery information available yet"
+      },
+      "digitalDelivery": {
+        "title": "Digital Delivery",
+        "deliveredOn": "Delivered On",
+        "pending": "Digital delivery is pending fulfillment"
+      },
+      "timeline": {
+        "title": "Order Timeline",
+        "pending": "Order Placed",
+        "processing": "Processing",
+        "onHold": "On Hold",
+        "shipped": "Shipped",
+        "delivered": "Delivered",
+        "digitalDelivered": "Digital Delivered",
+        "cancelled": "Cancelled",
+        "reason": "Reason"
+      },
+      "comments": {
+        "title": "Comments",
+        "noComments": "No comments yet. Start the conversation.",
+        "placeholder": "Write a comment...",
+        "send": "Send",
+        "sending": "Sending...",
+        "addedSuccessfully": "Comment added successfully"
+      },
+      "shipment": {
+        "title": "Update Shipment",
+        "description": "Enter shipment details for this order",
+        "trackingNumber": "Tracking Number",
+        "trackingNumberPlaceholder": "Enter tracking number",
+        "carrier": "Carrier",
+        "carrierPlaceholder": "e.g., FedEx, UPS, DHL",
+        "estimatedDelivery": "Estimated Delivery Date",
+        "updatedSuccessfully": "Shipment details updated successfully"
+      },
+      "digital": {
+        "title": "Fulfill Digital Order",
+        "description": "Provide the digital delivery details for this order",
+        "deliveryType": "Delivery Type",
+        "selectType": "Select delivery type",
+        "deliveryValue": "Delivery Value",
+        "types": {
+          "downloadlink": "Download Link",
+          "licensekey": "License Key",
+          "accessgrant": "Access Grant"
+        },
+        "downloadLinkPlaceholder": "https://example.com/download/...",
+        "licenseKeyPlaceholder": "XXXX-XXXX-XXXX-XXXX",
+        "accessGrantPlaceholder": "Account credentials or access instructions",
+        "fulfill": "Fulfill Order",
+        "fulfilling": "Fulfilling...",
+        "fulfilledSuccessfully": "Digital order fulfilled successfully"
+      },
+      "cancel": {
+        "title": "Cancel Order",
+        "description": "Are you sure you want to cancel order {{orderNumber}}? This action cannot be undone.",
+        "reason": "Cancellation Reason",
+        "reasonPlaceholder": "Please provide a reason for cancellation...",
+        "confirmCancel": "Cancel Order",
+        "cancelling": "Cancelling...",
+        "cancelledSuccessfully": "Order cancelled successfully"
+      },
+      "requestCancel": {
+        "title": "Request Cancellation",
+        "description": "Submit a cancellation request for order {{orderNumber}}",
+        "note": "Your cancellation request will be reviewed by the supplier. They may contact you for more details.",
+        "reason": "Reason for Cancellation",
+        "reasonPlaceholder": "Please explain why you want to cancel this order...",
+        "submitRequest": "Submit Request",
+        "submitting": "Submitting...",
+        "requestedSuccessfully": "Cancellation request submitted successfully"
+      },
+      "cancellation": {
+        "title": "Cancellation Details",
+        "reason": "Reason",
+        "cancelledOn": "Cancelled on {{date}}"
+      },
+      "cancellationRequest": {
+        "title": "Cancellation Requests",
+        "pending": "pending",
+        "requestedBy": "Requested by",
+        "reviewedBy": "Reviewed by",
+        "reason": "Reason",
+        "reviewNotes": "Review Notes",
+        "approve": "Approve",
+        "reject": "Reject",
+        "approveTitle": "Approve Cancellation Request",
+        "approveDescription": "This will cancel the order and notify the buyer. This action cannot be undone.",
+        "rejectTitle": "Reject Cancellation Request",
+        "rejectDescription": "The buyer will be notified that their cancellation request was rejected.",
+        "notesLabel": "Notes (Optional)",
+        "notesPlaceholder": "Add any notes for the buyer...",
+        "confirmApprove": "Approve and Cancel Order",
+        "confirmReject": "Reject Request",
+        "approvedSuccess": "Cancellation request approved and order cancelled",
+        "rejectedSuccess": "Cancellation request rejected"
+      },
+      "validation": {
+        "commentEmpty": "Comment cannot be empty",
+        "commentTooLong": "Comment is too long",
+        "trackingNumberRequired": "Tracking number is required",
+        "carrierRequired": "Carrier is required",
+        "deliveryValueRequired": "Delivery value is required",
+        "cancellationReasonRequired": "Please provide a detailed reason (at least 10 characters)",
+        "cancellationRequestReasonRequired": "Please provide a reason (at least 10 characters)"
+      }
+    },
+    "addresses": {
+      "title": "Addresses",
+      "description": "Manage your organization's delivery addresses",
+      "loading": "Loading addresses...",
+      "loadError": "Failed to load addresses",
+      "addAddress": "Add Address",
+      "addTitle": "Add New Address",
+      "addDescription": "Add a new delivery address for your organization",
+      "editTitle": "Edit Address",
+      "editDescription": "Update the address details",
+      "primary": "Primary",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "setAsPrimary": "Set as Primary",
+      "selectAddress": "Select an address",
+      "noAddresses": "No addresses available",
+      "noAddresses": {
+        "title": "No addresses yet",
+        "description": "Add your first address to use for order deliveries"
+      },
+      "form": {
+        "label": "Label",
+        "labelPlaceholder": "e.g., Main Office, Warehouse",
+        "addressLine1": "Address Line 1",
+        "addressLine1Placeholder": "Street address",
+        "addressLine2": "Address Line 2 (Optional)",
+        "addressLine2Placeholder": "Apartment, suite, unit, etc.",
+        "city": "City",
+        "cityPlaceholder": "City name",
+        "state": "State / Province",
+        "statePlaceholder": "State or province",
+        "postalCode": "Postal Code",
+        "postalCodePlaceholder": "ZIP or postal code",
+        "country": "Country",
+        "countryPlaceholder": "Country name",
+        "setAsPrimary": "Set as primary address"
+      },
+      "createdSuccessfully": "Address created successfully",
+      "updatedSuccessfully": "Address updated successfully",
+      "deletedSuccessfully": "Address deleted successfully",
+      "setPrimarySuccessfully": "Address set as primary",
+      "deleteConfirm": {
+        "title": "Delete Address",
+        "description": "Are you sure you want to delete \"{{label}}\"? This action cannot be undone."
+      },
+      "deleting": "Deleting..."
     },
     "organizations": {
       "title": "Organizations",
