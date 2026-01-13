@@ -1,0 +1,25 @@
+Order Shipped - Mashrook
+
+Hello [[${recipientName}]],
+
+Great news! Your order for "[[${campaignTitle}]]" has been shipped.
+
+Shipping Information:
+--------------------
+[# th:if="${trackingNumber}"]Tracking Number: [[${trackingNumber}]]
+[/]
+[# th:if="${carrier}"]Carrier: [[${carrier}]]
+[/]
+[# th:if="${estimatedDeliveryDate}"]Estimated Delivery: [[${#temporals.format(estimatedDeliveryDate, 'MMMM d, yyyy')}]]
+[/]
+
+Order Details:
+--------------
+Order Number: [[${orderNumber}]]
+Organization: [[${organizationName}]]
+
+You can track your shipment using the tracking number above with your carrier's website.
+
+---
+This email was sent by Mashrook - B2B Cooperative Procurement Platform
+(c) 2026 Mashrook. All rights reserved.

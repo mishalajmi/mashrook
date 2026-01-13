@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Created - Mashrook</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        h1 {
+            color: #1e3a5f;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .success-badge {
+            display: inline-block;
+            background-color: #dcfce7;
+            color: #166534;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .order-details {
+            background-color: #f0f9ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #bae6fd;
+        }
+        .order-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .order-details td {
+            padding: 8px 0;
+        }
+        .order-details td:first-child {
+            color: #64748b;
+            width: 40%;
+        }
+        .order-details td:last-child {
+            font-weight: 600;
+            text-align: right;
+        }
+        .order-number {
+            font-size: 20px;
+            color: #2563eb;
+        }
+        .next-steps {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .next-steps h3 {
+            margin-top: 0;
+            color: #1e3a5f;
+        }
+        .next-steps ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .next-steps li {
+            margin-bottom: 10px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Mashrook</div>
+        </div>
+
+        <div style="text-align: center;">
+            <span class="success-badge">Order Created</span>
+        </div>
+
+        <h1 style="text-align: center;">Your Order Has Been Created!</h1>
+
+        <p>Hello <span th:text="${recipientName}">Customer</span>,</p>
+
+        <p>Great news! Your order for the campaign "<span th:text="${campaignTitle}">Campaign Name</span>" has been created successfully.</p>
+
+        <div class="order-details">
+            <table>
+                <tr>
+                    <td>Order Number</td>
+                    <td class="order-number" th:text="${orderNumber}">ORD-202601-00001</td>
+                </tr>
+                <tr>
+                    <td>Organization</td>
+                    <td th:text="${organizationName}">Company Name</td>
+                </tr>
+                <tr>
+                    <td>Campaign</td>
+                    <td th:text="${campaignTitle}">Campaign Title</td>
+                </tr>
+                <tr>
+                    <td>Quantity</td>
+                    <td th:text="${quantity}">10</td>
+                </tr>
+                <tr>
+                    <td>Total Amount</td>
+                    <td>SAR <span th:text="${#numbers.formatDecimal(totalAmount, 1, 2)}">0.00</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="next-steps">
+            <h3>What Happens Next?</h3>
+            <ul>
+                <li>The supplier will begin processing your order</li>
+                <li>You will receive updates as your order progresses</li>
+                <li>Once shipped, you'll receive tracking information</li>
+                <li>Track your order status in your Mashrook dashboard</li>
+            </ul>
+        </div>
+
+        <p>If you have any questions about your order, please don't hesitate to contact us.</p>
+
+        <div class="footer">
+            <p>This email was sent by Mashrook - B2B Cooperative Procurement Platform</p>
+            <p>&copy; 2026 Mashrook. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
