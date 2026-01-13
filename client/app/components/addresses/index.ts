@@ -5,5 +5,12 @@
  */
 
 export { AddressCard } from "./AddressCard";
-export { AddressForm } from "./AddressForm";
+export {
+	AddressForm,
+	AddressFormFields,
+	AddressFormEmbedded,
+	addressSchema,
+	type AddressFormData,
+	type AddressFormHandle,
+} from "./AddressForm";
 export { AddressSelector } from "./AddressSelector";

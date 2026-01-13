@@ -870,6 +870,53 @@
       "verifiedSuccessfully": "تم التحقق من المنظمة \"{{name}}\" بنجاح",
       "rejectedSuccessfully": "تم رفض المنظمة \"{{name}}\""
     },
+    "addresses": {
+      "title": "العناوين",
+      "description": "إدارة عناوين التسليم لمؤسستك",
+      "loading": "جارٍ تحميل العناوين...",
+      "loadError": "فشل تحميل العناوين",
+      "addAddress": "إضافة عنوان",
+      "addTitle": "إضافة عنوان جديد",
+      "addDescription": "أضف عنوان تسليم جديد لمؤسستك",
+      "editTitle": "تعديل العنوان",
+      "editDescription": "تحديث تفاصيل العنوان",
+      "primary": "الأساسي",
+      "actions": "الإجراءات",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "setAsPrimary": "تعيين كأساسي",
+      "selectAddress": "اختر عنواناً",
+      "noAddresses": {
+        "title": "لا توجد عناوين بعد",
+        "description": "أضف عنوانك الأول لاستخدامه في تسليم الطلبات"
+      },
+      "form": {
+        "label": "التسمية",
+        "labelPlaceholder": "مثال: المكتب الرئيسي، المستودع",
+        "streetLine1": "عنوان الشارع",
+        "streetLine1Placeholder": "عنوان الشارع",
+        "streetLine2": "عنوان الشارع - السطر 2 (اختياري)",
+        "streetLine2Placeholder": "شقة، جناح، وحدة، إلخ.",
+        "city": "المدينة",
+        "cityPlaceholder": "اسم المدينة",
+        "stateProvince": "المنطقة / المحافظة",
+        "stateProvincePlaceholder": "المنطقة أو المحافظة",
+        "postalCode": "الرمز البريدي",
+        "postalCodePlaceholder": "الرمز البريدي",
+        "country": "الدولة",
+        "countryPlaceholder": "اسم الدولة",
+        "setAsPrimary": "تعيين كعنوان أساسي"
+      },
+      "createdSuccessfully": "تم إنشاء العنوان بنجاح",
+      "updatedSuccessfully": "تم تحديث العنوان بنجاح",
+      "deletedSuccessfully": "تم حذف العنوان بنجاح",
+      "setPrimarySuccessfully": "تم تعيين العنوان كأساسي",
+      "deleteConfirm": {
+        "title": "حذف العنوان",
+        "description": "هل أنت متأكد أنك تريد حذف \"{{label}}\"؟ لا يمكن التراجع عن هذا الإجراء."
+      },
+      "deleting": "جارٍ الحذف..."
+    },
     "sidebar": {
       "collapse": "طي الشريط الجانبي",
       "expand": "توسيع الشريط الجانبي",
@@ -982,6 +1029,14 @@
     "placeholder": {
       "description": "هذه الصفحة قيد التطوير",
       "comingSoon": "ستكون هذه الميزة متاحة قريباً."
+    },
+    "settings": {
+      "title": "الإعدادات",
+      "description": "إدارة إعدادات مؤسستك وتفضيلاتك",
+      "navigation": "تنقل الإعدادات",
+      "tabs": {
+        "addresses": "العناوين"
+      }
     },
     "pages": {
       "moderation": {
@@ -1192,17 +1247,25 @@
       "steps": {
         "account": "الحساب",
         "organization": "المؤسسة",
+        "address": "العنوان",
         "review": "مراجعة"
       },
       "stepTitles": {
         "account": "معلومات الحساب",
         "organization": "تفاصيل المؤسسة",
+        "address": "عنوان التوصيل",
         "review": "مراجعة وإنشاء"
       },
       "stepDescriptions": {
         "account": "أدخل بيانات حسابك الشخصي",
         "organization": "أخبرنا عن مؤسستك",
+        "address": "أضف عنوان توصيل لطلباتك",
         "review": "راجع معلوماتك قبل إنشاء الحساب"
+      },
+      "address": {
+        "requiredNote": "ستحتاج إلى إضافة عنوان قبل تقديم طلبك الأول. يمكنك أيضًا إضافة العناوين لاحقًا من الإعدادات.",
+        "skip": "تخطي الآن",
+        "skipped": "لم تتم إضافة عنوان - يمكنك إضافته لاحقًا"
       },
       "name": {
         "first": "الاسم الأول",
@@ -1233,6 +1296,7 @@
       "reviewSection": {
         "accountInfo": "معلومات الحساب",
         "orgInfo": "معلومات المؤسسة",
+        "addressInfo": "عنوان التوصيل",
         "edit": "تعديل"
       }
     },

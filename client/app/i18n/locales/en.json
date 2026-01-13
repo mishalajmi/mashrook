@@ -837,14 +837,14 @@
       "form": {
         "label": "Label",
         "labelPlaceholder": "e.g., Main Office, Warehouse",
-        "addressLine1": "Address Line 1",
-        "addressLine1Placeholder": "Street address",
-        "addressLine2": "Address Line 2 (Optional)",
-        "addressLine2Placeholder": "Apartment, suite, unit, etc.",
+        "streetLine1": "Street Address",
+        "streetLine1Placeholder": "Street address",
+        "streetLine2": "Street Address Line 2 (Optional)",
+        "streetLine2Placeholder": "Apartment, suite, unit, etc.",
         "city": "City",
         "cityPlaceholder": "City name",
-        "state": "State / Province",
-        "statePlaceholder": "State or province",
+        "stateProvince": "State / Province",
+        "stateProvincePlaceholder": "State or province",
         "postalCode": "Postal Code",
         "postalCodePlaceholder": "ZIP or postal code",
         "country": "Country",
@@ -1012,6 +1012,14 @@
     "placeholder": {
       "description": "This page is under development",
       "comingSoon": "This feature will be available soon."
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Manage your organization settings and preferences",
+      "navigation": "Settings navigation",
+      "tabs": {
+        "addresses": "Addresses"
+      }
     },
     "pages": {
       "moderation": {
@@ -1306,17 +1314,25 @@
       "steps": {
         "account": "Account",
         "organization": "Organization",
+        "address": "Address",
         "review": "Review"
       },
       "stepTitles": {
         "account": "Account Information",
         "organization": "Organization Details",
+        "address": "Delivery Address",
         "review": "Review & Submit"
       },
       "stepDescriptions": {
         "account": "Enter your personal account details",
         "organization": "Tell us about your organization",
+        "address": "Add a delivery address for your orders",
         "review": "Review your information before creating your account"
+      },
+      "address": {
+        "requiredNote": "You'll need to add an address before placing your first order. You can also add addresses later from your settings.",
+        "skip": "Skip for now",
+        "skipped": "No address added - you can add one later"
       },
       "name": {
         "first": "First Name",
@@ -1347,6 +1363,7 @@
       "reviewSection": {
         "accountInfo": "Account Information",
         "orgInfo": "Organization Information",
+        "addressInfo": "Delivery Address",
         "edit": "Edit"
       }
     },

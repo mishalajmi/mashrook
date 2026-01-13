@@ -14,13 +14,14 @@ export interface AddressResponse {
 	id: string;
 	organizationId: string;
 	label: string;
-	addressLine1: string;
-	addressLine2?: string;
+	streetLine1: string;
+	streetLine2?: string;
 	city: string;
-	state?: string;
+	stateProvince?: string;
 	postalCode?: string;
 	country: string;
 	isPrimary: boolean;
+	formattedAddress?: string;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -30,10 +31,10 @@ export interface AddressResponse {
  */
 export interface CreateAddressRequest {
 	label: string;
-	addressLine1: string;
-	addressLine2?: string;
+	streetLine1: string;
+	streetLine2?: string;
 	city: string;
-	state?: string;
+	stateProvince?: string;
 	postalCode?: string;
 	country: string;
 	isPrimary?: boolean;
@@ -44,10 +45,10 @@ export interface CreateAddressRequest {
  */
 export interface UpdateAddressRequest {
 	label?: string;
-	addressLine1?: string;
-	addressLine2?: string;
+	streetLine1?: string;
+	streetLine2?: string;
 	city?: string;
-	state?: string;
+	stateProvince?: string;
 	postalCode?: string;
 	country?: string;
 }

@@ -9,6 +9,7 @@ import sa.elm.mashrook.addresses.domain.AddressRepository;
 import sa.elm.mashrook.addresses.dto.AddressCreateRequest;
 import sa.elm.mashrook.addresses.dto.AddressResponse;
 import sa.elm.mashrook.addresses.dto.AddressUpdateRequest;
+import sa.elm.mashrook.auth.dto.RegistrationRequest;
 import sa.elm.mashrook.exceptions.AddressNotFoundException;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationRepository;
@@ -51,6 +52,28 @@ public class AddressService {
         log.info("Created address {} for organization {}", saved.getId(), organizationId);
 
         return AddressResponse.from(saved);
+    }
+
+    @Transactional
+    public void createFirstAddressForOrganization(OrganizationEntity organization,
+                                                  RegistrationRequest.AddressData request) {
+        AddressEntity address = new AddressEntity();
+        address.setOrganization(organization);
+        address.setLabel(request.label());
+        address.setStreetLine1(request.streetLine1());
+        address.setStreetLine2(request.streetLine2());
+        address.setCity(request.city());
+        address.setStateProvince(request.stateProvince());
+        address.setPostalCode(request.postalCode());
+        address.setCountry(request.country() != null ? request.country() : "Saudi Arabia");
+
+        addressRepository.clearPrimaryForOrganization(organization.getId());
+        address.setPrimary(true);
+
+        AddressEntity saved = addressRepository.save(address);
+        log.info("Created address {} for organization {}", saved.getId(), organization.getId());
+
+        AddressResponse.from(saved);
     }
 
     @Transactional

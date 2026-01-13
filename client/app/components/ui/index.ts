@@ -9,6 +9,7 @@ export { DataTable, type Column } from "./data-table";
 export { MediaGallery } from "./media-gallery";
 
 // shadcn/ui components
+export { Alert, AlertTitle, AlertDescription } from "./alert";
 export {
 	AlertDialog,
 	AlertDialogPortal,

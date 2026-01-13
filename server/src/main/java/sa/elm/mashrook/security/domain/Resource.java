@@ -38,7 +38,8 @@ public enum Resource {
     BRACKETS("brackets"),
     PLEDGES("pledges"),
     PAYMENTS("payments"),
-    INVOICES("invoices");
+    INVOICES("invoices"),
+    ADDRESSES("addresses");
 
     private final String resource;
 

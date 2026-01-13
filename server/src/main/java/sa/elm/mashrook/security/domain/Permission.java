@@ -19,7 +19,7 @@ package sa.elm.mashrook.security.domain;
  */
 public enum Permission {
     READ("read"),
-    WRITE("create"),
+    WRITE("write"),
     UPDATE("update"),
     DELETE("delete");
 
