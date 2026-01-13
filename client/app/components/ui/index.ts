@@ -131,3 +131,4 @@ export {
 	TooltipProvider,
 } from "./tooltip";
 export { RadioGroup, RadioGroupItem } from "./radio-group";
+export { Textarea } from "./textarea";
