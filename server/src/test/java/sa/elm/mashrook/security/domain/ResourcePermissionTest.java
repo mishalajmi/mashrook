@@ -61,7 +61,7 @@ class ResourcePermissionTest {
         @ParameterizedTest
         @CsvSource({
                 "ORGANIZATIONS, READ, organizations:read",
-                "CAMPAIGNS, WRITE, campaigns:create",
+                "CAMPAIGNS, WRITE, campaigns:write",
                 "USER_MANAGEMENT, UPDATE, user-management:update",
                 "DASHBOARD, DELETE, dashboard:delete"
         })

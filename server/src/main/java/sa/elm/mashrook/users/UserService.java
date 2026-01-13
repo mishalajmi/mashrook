@@ -6,7 +6,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sa.elm.mashrook.exceptions.UserAlreadyExistsException;
-import sa.elm.mashrook.exceptions.UserNotFoundException;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.security.domain.ResourcePermission;
 import sa.elm.mashrook.users.domain.OrganizationRole;
@@ -103,5 +102,9 @@ public class UserService {
 
     public Optional<UserEntity> findByOrganizationId(UUID supplierId) {
         return userRepository.findFirstByOrganization_IdAndStatus(supplierId, UserStatus.ACTIVE);
+    }
+
+    public Optional<UserEntity> findFirstByOrganizationIdAndStatus(UUID buyerOrgId, UserStatus userStatus) {
+        return userRepository.findFirstByOrganization_IdAndStatus(buyerOrgId, userStatus);
     }
 }

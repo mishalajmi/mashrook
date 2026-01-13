@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sa.elm.mashrook.addresses.service.AddressService;
 import sa.elm.mashrook.auth.domain.RefreshToken;
 import sa.elm.mashrook.auth.dto.AuthResult;
 import sa.elm.mashrook.auth.dto.RegistrationRequest;
@@ -23,9 +24,9 @@ import sa.elm.mashrook.organizations.OrganizationService;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
 import sa.elm.mashrook.organizations.domain.OrganizationType;
 import sa.elm.mashrook.organizations.dto.OrganizationCreateRequest;
+import sa.elm.mashrook.security.details.MashrookUserDetails;
 import sa.elm.mashrook.security.domain.UserRole;
 import sa.elm.mashrook.security.services.JwtService;
-import sa.elm.mashrook.security.details.MashrookUserDetails;
 import sa.elm.mashrook.users.UserService;
 import sa.elm.mashrook.users.domain.UserEntity;
 import sa.elm.mashrook.users.domain.UserStatus;
@@ -39,17 +40,6 @@ import java.util.UUID;
 import static sa.elm.mashrook.security.domain.UserRole.BUYER_OWNER;
 import static sa.elm.mashrook.security.domain.UserRole.SUPPLIER_OWNER;
 
-/**
- * Service handling authentication operations including login, token refresh, and logout.
- * <p>
- * This service integrates with:
- * <ul>
- *   <li>JwtService for access token generation</li>
- *   <li>RefreshTokenService for refresh token management in Redis</li>
- *   <li>Spring Security's AuthenticationManager for credential validation</li>
- * </ul>
- * </p>
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -63,6 +53,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final AuthenticationConfigurationProperties authConfig;
     private final VerificationTokenService verificationTokenService;
+    private final AddressService addressService;
 
     @Transactional
     public UUID register(RegistrationRequest request) {
@@ -77,6 +68,11 @@ public class AuthenticationService {
                 UserCreateRequest.from(request, role),
                 organization
         );
+
+        // Create address if provided
+        if (request.address() != null) {
+            createAddressForOrganization(organization, request.address());
+        }
 
         VerificationTokenEntity activationToken = verificationTokenService.generateToken(
                 owner.getId(),
@@ -95,6 +91,11 @@ public class AuthenticationService {
         log.info("Registered new user {} with organization {}", owner.getEmail(), organization.getId());
 
         return organization.getId();
+    }
+
+    private void createAddressForOrganization(OrganizationEntity organization, RegistrationRequest.AddressData addressData) {
+        addressService.createFirstAddressForOrganization(organization, addressData);
+        log.info("Created address for organization {}", organization.getId());
     }
 
     @Transactional

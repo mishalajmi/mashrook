@@ -175,7 +175,7 @@ export interface PublicCampaignResponse {
 	productDetails: string;
 	supplierId: string;
 	supplierName: string;
-	targetQty: number;
+	targetQuantity: number;
 	totalPledged: number;
 	startDate: string;
 	endDate: string;
@@ -218,7 +218,7 @@ export interface CampaignSummary {
 	supplierName: string;
 	startDate: string;
 	endDate: string;
-	targetQty: number;
+	targetQuantity: number;
 	totalPledged: number;
 	originalPrice: string | null;
 	currentPrice: string | null;

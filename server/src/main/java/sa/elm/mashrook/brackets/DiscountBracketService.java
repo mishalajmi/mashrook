@@ -15,6 +15,7 @@ import sa.elm.mashrook.exceptions.CampaignValidationException;
 import sa.elm.mashrook.exceptions.DiscountBracketNotFoundException;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -209,5 +210,9 @@ public class DiscountBracketService {
         if (campaign.getStatus() != CampaignStatus.DRAFT) {
             throw new CampaignValidationException(errorMessage);
         }
+    }
+
+    public List<DiscountBracketEntity> findAllByCampaignIdOrderByBracketOrder(UUID campaignId) {
+        return discountBracketRepository.findAllByCampaignIdOrderByBracketOrder(campaignId);
     }
 }

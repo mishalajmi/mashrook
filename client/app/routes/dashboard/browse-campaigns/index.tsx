@@ -33,7 +33,7 @@ function transformApiResponse(
 		title: c.title,
 		description: c.description,
 		productDetails: "",
-		targetQuantity: c.targetQty,
+		targetQuantity: c.targetQuantity,
 		startDate: c.startDate,
 		endDate: c.endDate,
 		status: c.status,

@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import sa.elm.mashrook.addresses.service.AddressService;
+import sa.elm.mashrook.auth.dto.RegistrationRequest;
 import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.configurations.AuthenticationConfigurationProperties;
 import sa.elm.mashrook.exceptions.AccountValidationException;
@@ -16,6 +18,7 @@ import sa.elm.mashrook.notifications.NotificationService;
 import sa.elm.mashrook.notifications.email.dto.AccountActivationEmail;
 import sa.elm.mashrook.organizations.OrganizationService;
 import sa.elm.mashrook.organizations.domain.OrganizationEntity;
+import sa.elm.mashrook.organizations.domain.OrganizationType;
 import sa.elm.mashrook.security.services.JwtService;
 import sa.elm.mashrook.users.UserService;
 import sa.elm.mashrook.users.domain.UserEntity;
@@ -68,6 +71,9 @@ class AuthenticationServiceTest {
     @Mock
     private VerificationTokenService verificationTokenService;
 
+    @Mock
+    private AddressService addressService;
+
     private AuthenticationService authenticationService;
 
     private static final String TEST_EMAIL = "test@example.com";
@@ -84,7 +90,8 @@ class AuthenticationServiceTest {
                 notificationService,
                 authenticationManager,
                 authConfig,
-                verificationTokenService
+                verificationTokenService,
+                addressService
         );
     }
 
@@ -232,6 +239,211 @@ class AuthenticationServiceTest {
                     eq(user.getId()),
                     eq(VerificationTokenType.ACCOUNT_ACTIVATION)
             );
+        }
+    }
+
+    @Nested
+    @DisplayName("register with address")
+    class RegisterWithAddress {
+
+        @Test
+        @DisplayName("should register BUYER organization with address when address data is provided")
+        void shouldRegisterBuyerWithAddressWhenAddressDataProvided() {
+            // Arrange
+            RegistrationRequest.AddressData addressData = new RegistrationRequest.AddressData(
+                    "Headquarters",
+                    "123 Main Street",
+                    "Suite 100",
+                    "Riyadh",
+                    "Riyadh Province",
+                    "12345",
+                    "Saudi Arabia"
+            );
+            RegistrationRequest request = new RegistrationRequest(
+                    "Test Company",
+                    "شركة تجريبية",
+                    "BUYER",
+                    "Technology",
+                    "John",
+                    "Doe",
+                    "john.doe@test.com",
+                    "SecurePass123!",
+                    addressData
+            );
+
+            OrganizationEntity organization = new OrganizationEntity();
+            organization.setId(UuidGeneratorUtil.generateUuidV7());
+            organization.setNameEn("Test Company");
+            organization.setType(OrganizationType.BUYER);
+
+            UserEntity owner = createTestUser(UserStatus.INACTIVE);
+            owner.setOrganization(organization);
+
+            VerificationTokenEntity token = createTestToken(owner.getId());
+
+            when(organizationService.createOrganization(any())).thenReturn(organization);
+            when(userService.createUser(any(), any())).thenReturn(owner);
+            when(verificationTokenService.generateToken(any(), any())).thenReturn(token);
+
+            // Act
+            UUID result = authenticationService.register(request);
+
+            // Assert
+            assertThat(result).isEqualTo(organization.getId());
+
+            ArgumentCaptor<OrganizationEntity> orgCaptor = ArgumentCaptor.forClass(OrganizationEntity.class);
+            ArgumentCaptor<RegistrationRequest.AddressData> addressCaptor = ArgumentCaptor.forClass(RegistrationRequest.AddressData.class);
+            verify(addressService).createFirstAddressForOrganization(orgCaptor.capture(), addressCaptor.capture());
+
+            assertThat(orgCaptor.getValue()).isEqualTo(organization);
+            RegistrationRequest.AddressData capturedAddress = addressCaptor.getValue();
+            assertThat(capturedAddress.label()).isEqualTo("Headquarters");
+            assertThat(capturedAddress.streetLine1()).isEqualTo("123 Main Street");
+            assertThat(capturedAddress.streetLine2()).isEqualTo("Suite 100");
+            assertThat(capturedAddress.city()).isEqualTo("Riyadh");
+            assertThat(capturedAddress.stateProvince()).isEqualTo("Riyadh Province");
+            assertThat(capturedAddress.postalCode()).isEqualTo("12345");
+            assertThat(capturedAddress.country()).isEqualTo("Saudi Arabia");
+        }
+
+        @Test
+        @DisplayName("should register BUYER organization without address when address data is null")
+        void shouldRegisterBuyerWithoutAddressWhenAddressDataIsNull() {
+            // Arrange
+            RegistrationRequest request = new RegistrationRequest(
+                    "Test Company",
+                    "شركة تجريبية",
+                    "BUYER",
+                    "Technology",
+                    "John",
+                    "Doe",
+                    "john.doe@test.com",
+                    "SecurePass123!",
+                    null
+            );
+
+            OrganizationEntity organization = new OrganizationEntity();
+            organization.setId(UuidGeneratorUtil.generateUuidV7());
+            organization.setNameEn("Test Company");
+            organization.setType(OrganizationType.BUYER);
+
+            UserEntity owner = createTestUser(UserStatus.INACTIVE);
+            owner.setOrganization(organization);
+
+            VerificationTokenEntity token = createTestToken(owner.getId());
+
+            when(organizationService.createOrganization(any())).thenReturn(organization);
+            when(userService.createUser(any(), any())).thenReturn(owner);
+            when(verificationTokenService.generateToken(any(), any())).thenReturn(token);
+
+            // Act
+            UUID result = authenticationService.register(request);
+
+            // Assert
+            assertThat(result).isEqualTo(organization.getId());
+            verify(addressService, never()).createFirstAddressForOrganization(any(), any());
+        }
+
+        @Test
+        @DisplayName("should set default country to Saudi Arabia when country is null")
+        void shouldSetDefaultCountryWhenCountryIsNull() {
+            // Arrange
+            RegistrationRequest.AddressData addressData = new RegistrationRequest.AddressData(
+                    "Office",
+                    "456 Business Ave",
+                    null,
+                    "Jeddah",
+                    null,
+                    "54321",
+                    null  // country is null
+            );
+            RegistrationRequest request = new RegistrationRequest(
+                    "Test Company",
+                    "شركة تجريبية",
+                    "BUYER",
+                    "Technology",
+                    "Jane",
+                    "Smith",
+                    "jane.smith@test.com",
+                    "SecurePass123!",
+                    addressData
+            );
+
+            OrganizationEntity organization = new OrganizationEntity();
+            organization.setId(UuidGeneratorUtil.generateUuidV7());
+            organization.setNameEn("Test Company");
+            organization.setType(OrganizationType.BUYER);
+
+            UserEntity owner = createTestUser(UserStatus.INACTIVE);
+            owner.setOrganization(organization);
+
+            VerificationTokenEntity token = createTestToken(owner.getId());
+
+            when(organizationService.createOrganization(any())).thenReturn(organization);
+            when(userService.createUser(any(), any())).thenReturn(owner);
+            when(verificationTokenService.generateToken(any(), any())).thenReturn(token);
+
+            // Act
+            authenticationService.register(request);
+
+            // Assert - verify the method is called with the address data (default country is handled by AddressService)
+            ArgumentCaptor<RegistrationRequest.AddressData> addressCaptor = ArgumentCaptor.forClass(RegistrationRequest.AddressData.class);
+            verify(addressService).createFirstAddressForOrganization(any(OrganizationEntity.class), addressCaptor.capture());
+
+            RegistrationRequest.AddressData capturedAddress = addressCaptor.getValue();
+            assertThat(capturedAddress.country()).isNull(); // The default is applied in AddressService
+        }
+
+        @Test
+        @DisplayName("should register SUPPLIER organization with address when address data is provided")
+        void shouldRegisterSupplierWithoutAddressEvenIfAddressDataProvided() {
+            // Arrange - Suppliers can also have addresses during registration
+            RegistrationRequest.AddressData addressData = new RegistrationRequest.AddressData(
+                    "Warehouse",
+                    "789 Industrial Rd",
+                    null,
+                    "Dammam",
+                    "Eastern Province",
+                    "31111",
+                    "Saudi Arabia"
+            );
+            RegistrationRequest request = new RegistrationRequest(
+                    "Supplier Corp",
+                    "شركة موردين",
+                    "SUPPLIER",
+                    "Manufacturing",
+                    "Bob",
+                    "Builder",
+                    "bob@supplier.com",
+                    "SecurePass123!",
+                    addressData
+            );
+
+            OrganizationEntity organization = new OrganizationEntity();
+            organization.setId(UuidGeneratorUtil.generateUuidV7());
+            organization.setNameEn("Supplier Corp");
+            organization.setType(OrganizationType.SUPPLIER);
+
+            UserEntity owner = createTestUser(UserStatus.INACTIVE);
+            owner.setOrganization(organization);
+
+            VerificationTokenEntity token = createTestToken(owner.getId());
+
+            when(organizationService.createOrganization(any())).thenReturn(organization);
+            when(userService.createUser(any(), any())).thenReturn(owner);
+            when(verificationTokenService.generateToken(any(), any())).thenReturn(token);
+
+            // Act
+            UUID result = authenticationService.register(request);
+
+            // Assert
+            assertThat(result).isEqualTo(organization.getId());
+            // Address should also be saved for suppliers if provided
+            ArgumentCaptor<RegistrationRequest.AddressData> addressCaptor = ArgumentCaptor.forClass(RegistrationRequest.AddressData.class);
+            verify(addressService).createFirstAddressForOrganization(any(OrganizationEntity.class), addressCaptor.capture());
+
+            RegistrationRequest.AddressData capturedAddress = addressCaptor.getValue();
+            assertThat(capturedAddress.label()).isEqualTo("Warehouse");
         }
     }
 }

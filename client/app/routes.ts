@@ -21,6 +21,7 @@ export default [
 			// Supplier routes
 			route("products", "routes/dashboard/products/index.tsx"),
 			route("orders", "routes/dashboard/orders/index.tsx"),
+			route("orders/:id", "routes/dashboard/orders/$id.tsx"),
 			route("campaigns", "routes/dashboard/campaigns/index.tsx"),
 			route("campaigns/new", "routes/dashboard/campaigns/new.tsx"),
 			route("campaigns/:id", "routes/dashboard/campaigns/$id.tsx"),
@@ -28,6 +29,7 @@ export default [
 			route("buyers", "routes/dashboard/buyers/index.tsx"),
 			route("messages", "routes/dashboard/messages/index.tsx"),
 			route("settings", "routes/dashboard/settings/index.tsx"),
+			route("settings/addresses", "routes/dashboard/settings/addresses.tsx"),
 
 			// Buyer routes
 			route("procurement", "routes/dashboard/procurement/index.tsx"),

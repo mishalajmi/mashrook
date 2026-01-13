@@ -1,4 +1,4 @@
-type DateInput = string | Date;
+type DateInput = string | Date | null | undefined;
 
 /**
  * Parse a date string or Date object, handling timezone properly.
@@ -6,8 +6,14 @@ type DateInput = string | Date;
  * For ISO strings with time component (e.g., "2026-01-03T23:00:00Z"),
  * we extract just the date portion to avoid timezone-related date shifts.
  * For date-only strings (e.g., "2026-01-03"), we parse as local date.
+ *
+ * Returns null if input is null, undefined, or invalid.
  */
-function parseDate(input: DateInput): Date {
+function parseDate(input: DateInput): Date | null {
+	if (input == null) {
+		return null;
+	}
+
 	if (input instanceof Date) {
 		return input;
 	}
@@ -35,15 +41,19 @@ function parseDate(input: DateInput): Date {
  *
  * @param input - Date string (ISO format) or Date object
  * @param locale - Locale for formatting (default: "en-US")
- * @returns Formatted date string
+ * @returns Formatted date string, or empty string if input is null/undefined
  *
  * @example
  * formatDate("2026-01-03T23:00:00Z") // "Jan 3, 2026"
  * formatDate("2026-01-03") // "Jan 3, 2026"
  * formatDate(new Date()) // "Jan 3, 2026"
+ * formatDate(null) // ""
  */
 export function formatDate(input: DateInput, locale = "en-US"): string {
 	const date = parseDate(input);
+	if (!date) {
+		return "";
+	}
 
 	return date.toLocaleDateString(locale, {
 		month: "short",
@@ -60,9 +70,12 @@ export function formatDate(input: DateInput, locale = "en-US"): string {
  *
  * @param input - Date string (ISO format) or Date object
  * @param locale - Locale for formatting (default: "en-US")
- * @returns Formatted datetime string
+ * @returns Formatted datetime string, or empty string if input is null/undefined
  */
 export function formatDateTime(input: DateInput, locale = "en-US"): string {
+	if (input == null) {
+		return "";
+	}
 	const date = input instanceof Date ? input : new Date(input);
 
 	return date.toLocaleDateString(locale, {
@@ -79,10 +92,13 @@ export function formatDateTime(input: DateInput, locale = "en-US"): string {
  *
  * @param input - Date string (ISO format) or Date object
  * @param locale - Locale for formatting (default: "en-US")
- * @returns Formatted long date string
+ * @returns Formatted long date string, or empty string if input is null/undefined
  */
 export function formatLongDate(input: DateInput, locale = "en-US"): string {
 	const date = parseDate(input);
+	if (!date) {
+		return "";
+	}
 
 	return date.toLocaleDateString(locale, {
 		month: "long",
@@ -96,10 +112,13 @@ export function formatLongDate(input: DateInput, locale = "en-US"): string {
  *
  * @param input - Date string (ISO format) or Date object
  * @param locale - Locale for formatting (default: "en-US")
- * @returns Formatted long date string with weekday
+ * @returns Formatted long date string with weekday, or empty string if input is null/undefined
  */
 export function formatLongDateWithWeekday(input: DateInput, locale = "en-US"): string {
 	const date = parseDate(input);
+	if (!date) {
+		return "";
+	}
 
 	return date.toLocaleDateString(locale, {
 		weekday: "long",
@@ -114,10 +133,13 @@ export function formatLongDateWithWeekday(input: DateInput, locale = "en-US"): s
  *
  * @param input - Date string (ISO format) or Date object
  * @param locale - Locale for formatting (default: "en-US")
- * @returns Formatted short date string
+ * @returns Formatted short date string, or empty string if input is null/undefined
  */
 export function formatShortDate(input: DateInput, locale = "en-US"): string {
 	const date = parseDate(input);
+	if (!date) {
+		return "";
+	}
 
 	return date.toLocaleDateString(locale, {
 		month: "short",
@@ -133,9 +155,12 @@ export function formatShortDate(input: DateInput, locale = "en-US"): string {
  *
  * @param input - Date string (ISO format) or Date object
  * @param locale - Locale for formatting (default: "en-US")
- * @returns Formatted datetime string with weekday
+ * @returns Formatted datetime string with weekday, or empty string if input is null/undefined
  */
 export function formatDateWithWeekdayAndTime(input: DateInput, locale = "en-US"): string {
+	if (input == null) {
+		return "";
+	}
 	const date = input instanceof Date ? input : new Date(input);
 
 	return date.toLocaleDateString(locale, {
@@ -153,10 +178,13 @@ export function formatDateWithWeekdayAndTime(input: DateInput, locale = "en-US")
  * Format a date in ISO format (YYYY-MM-DD)
  *
  * @param input - Date string or Date object
- * @returns ISO date string
+ * @returns ISO date string, or empty string if input is null/undefined
  */
 export function formatISODate(input: DateInput): string {
 	const date = parseDate(input);
+	if (!date) {
+		return "";
+	}
 	const year = date.getFullYear();
 	const month = String(date.getMonth() + 1).padStart(2, "0");
 	const day = String(date.getDate()).padStart(2, "0");
@@ -167,10 +195,13 @@ export function formatISODate(input: DateInput): string {
  * Check if a date is in the past
  *
  * @param input - Date string or Date object
- * @returns True if the date is before today
+ * @returns True if the date is before today, false if input is null/undefined
  */
 export function isPastDate(input: DateInput): boolean {
 	const date = parseDate(input);
+	if (!date) {
+		return false;
+	}
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);
 	date.setHours(0, 0, 0, 0);
@@ -181,10 +212,13 @@ export function isPastDate(input: DateInput): boolean {
  * Check if a date is in the future
  *
  * @param input - Date string or Date object
- * @returns True if the date is after today
+ * @returns True if the date is after today, false if input is null/undefined
  */
 export function isFutureDate(input: DateInput): boolean {
 	const date = parseDate(input);
+	if (!date) {
+		return false;
+	}
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);
 	date.setHours(0, 0, 0, 0);
@@ -196,9 +230,12 @@ export function isFutureDate(input: DateInput): boolean {
  *
  * @param input - Date string or Date object
  * @param locale - Locale for formatting (default: "en-US")
- * @returns Relative time string
+ * @returns Relative time string, or empty string if input is null/undefined
  */
 export function formatRelativeTime(input: DateInput, locale = "en-US"): string {
+	if (input == null) {
+		return "";
+	}
 	const date = input instanceof Date ? input : new Date(input);
 	const now = new Date();
 	const diffMs = date.getTime() - now.getTime();
@@ -225,9 +262,12 @@ export function formatRelativeTime(input: DateInput, locale = "en-US"): string {
  * Calculate days remaining until a target date
  *
  * @param targetDate - Date string to calculate delta to
- * @returns Delta days between current date and targetDate
+ * @returns Delta days between current date and targetDate, or 0 if input is null/undefined
  */
-export function calculateDaysRemaining(targetDate: string): number {
+export function calculateDaysRemaining(targetDate: string | null | undefined): number {
+    if (targetDate == null) {
+        return 0;
+    }
     const target = new Date(targetDate);
     const now = new Date();
     const diffTime = target.getTime() - now.getTime();

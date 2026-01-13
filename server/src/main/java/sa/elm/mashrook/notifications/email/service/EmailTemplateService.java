@@ -16,6 +16,11 @@ import sa.elm.mashrook.notifications.email.dto.EmailRequest;
 import sa.elm.mashrook.notifications.email.dto.EmailType;
 import sa.elm.mashrook.notifications.email.dto.GracePeriodStartedEmail;
 import sa.elm.mashrook.notifications.email.dto.InvoiceGeneratedEmail;
+import sa.elm.mashrook.notifications.email.dto.OrderCancelledEmail;
+import sa.elm.mashrook.notifications.email.dto.OrderCreatedEmail;
+import sa.elm.mashrook.notifications.email.dto.OrderDeliveredEmail;
+import sa.elm.mashrook.notifications.email.dto.OrderShippedEmail;
+import sa.elm.mashrook.notifications.email.dto.OrderStatusChangedEmail;
 import sa.elm.mashrook.notifications.email.dto.OrganizationVerifiedEmail;
 import sa.elm.mashrook.notifications.email.dto.PasswordResetEmail;
 import sa.elm.mashrook.notifications.email.dto.PaymentReceivedEmail;
@@ -170,6 +175,49 @@ public class EmailTemplateService {
                 context.setVariable("inviterName", invitation.inviterName());
                 context.setVariable("invitationLink", invitation.invitationLink());
                 context.setVariable("expirationDays", invitation.expirationDays());
+            }
+            case OrderCreatedEmail orderCreated -> {
+                context.setVariable("recipientName", orderCreated.recipientName());
+                context.setVariable("organizationName", orderCreated.organizationName());
+                context.setVariable("campaignTitle", orderCreated.campaignTitle());
+                context.setVariable("orderNumber", orderCreated.orderNumber());
+                context.setVariable("orderId", orderCreated.orderId());
+                context.setVariable("quantity", orderCreated.quantity());
+                context.setVariable("totalAmount", orderCreated.totalAmount());
+            }
+            case OrderStatusChangedEmail statusChanged -> {
+                context.setVariable("recipientName", statusChanged.recipientName());
+                context.setVariable("organizationName", statusChanged.organizationName());
+                context.setVariable("campaignTitle", statusChanged.campaignTitle());
+                context.setVariable("orderNumber", statusChanged.orderNumber());
+                context.setVariable("orderId", statusChanged.orderId());
+                context.setVariable("previousStatus", statusChanged.previousStatus());
+                context.setVariable("newStatus", statusChanged.newStatus());
+            }
+            case OrderShippedEmail shipped -> {
+                context.setVariable("recipientName", shipped.recipientName());
+                context.setVariable("organizationName", shipped.organizationName());
+                context.setVariable("campaignTitle", shipped.campaignTitle());
+                context.setVariable("orderNumber", shipped.orderNumber());
+                context.setVariable("orderId", shipped.orderId());
+                context.setVariable("trackingNumber", shipped.trackingNumber());
+                context.setVariable("carrier", shipped.carrier());
+                context.setVariable("estimatedDeliveryDate", shipped.estimatedDeliveryDate());
+            }
+            case OrderDeliveredEmail delivered -> {
+                context.setVariable("recipientName", delivered.recipientName());
+                context.setVariable("organizationName", delivered.organizationName());
+                context.setVariable("campaignTitle", delivered.campaignTitle());
+                context.setVariable("orderNumber", delivered.orderNumber());
+                context.setVariable("orderId", delivered.orderId());
+            }
+            case OrderCancelledEmail cancelled -> {
+                context.setVariable("recipientName", cancelled.recipientName());
+                context.setVariable("organizationName", cancelled.organizationName());
+                context.setVariable("campaignTitle", cancelled.campaignTitle());
+                context.setVariable("orderNumber", cancelled.orderNumber());
+                context.setVariable("orderId", cancelled.orderId());
+                context.setVariable("cancellationReason", cancelled.cancellationReason());
             }
             default -> {
                 log.warn("Unknown email notification type: {}", notification.getClass().getName());

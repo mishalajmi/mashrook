@@ -31,7 +31,8 @@
     "file.type.unsupported": "نوع الملف غير مدعوم. يرجى استخدام JPG أو PNG أو MP4.",
     "media.upload.failed": "فشل رفع الملف. يرجى المحاولة مرة أخرى.",
     "media.delete.failed": "فشل حذف الوسائط. يرجى المحاولة مرة أخرى.",
-    "authentication.failed": "فشل المصادقة"
+    "authentication.failed": "فشل المصادقة",
+    "order.invalid.status.transition": "لا يمكن إلغاء طلب تم تسليمه بالفعل"
   },
   "common": {
     "appName": "مشروك",
@@ -294,7 +295,8 @@
       "saving": "جارٍ الحفظ...",
       "edit": "تعديل",
       "startDate": "تاريخ البدء",
-      "endDate": "تاريخ الانتهاء"
+      "endDate": "تاريخ الانتهاء",
+      "processing": "جارٍ المعالجة..."
     },
     "team": {
       "title": "الفريق",
@@ -639,6 +641,196 @@
         "failedDescription": "لم نتمكن من معالجة دفعتك"
       }
     },
+    "orders": {
+      "title": "الطلبات",
+      "description": "عرض وإدارة طلباتك",
+      "loading": "جارٍ تحميل الطلبات...",
+      "loadingDetail": "جارٍ تحميل تفاصيل الطلب...",
+      "loadError": "فشل تحميل الطلبات",
+      "backToOrders": "العودة إلى الطلبات",
+      "orderNumber": "طلب #{{number}}",
+      "createdOn": "تم إنشاؤه في {{date}}",
+      "exportCsv": "تصدير CSV",
+      "exporting": "جارٍ التصدير...",
+      "exportSuccess": "تم تصدير الطلبات بنجاح",
+      "selectedCount": "{{count}} طلب محدد",
+      "clearSelection": "مسح التحديد",
+      "markedAsShipped": "تم وضع علامة تم الشحن على الطلب",
+      "markedAsDelivered": "تم وضع علامة تم التسليم على الطلب",
+      "noOrders": {
+        "title": "لا توجد طلبات بعد",
+        "description": "ستظهر الطلبات هنا بعد تنفيذ الحملات"
+      },
+      "noResults": "لا توجد طلبات تطابق الفلاتر الحالية",
+      "notFound": {
+        "title": "الطلب غير موجود",
+        "description": "الطلب الذي تبحث عنه غير موجود أو ليس لديك صلاحية الوصول إليه"
+      },
+      "status": {
+        "pending": "قيد الانتظار",
+        "processing": "قيد المعالجة",
+        "onHold": "معلق",
+        "shipped": "تم الشحن",
+        "partiallyShipped": "شحن جزئي",
+        "delivered": "تم التسليم",
+        "cancelled": "ملغى"
+      },
+      "filters": {
+        "allStatuses": "جميع الحالات",
+        "allTime": "كل الأوقات",
+        "last7Days": "آخر 7 أيام",
+        "last15Days": "آخر 15 يوم",
+        "last30Days": "آخر 30 يوم"
+      },
+      "table": {
+        "orderNumber": "رقم الطلب",
+        "campaign": "الحملة",
+        "buyer": "المشتري",
+        "quantity": "الكمية",
+        "total": "الإجمالي",
+        "date": "التاريخ",
+        "status": "الحالة",
+        "selectAll": "تحديد كل الطلبات",
+        "selectOrder": "تحديد الطلب {{orderNumber}}"
+      },
+      "actions": {
+        "markShipped": "تم الشحن",
+        "markDelivered": "تم التسليم",
+        "updateShipment": "تحديث الشحن",
+        "fulfillDigital": "تنفيذ رقمي",
+        "cancel": "إلغاء الطلب",
+        "requestCancellation": "طلب إلغاء"
+      },
+      "summary": {
+        "title": "ملخص الطلب",
+        "campaign": "الحملة",
+        "quantity": "الكمية",
+        "units": "وحدة",
+        "unitPrice": "سعر الوحدة",
+        "total": "المبلغ الإجمالي",
+        "buyer": "المشتري",
+        "supplier": "المورد",
+        "productType": "نوع المنتج",
+        "digital": "منتج رقمي",
+        "physical": "منتج مادي"
+      },
+      "delivery": {
+        "title": "معلومات التسليم",
+        "trackingNumber": "رقم التتبع",
+        "via": "عبر {{carrier}}",
+        "estimatedDelivery": "التسليم المتوقع",
+        "deliveredOn": "تم التسليم في",
+        "noInfo": "لا تتوفر معلومات التسليم بعد"
+      },
+      "digitalDelivery": {
+        "title": "التسليم الرقمي",
+        "deliveredOn": "تم التسليم في",
+        "pending": "التسليم الرقمي في انتظار التنفيذ"
+      },
+      "timeline": {
+        "title": "سجل الطلب",
+        "pending": "تم تقديم الطلب",
+        "processing": "قيد المعالجة",
+        "onHold": "معلق",
+        "shipped": "تم الشحن",
+        "delivered": "تم التسليم",
+        "digitalDelivered": "تم التسليم الرقمي",
+        "cancelled": "ملغى",
+        "reason": "السبب"
+      },
+      "comments": {
+        "title": "التعليقات",
+        "noComments": "لا توجد تعليقات بعد. ابدأ المحادثة.",
+        "placeholder": "اكتب تعليقاً...",
+        "send": "إرسال",
+        "sending": "جارٍ الإرسال...",
+        "addedSuccessfully": "تمت إضافة التعليق بنجاح"
+      },
+      "shipment": {
+        "title": "تحديث الشحن",
+        "description": "أدخل تفاصيل الشحن لهذا الطلب",
+        "trackingNumber": "رقم التتبع",
+        "trackingNumberPlaceholder": "أدخل رقم التتبع",
+        "carrier": "شركة الشحن",
+        "carrierPlaceholder": "مثال: FedEx, UPS, DHL",
+        "estimatedDelivery": "تاريخ التسليم المتوقع",
+        "updatedSuccessfully": "تم تحديث تفاصيل الشحن بنجاح"
+      },
+      "digital": {
+        "title": "تنفيذ الطلب الرقمي",
+        "description": "قدم تفاصيل التسليم الرقمي لهذا الطلب",
+        "deliveryType": "نوع التسليم",
+        "selectType": "اختر نوع التسليم",
+        "deliveryValue": "قيمة التسليم",
+        "types": {
+          "downloadlink": "رابط التحميل",
+          "licensekey": "مفتاح الترخيص",
+          "accessgrant": "منح الوصول",
+          "downloadLink": "رابط التحميل",
+          "licenseKey": "مفتاح الترخيص",
+          "accessGrant": "منح الوصول"
+        },
+        "downloadLinkPlaceholder": "https://example.com/download/...",
+        "licenseKeyPlaceholder": "XXXX-XXXX-XXXX-XXXX",
+        "accessGrantPlaceholder": "بيانات الحساب أو تعليمات الوصول",
+        "fulfill": "تنفيذ الطلب",
+        "fulfilling": "جارٍ التنفيذ...",
+        "fulfilledSuccessfully": "تم تنفيذ الطلب الرقمي بنجاح"
+      },
+      "cancel": {
+        "title": "إلغاء الطلب",
+        "description": "هل أنت متأكد من إلغاء الطلب {{orderNumber}}؟ لا يمكن التراجع عن هذا الإجراء.",
+        "reason": "سبب الإلغاء",
+        "reasonPlaceholder": "يرجى تقديم سبب للإلغاء...",
+        "confirmCancel": "إلغاء الطلب",
+        "cancelling": "جارٍ الإلغاء...",
+        "cancelledSuccessfully": "تم إلغاء الطلب بنجاح"
+      },
+      "requestCancel": {
+        "title": "طلب إلغاء",
+        "description": "تقديم طلب إلغاء للطلب {{orderNumber}}",
+        "note": "سيتم مراجعة طلب الإلغاء من قبل المورد. قد يتواصلون معك للحصول على مزيد من التفاصيل.",
+        "reason": "سبب الإلغاء",
+        "reasonPlaceholder": "يرجى شرح سبب رغبتك في إلغاء هذا الطلب...",
+        "submitRequest": "تقديم الطلب",
+        "submitting": "جارٍ التقديم...",
+        "requestedSuccessfully": "تم تقديم طلب الإلغاء بنجاح"
+      },
+      "cancellation": {
+        "title": "تفاصيل الإلغاء",
+        "reason": "السبب",
+        "cancelledOn": "تم الإلغاء في {{date}}"
+      },
+      "cancellationRequest": {
+        "title": "طلبات الإلغاء",
+        "pending": "قيد الانتظار",
+        "requestedBy": "مقدم الطلب",
+        "reviewedBy": "تمت المراجعة بواسطة",
+        "reason": "السبب",
+        "reviewNotes": "ملاحظات المراجعة",
+        "approve": "موافقة",
+        "reject": "رفض",
+        "approveTitle": "الموافقة على طلب الإلغاء",
+        "approveDescription": "سيتم إلغاء الطلب وإخطار المشتري. لا يمكن التراجع عن هذا الإجراء.",
+        "rejectTitle": "رفض طلب الإلغاء",
+        "rejectDescription": "سيتم إخطار المشتري برفض طلب الإلغاء.",
+        "notesLabel": "ملاحظات (اختياري)",
+        "notesPlaceholder": "أضف أي ملاحظات للمشتري...",
+        "confirmApprove": "الموافقة وإلغاء الطلب",
+        "confirmReject": "رفض الطلب",
+        "approvedSuccess": "تمت الموافقة على طلب الإلغاء وإلغاء الطلب",
+        "rejectedSuccess": "تم رفض طلب الإلغاء"
+      },
+      "validation": {
+        "commentEmpty": "لا يمكن أن يكون التعليق فارغاً",
+        "commentTooLong": "التعليق طويل جداً",
+        "trackingNumberRequired": "رقم التتبع مطلوب",
+        "carrierRequired": "شركة الشحن مطلوبة",
+        "deliveryValueRequired": "قيمة التسليم مطلوبة",
+        "cancellationReasonRequired": "يرجى تقديم سبب مفصل (10 أحرف على الأقل)",
+        "cancellationRequestReasonRequired": "يرجى تقديم سبب (10 أحرف على الأقل)"
+      }
+    },
     "organizations": {
       "title": "المنظمات",
       "description": "إدارة المنظمات على المنصة",
@@ -677,6 +869,53 @@
       },
       "verifiedSuccessfully": "تم التحقق من المنظمة \"{{name}}\" بنجاح",
       "rejectedSuccessfully": "تم رفض المنظمة \"{{name}}\""
+    },
+    "addresses": {
+      "title": "العناوين",
+      "description": "إدارة عناوين التسليم لمؤسستك",
+      "loading": "جارٍ تحميل العناوين...",
+      "loadError": "فشل تحميل العناوين",
+      "addAddress": "إضافة عنوان",
+      "addTitle": "إضافة عنوان جديد",
+      "addDescription": "أضف عنوان تسليم جديد لمؤسستك",
+      "editTitle": "تعديل العنوان",
+      "editDescription": "تحديث تفاصيل العنوان",
+      "primary": "الأساسي",
+      "actions": "الإجراءات",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "setAsPrimary": "تعيين كأساسي",
+      "selectAddress": "اختر عنواناً",
+      "noAddresses": {
+        "title": "لا توجد عناوين بعد",
+        "description": "أضف عنوانك الأول لاستخدامه في تسليم الطلبات"
+      },
+      "form": {
+        "label": "التسمية",
+        "labelPlaceholder": "مثال: المكتب الرئيسي، المستودع",
+        "streetLine1": "عنوان الشارع",
+        "streetLine1Placeholder": "عنوان الشارع",
+        "streetLine2": "عنوان الشارع - السطر 2 (اختياري)",
+        "streetLine2Placeholder": "شقة، جناح، وحدة، إلخ.",
+        "city": "المدينة",
+        "cityPlaceholder": "اسم المدينة",
+        "stateProvince": "المنطقة / المحافظة",
+        "stateProvincePlaceholder": "المنطقة أو المحافظة",
+        "postalCode": "الرمز البريدي",
+        "postalCodePlaceholder": "الرمز البريدي",
+        "country": "الدولة",
+        "countryPlaceholder": "اسم الدولة",
+        "setAsPrimary": "تعيين كعنوان أساسي"
+      },
+      "createdSuccessfully": "تم إنشاء العنوان بنجاح",
+      "updatedSuccessfully": "تم تحديث العنوان بنجاح",
+      "deletedSuccessfully": "تم حذف العنوان بنجاح",
+      "setPrimarySuccessfully": "تم تعيين العنوان كأساسي",
+      "deleteConfirm": {
+        "title": "حذف العنوان",
+        "description": "هل أنت متأكد أنك تريد حذف \"{{label}}\"؟ لا يمكن التراجع عن هذا الإجراء."
+      },
+      "deleting": "جارٍ الحذف..."
     },
     "sidebar": {
       "collapse": "طي الشريط الجانبي",
@@ -790,6 +1029,14 @@
     "placeholder": {
       "description": "هذه الصفحة قيد التطوير",
       "comingSoon": "ستكون هذه الميزة متاحة قريباً."
+    },
+    "settings": {
+      "title": "الإعدادات",
+      "description": "إدارة إعدادات مؤسستك وتفضيلاتك",
+      "navigation": "تنقل الإعدادات",
+      "tabs": {
+        "addresses": "العناوين"
+      }
     },
     "pages": {
       "moderation": {
@@ -1000,17 +1247,25 @@
       "steps": {
         "account": "الحساب",
         "organization": "المؤسسة",
+        "address": "العنوان",
         "review": "مراجعة"
       },
       "stepTitles": {
         "account": "معلومات الحساب",
         "organization": "تفاصيل المؤسسة",
+        "address": "عنوان التوصيل",
         "review": "مراجعة وإنشاء"
       },
       "stepDescriptions": {
         "account": "أدخل بيانات حسابك الشخصي",
         "organization": "أخبرنا عن مؤسستك",
+        "address": "أضف عنوان توصيل لطلباتك",
         "review": "راجع معلوماتك قبل إنشاء الحساب"
+      },
+      "address": {
+        "requiredNote": "ستحتاج إلى إضافة عنوان قبل تقديم طلبك الأول. يمكنك أيضًا إضافة العناوين لاحقًا من الإعدادات.",
+        "skip": "تخطي الآن",
+        "skipped": "لم تتم إضافة عنوان - يمكنك إضافته لاحقًا"
       },
       "name": {
         "first": "الاسم الأول",
@@ -1041,6 +1296,7 @@
       "reviewSection": {
         "accountInfo": "معلومات الحساب",
         "orgInfo": "معلومات المؤسسة",
+        "addressInfo": "عنوان التوصيل",
         "edit": "تعديل"
       }
     },

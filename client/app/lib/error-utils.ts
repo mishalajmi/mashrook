@@ -10,14 +10,15 @@ export function getTranslatedErrorMessage(error: unknown): string {
 		const code = (error as { code?: string }).code;
 		if (code) {
 			const translationKey = `errors.${code}`;
-			const translated = i18n.t(translationKey, { defaultValue: "An unexpected error has occured" });
+			const translated = i18n.t(translationKey);
 			if (translated && translated !== translationKey) {
 				return translated;
 			}
 		}
-		return error.message;
+		// Fall back to error.message, or generic error if no message
+		return error.message || i18n.t("errors.generic");
 	}
 	return error instanceof Error
 		? error.message
-		: i18n.t("errors.generic", "An error occurred");
+		: i18n.t("errors.generic");
 }

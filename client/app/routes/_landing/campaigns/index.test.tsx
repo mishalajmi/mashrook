@@ -23,7 +23,7 @@ const mockCampaignListResponse: CampaignListResponse = {
 			supplierName: "Test Supplier",
 			startDate: "2024-01-01",
 			endDate: "2024-12-31",
-			targetQty: 100,
+			targetQuantity: 100,
 			totalPledged: 25,
 			originalPrice: "100.00",
 			currentPrice: "90.00",

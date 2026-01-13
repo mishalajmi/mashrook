@@ -86,7 +86,7 @@ function transformToCompatibleFormat(
 		title: c.title,
 		description: c.description,
 		productDetails: "", // Not included in summary
-		targetQuantity: c.targetQty,
+		targetQuantity: c.targetQuantity,
 		startDate: c.startDate,
 		endDate: c.endDate,
 		status: "active" as const, // Public endpoint only returns active campaigns

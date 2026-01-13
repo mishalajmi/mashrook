@@ -91,7 +91,17 @@ public enum UserRole {
             ResourcePermission.of(Resource.CAMPAIGNS, Permission.READ),
             // Settings
             ResourcePermission.of(Resource.SETTINGS, Permission.READ),
-            ResourcePermission.of(Resource.SETTINGS, Permission.UPDATE)
+            ResourcePermission.of(Resource.SETTINGS, Permission.UPDATE),
+            // Addresses
+            ResourcePermission.of(Resource.ADDRESSES, Permission.READ),
+            ResourcePermission.of(Resource.ADDRESSES, Permission.WRITE),
+            ResourcePermission.of(Resource.ADDRESSES, Permission.UPDATE),
+            ResourcePermission.of(Resource.ADDRESSES, Permission.DELETE),
+            // Invoices
+            ResourcePermission.of(Resource.INVOICES, Permission.READ),
+            ResourcePermission.of(Resource.INVOICES, Permission.WRITE),
+            ResourcePermission.of(Resource.INVOICES, Permission.UPDATE),
+            ResourcePermission.of(Resource.INVOICES, Permission.DELETE)
     ), false),
 
     SUPPLIER_OWNER(Set.of(
@@ -125,12 +135,23 @@ public enum UserRole {
             ResourcePermission.of(Resource.ORDERS, Permission.READ),
             ResourcePermission.of(Resource.ORDERS, Permission.WRITE),
             ResourcePermission.of(Resource.ORDERS, Permission.UPDATE),
+            ResourcePermission.of(Resource.ORDERS, Permission.DELETE),
             // Analytics
             ResourcePermission.of(Resource.ANALYTICS, Permission.READ),
             ResourcePermission.of(Resource.PLEDGES, Permission.READ),
             // Settings
             ResourcePermission.of(Resource.SETTINGS, Permission.READ),
-            ResourcePermission.of(Resource.SETTINGS, Permission.UPDATE)
+            ResourcePermission.of(Resource.SETTINGS, Permission.UPDATE),
+            // Addresses
+            ResourcePermission.of(Resource.ADDRESSES, Permission.READ),
+            ResourcePermission.of(Resource.ADDRESSES, Permission.WRITE),
+            ResourcePermission.of(Resource.ADDRESSES, Permission.UPDATE),
+            ResourcePermission.of(Resource.ADDRESSES, Permission.DELETE),
+            // Invoices
+            ResourcePermission.of(Resource.INVOICES, Permission.READ),
+            ResourcePermission.of(Resource.INVOICES, Permission.WRITE),
+            ResourcePermission.of(Resource.INVOICES, Permission.UPDATE),
+            ResourcePermission.of(Resource.INVOICES, Permission.DELETE)
     ), false);
 
     private final Set<ResourcePermission> resourcePermissions;

@@ -4,19 +4,20 @@
  * Multi-step registration wizard with:
  * - Step 1: Account Information (name, email, password)
  * - Step 2: Organization Details (name, industry, type) - Skipped for invitations
- * - Step 3: Review & Submit
+ * - Step 3: Address (optional, BUYER only) - Skipped for invitations and suppliers
+ * - Step 4: Review & Submit
  *
  * Supports invitation mode when `?invitation=xxx` query parameter is present.
  * Uses react-hook-form with zod validation and password strength indicator.
  */
 
 import type { ReactNode } from "react";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { Eye, EyeOff, Loader2, CheckCircle2, XCircle, Check, Pencil, Building2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, CheckCircle2, XCircle, Check, Pencil, Building2, AlertCircle, MapPin, Info } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -52,20 +53,33 @@ import {
 	SelectTrigger,
 	SelectValue,
 	Separator,
+	Alert,
+	AlertDescription,
 } from "@/components/ui";
+import { AddressFormEmbedded, type AddressFormData, type AddressFormHandle } from "@/components/addresses";
 import { cn } from "@/lib/utils";
 
 interface Step {
 	id: number;
-	key: "account" | "organization" | "review";
+	key: "account" | "organization" | "address" | "review";
 }
 
-const standardSteps: Step[] = [
+// Standard BUYER flow: account -> organization -> address (optional) -> review
+const buyerSteps: Step[] = [
+	{ id: 1, key: "account" },
+	{ id: 2, key: "organization" },
+	{ id: 3, key: "address" },
+	{ id: 4, key: "review" },
+];
+
+// Standard SUPPLIER flow: account -> organization -> review (no address step)
+const supplierSteps: Step[] = [
 	{ id: 1, key: "account" },
 	{ id: 2, key: "organization" },
 	{ id: 3, key: "review" },
 ];
 
+// Invitation flow: account -> review (unchanged)
 const invitationSteps: Step[] = [
 	{ id: 1, key: "account" },
 	{ id: 2, key: "review" },
@@ -85,7 +99,7 @@ function StepIndicator({
 }): ReactNode {
 	return (
 		<nav aria-label="Progress" className="mb-6">
-			<ol className="flex items-center justify-center gap-2">
+			<ol className="flex items-center justify-center gap-1 sm:gap-2">
 				{steps.map((step, index) => (
 					<li key={step.id} className="flex items-center">
 						<div
@@ -93,7 +107,7 @@ function StepIndicator({
 							data-active={currentStep === step.id ? "true" : undefined}
 							data-completed={currentStep > step.id ? "true" : undefined}
 							className={cn(
-								"flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+								"flex items-center gap-1.5 sm:gap-2 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors",
 								currentStep === step.id && "bg-primary text-primary-foreground",
 								currentStep > step.id && "bg-muted text-foreground",
 								currentStep < step.id && "text-muted-foreground"
@@ -101,7 +115,7 @@ function StepIndicator({
 						>
 							<span
 								className={cn(
-									"flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
+									"flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full text-xs font-bold shrink-0",
 									currentStep === step.id && "bg-primary-foreground text-primary",
 									currentStep > step.id && "bg-primary text-primary-foreground",
 									currentStep < step.id && "bg-muted text-muted-foreground border"
@@ -113,14 +127,14 @@ function StepIndicator({
 									index + 1
 								)}
 							</span>
-							<span className="hidden sm:inline">
+							<span className="hidden md:inline">
 								{t(`auth.register.steps.${step.key}`)}
 							</span>
 						</div>
 						{index < steps.length - 1 && (
 							<div
 								className={cn(
-									"ms-2 h-0.5 w-8",
+									"ms-1 sm:ms-2 h-0.5 w-4 sm:w-6 md:w-8",
 									currentStep > step.id ? "bg-primary" : "bg-muted"
 								)}
 							/>
@@ -230,7 +244,7 @@ function ReviewItem({ label, value }: { label: string; value: string }): ReactNo
 	return (
 		<div className="flex justify-between py-1">
 			<span className="text-muted-foreground">{label}</span>
-			<span className="font-medium text-foreground">{value || "—"}</span>
+			<span className="font-medium text-foreground">{value || "-"}</span>
 		</div>
 	);
 }
@@ -269,6 +283,14 @@ function InvitationBanner({
 }
 
 /**
+ * Get the step number for a specific step key based on the steps array
+ */
+function getStepNumber(steps: Step[], key: Step["key"]): number {
+	const step = steps.find(s => s.key === key);
+	return step?.id ?? 0;
+}
+
+/**
  * Registration page component
  */
 export default function RegisterPage(): ReactNode {
@@ -285,8 +307,9 @@ export default function RegisterPage(): ReactNode {
 	const [loadingInvitation, setLoadingInvitation] = useState(isInvitationMode);
 	const [invitationError, setInvitationError] = useState<string | null>(null);
 
-	// Determine steps based on mode
-	const steps = isInvitationMode ? invitationSteps : standardSteps;
+	// Address data state (for BUYER registration)
+	const [addressData, setAddressData] = useState<AddressFormData | null>(null);
+	const addressFormRef = useRef<AddressFormHandle>(null);
 
 	const [currentStep, setCurrentStep] = useState(1);
 	const [showPassword, setShowPassword] = useState(false);
@@ -368,7 +391,20 @@ export default function RegisterPage(): ReactNode {
 
 	const watchPassword = form.watch("ownerPassword");
 	const watchEmail = form.watch("ownerEmail");
+	const watchOrgType = form.watch("organizationType");
 	const formValues = form.watch();
+
+	// Determine steps based on mode and organization type
+	const steps = useMemo(() => {
+		if (isInvitationMode) {
+			return invitationSteps;
+		}
+		// BUYER gets the address step, SUPPLIER does not
+		if (watchOrgType === "BUYER") {
+			return buyerSteps;
+		}
+		return supplierSteps;
+	}, [isInvitationMode, watchOrgType]);
 
 	// Pre-fill organization type from URL parameter (for standard registration)
 	useEffect(() => {
@@ -419,32 +455,38 @@ export default function RegisterPage(): ReactNode {
 	}, [watchEmail, checkEmailAvailability, isInvitationMode]);
 
 	// Validate current step fields
-	const validateStep = async (step: number): Promise<boolean> => {
+	const validateStep = async (stepNumber: number): Promise<boolean> => {
+		const currentStepData = steps.find(s => s.id === stepNumber);
+		if (!currentStepData) return true;
+
 		let fieldsToValidate: (keyof RegisterFormData)[] = [];
 
 		if (isInvitationMode) {
 			// For invitations: step 1 = account, step 2 = review
-			if (step === 1) {
+			if (currentStepData.key === "account") {
 				fieldsToValidate = ["ownerFirstName", "ownerLastName", "ownerEmail", "ownerPassword", "ownerConfirmPassword"];
 			}
 		} else {
 			// Standard registration
-			switch (step) {
-				case 1:
+			switch (currentStepData.key) {
+				case "account":
 					fieldsToValidate = ["ownerFirstName", "ownerLastName", "ownerEmail", "ownerPassword", "ownerConfirmPassword"];
 					break;
-				case 2:
+				case "organization":
 					fieldsToValidate = ["organizationNameEn", "organizationNameAr", "organizationIndustry", "organizationType"];
 					break;
-				default:
+				case "address":
+					// Address step is optional, no validation needed
+					return true;
+				case "review":
 					return true;
 			}
 		}
 
 		const result = await form.trigger(fieldsToValidate);
 
-		// Additional check for email availability on step 1 (only for standard registration)
-		if (step === 1 && !isInvitationMode && emailCheckStatus === "taken") {
+		// Additional check for email availability on account step (only for standard registration)
+		if (currentStepData.key === "account" && !isInvitationMode && emailCheckStatus === "taken") {
 			return false;
 		}
 
@@ -464,6 +506,25 @@ export default function RegisterPage(): ReactNode {
 
 	const goToStep = (step: number) => {
 		setCurrentStep(step);
+	};
+
+	// Handle address form next (validate and move to next step)
+	const handleAddressNext = async () => {
+		if (addressFormRef.current) {
+			const data = await addressFormRef.current.submit();
+			if (data) {
+				setAddressData(data);
+				setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+			}
+			// If data is null, validation failed - errors will be shown by the form
+		}
+	};
+
+	// Handle skip address step
+	const handleSkipAddress = () => {
+		setAddressData(null);
+		// Move to next step
+		setCurrentStep((prev) => Math.min(prev + 1, steps.length));
 	};
 
 	// Prevent form from submitting via Enter key or other implicit submission
@@ -519,6 +580,16 @@ export default function RegisterPage(): ReactNode {
 					organizationNameEn: data.organizationNameEn,
 					organizationIndustry: data.organizationIndustry,
 					organizationType: data.organizationType,
+					// Include address data if provided (BUYER only)
+					address: addressData ? {
+						label: addressData.label,
+						streetLine1: addressData.streetLine1,
+						streetLine2: addressData.streetLine2 || undefined,
+						city: addressData.city,
+						stateProvince: addressData.stateProvince || undefined,
+						postalCode: addressData.postalCode,
+						country: addressData.country || undefined,
+					} : undefined,
 				});
 				navigate("/dashboard");
 			}
@@ -587,6 +658,9 @@ export default function RegisterPage(): ReactNode {
 		);
 	}
 
+	// Check if current step is the address step
+	const isAddressStep = getCurrentStepKey() === "address";
+
 	return (
 		<div
 			className="min-h-screen flex flex-col bg-background"
@@ -594,7 +668,7 @@ export default function RegisterPage(): ReactNode {
 		>
 			<Header isDark={isDark} onThemeToggle={handleThemeToggle} />
 			<div className="flex-1 flex items-center justify-center px-4 py-12 pt-24">
-				<Card className="w-full max-w-lg">
+				<Card className="w-full max-w-2xl">
 					<CardHeader className="space-y-1 text-center">
 						<CardTitle className="text-2xl font-bold">
 							{isInvitationMode
@@ -629,7 +703,7 @@ export default function RegisterPage(): ReactNode {
 						<Form {...form}>
 							<form onSubmit={handleFormSubmit} className="space-y-4">
 								{/* Step 1: Account Information */}
-								{currentStep === 1 && (
+								{getCurrentStepKey() === "account" && (
 									<>
 										<div className="grid grid-cols-2 gap-4">
 											<FormField
@@ -807,7 +881,7 @@ export default function RegisterPage(): ReactNode {
 								)}
 
 								{/* Step 2: Organization Information (Standard registration only) */}
-								{!isInvitationMode && currentStep === 2 && (
+								{!isInvitationMode && getCurrentStepKey() === "organization" && (
 									<>
 										<FormField
 											control={form.control}
@@ -901,12 +975,33 @@ export default function RegisterPage(): ReactNode {
 									</>
 								)}
 
+								{/* Step 3: Address (BUYER only, optional) */}
+								{!isInvitationMode && isAddressStep && (
+									<div className="space-y-4">
+										{/* Info alert about address requirement */}
+										<Alert>
+											<Info className="h-4 w-4" />
+											<AlertDescription>
+												{t("auth.register.address.requiredNote")}
+											</AlertDescription>
+										</Alert>
+
+										{/* Address form fields (embedded, no form wrapper) */}
+										<AddressFormEmbedded
+											ref={addressFormRef}
+											mode="create"
+											showPrimaryCheckbox={false}
+											initialData={addressData}
+										/>
+									</div>
+								)}
+
 								{/* Review Step */}
-								{((isInvitationMode && currentStep === 2) || (!isInvitationMode && currentStep === 3)) && (
+								{getCurrentStepKey() === "review" && (
 									<div className="space-y-6">
 										<ReviewSection
 											title={t("auth.register.reviewSection.accountInfo")}
-											onEdit={() => goToStep(1)}
+											onEdit={() => goToStep(getStepNumber(steps, "account"))}
 										>
 											<ReviewItem
 												label={t("auth.register.name.first")}
@@ -922,7 +1017,7 @@ export default function RegisterPage(): ReactNode {
 											/>
 											<ReviewItem
 												label={t("auth.register.password")}
-												value="••••••••"
+												value="********"
 											/>
 										</ReviewSection>
 
@@ -932,7 +1027,7 @@ export default function RegisterPage(): ReactNode {
 
 												<ReviewSection
 													title={t("auth.register.reviewSection.orgInfo")}
-													onEdit={() => goToStep(2)}
+													onEdit={() => goToStep(getStepNumber(steps, "organization"))}
 												>
 													<ReviewItem
 														label={t("auth.register.organizationNameEn")}
@@ -951,6 +1046,60 @@ export default function RegisterPage(): ReactNode {
 														value={formValues.organizationType ? t(`auth.register.${formValues.organizationType.toLowerCase()}`) : ""}
 													/>
 												</ReviewSection>
+
+												{/* Address section in review (BUYER only) */}
+												{watchOrgType === "BUYER" && (
+													<>
+														<Separator />
+
+														<ReviewSection
+															title={t("auth.register.reviewSection.addressInfo")}
+															onEdit={() => goToStep(getStepNumber(steps, "address"))}
+														>
+															{addressData ? (
+																<>
+																	<ReviewItem
+																		label={t("dashboard.addresses.form.label")}
+																		value={addressData.label}
+																	/>
+																	<ReviewItem
+																		label={t("dashboard.addresses.form.streetLine1")}
+																		value={addressData.streetLine1}
+																	/>
+																	{addressData.streetLine2 && (
+																		<ReviewItem
+																			label={t("dashboard.addresses.form.streetLine2")}
+																			value={addressData.streetLine2}
+																		/>
+																	)}
+																	<ReviewItem
+																		label={t("dashboard.addresses.form.city")}
+																		value={addressData.city}
+																	/>
+																	{addressData.stateProvince && (
+																		<ReviewItem
+																			label={t("dashboard.addresses.form.stateProvince")}
+																			value={addressData.stateProvince}
+																		/>
+																	)}
+																	<ReviewItem
+																		label={t("dashboard.addresses.form.postalCode")}
+																		value={addressData.postalCode}
+																	/>
+																	<ReviewItem
+																		label={t("dashboard.addresses.form.country")}
+																		value={addressData.country}
+																	/>
+																</>
+															) : (
+																<div className="flex items-center gap-2 py-2 text-muted-foreground">
+																	<MapPin className="h-4 w-4" />
+																	<span>{t("auth.register.address.skipped")}</span>
+																</div>
+															)}
+														</ReviewSection>
+													</>
+												)}
 											</>
 										)}
 
@@ -991,15 +1140,39 @@ export default function RegisterPage(): ReactNode {
 											</Button>
 										)}
 									</div>
-									<div>
-										{currentStep < steps.length ? (
+									<div className="flex gap-2">
+										{/* Skip button for address step */}
+										{isAddressStep && (
 											<Button
 												type="button"
-												onClick={handleNext}
+												variant="ghost"
+												onClick={handleSkipAddress}
 												disabled={isSubmitting}
 											>
-												{t("auth.register.next")}
+												{t("auth.register.address.skip")}
 											</Button>
+										)}
+
+										{/* Next/Submit button */}
+										{currentStep < steps.length ? (
+											isAddressStep ? (
+												// For address step, validate via ref and move to next step
+												<Button
+													type="button"
+													onClick={handleAddressNext}
+													disabled={isSubmitting}
+												>
+													{t("auth.register.next")}
+												</Button>
+											) : (
+												<Button
+													type="button"
+													onClick={handleNext}
+													disabled={isSubmitting}
+												>
+													{t("auth.register.next")}
+												</Button>
+											)
 										) : (
 											<Button
 												type="button"

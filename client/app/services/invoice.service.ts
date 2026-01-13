@@ -49,7 +49,11 @@ export interface InvoiceResponse {
 	subtotal: string;
 	taxAmount: string;
 	totalAmount: string;
+	/** Date invoice was issued (ISO 8601 format) - may not be present for older invoices */
+	issueDate?: string;
 	dueDate: string;
+	/** Date invoice was paid (ISO 8601 format) - only present for paid invoices */
+	paidDate?: string;
 	status: InvoiceStatus;
 	createdAt: string;
 	updatedAt: string;

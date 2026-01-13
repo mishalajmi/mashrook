@@ -40,6 +40,7 @@ import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.users.UserRepository;
 import sa.elm.mashrook.users.domain.UserEntity;
 import sa.elm.mashrook.users.domain.UserStatus;
+import org.springframework.context.ApplicationContext;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -78,6 +79,9 @@ class PaymentServiceTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private ApplicationContext applicationContext;
+
     @Captor
     private ArgumentCaptor<PaymentEntity> paymentCaptor;
 
@@ -102,7 +106,8 @@ class PaymentServiceTest {
                 userRepository,
                 gatewayFactory,
                 config,
-                notificationService
+                notificationService,
+                applicationContext
         );
     }
 

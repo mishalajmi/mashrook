@@ -63,7 +63,7 @@ describe("BrowseCampaignDetailPage", () => {
 		]),
 		supplierId: "supplier-1",
 		supplierName: "Test Supplier",
-		targetQty: 1000,
+		targetQuantity: 1000,
 		totalPledged: 50,
 		startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
 		endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),

@@ -53,6 +53,16 @@ export interface LoginRequest {
 	password: string;
 }
 
+export interface RegisterAddressData {
+	label: string;
+	streetLine1: string;
+	streetLine2?: string;
+	city: string;
+	stateProvince?: string;
+	postalCode: string;
+	country?: string;
+}
+
 export interface RegisterRequest {
 	email: string;
     firstName: string;
@@ -62,6 +72,7 @@ export interface RegisterRequest {
 	organizationNameEn: string;
     organizationNameAr: string;
     organizationIndustry: string;
+	address?: RegisterAddressData;
 }
 
 export interface ForgotPasswordRequest {

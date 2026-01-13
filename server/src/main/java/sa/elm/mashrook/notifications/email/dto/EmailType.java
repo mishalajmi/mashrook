@@ -13,7 +13,12 @@ public enum EmailType {
     PASSWORD_RESET("password-reset", "Reset Your Mashrook Password"),
     WELCOME("welcome", "Welcome to Mashrook!"),
     ORGANIZATION_VERIFIED("organization-verified", "Your Organization Has Been Verified"),
-    TEAM_INVITATION("team-invitation", "You've Been Invited to Join a Team on Mashrook");
+    TEAM_INVITATION("team-invitation", "You've Been Invited to Join a Team on Mashrook"),
+    ORDER_CREATED("order-created", "Your Order Has Been Created"),
+    ORDER_STATUS_CHANGED("order-status-changed", "Order Status Update"),
+    ORDER_SHIPPED("order-shipped", "Your Order Has Been Shipped"),
+    ORDER_DELIVERED("order-delivered", "Your Order Has Been Delivered"),
+    ORDER_CANCELLED("order-cancelled", "Your Order Has Been Cancelled");
 
     private final String templateName;
     private final String subject;
