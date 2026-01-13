@@ -28,6 +28,7 @@ import sa.elm.mashrook.payments.gateway.GatewayCheckoutResponse;
 import sa.elm.mashrook.payments.gateway.GatewayPaymentStatus;
 import sa.elm.mashrook.payments.gateway.PaymentGateway;
 import sa.elm.mashrook.payments.gateway.PaymentGatewayFactory;
+import sa.elm.mashrook.orders.service.OrderService;
 import sa.elm.mashrook.users.UserRepository;
 import sa.elm.mashrook.users.domain.UserEntity;
 import sa.elm.mashrook.users.domain.UserStatus;
@@ -50,6 +51,17 @@ public class PaymentService {
     private final PaymentGatewayFactory gatewayFactory;
     private final PaymentConfigProperties paymentConfig;
     private final NotificationService notificationService;
+    private final org.springframework.context.ApplicationContext applicationContext;
+
+    // Lazy-loaded to avoid circular dependency
+    private OrderService orderService;
+
+    private OrderService getOrderService() {
+        if (orderService == null) {
+            orderService = applicationContext.getBean(OrderService.class);
+        }
+        return orderService;
+    }
 
     @Transactional
     public InitiateOnlinePaymentResponse initiateOnlinePayment(UUID invoiceId, UUID buyerId) {
@@ -317,6 +329,15 @@ public class PaymentService {
             invoice.setUpdatedAt(LocalDateTime.now());
             invoiceRepository.save(invoice);
             log.info("Marked invoice {} as PAID", invoice.getInvoiceNumber());
+
+            // Create an order from the successful payment
+            try {
+                getOrderService().createOrderFromPayment(payment);
+            } catch (Exception e) {
+                log.error("Failed to create order from payment {}: {}", payment.getId(), e.getMessage(), e);
+                // Don't throw - payment is still successful even if order creation fails
+                // The order can be created manually or through retry logic
+            }
         }
     }
 
