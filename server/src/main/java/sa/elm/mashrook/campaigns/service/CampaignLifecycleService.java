@@ -11,10 +11,10 @@ import sa.elm.mashrook.campaigns.domain.*;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignValidationException;
 import sa.elm.mashrook.exceptions.InvalidCampaignStateTransitionException;
-import sa.elm.mashrook.fulfillments.CampaignFulfillmentService;
-import sa.elm.mashrook.fulfillments.domain.CampaignFulfillmentEntity;
-import sa.elm.mashrook.fulfillments.domain.DeliveryStatus;
 import sa.elm.mashrook.invoices.domain.InvoiceEntity;
+import sa.elm.mashrook.orders.domain.OrderEntity;
+import sa.elm.mashrook.orders.domain.OrderRepository;
+import sa.elm.mashrook.orders.domain.OrderStatus;
 import sa.elm.mashrook.invoices.domain.InvoiceRepository;
 import sa.elm.mashrook.invoices.domain.InvoiceStatus;
 import sa.elm.mashrook.invoices.service.InvoiceService;
@@ -36,7 +36,7 @@ public class CampaignLifecycleService {
     private final CampaignRepository campaignRepository;
     private final DiscountBracketService discountBracketService;
     private final PledgeService pledgeService;
-    private final CampaignFulfillmentService campaignFulfillmentService;
+    private final OrderRepository orderRepository;
     private final InvoiceService invoiceService;
     private final InvoiceRepository invoiceRepository;
 
@@ -225,14 +225,14 @@ public class CampaignLifecycleService {
             throw new CampaignValidationException("Cannot complete campaign: not all invoices have been paid");
         }
 
-        List<CampaignFulfillmentEntity> fulfillments = campaignFulfillmentService.findAllByCampaignId(campaignId);
-        boolean allFulfillmentsComplete = pledgeIds.stream()
-                .allMatch(pledgeId -> fulfillments.stream()
-                        .filter(f -> f.getPledgeId().equals(pledgeId))
-                        .anyMatch(f -> f.getDeliveryStatus() == DeliveryStatus.DELIVERED));
+        // Check all orders are delivered using the new order system
+        List<OrderEntity> orders = orderRepository.findAllByCampaign_IdAndStatus(campaignId, OrderStatus.DELIVERED);
+        boolean allOrdersDelivered = pledgeIds.stream()
+                .allMatch(pledgeId -> orders.stream()
+                        .anyMatch(order -> order.getPledge().getId().equals(pledgeId)));
 
-        if (!allFulfillmentsComplete) {
-            throw new CampaignValidationException("Cannot complete campaign: fulfillment is not complete for all pledges");
+        if (!allOrdersDelivered) {
+            throw new CampaignValidationException("Cannot complete campaign: not all orders have been delivered");
         }
     }
 

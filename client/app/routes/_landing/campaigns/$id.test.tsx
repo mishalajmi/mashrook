@@ -23,7 +23,7 @@ const mockCampaign: PublicCampaignResponse = {
 	]),
 	supplierId: "supplier-1",
 	supplierName: "Test Supplier",
-	targetQty: 100,
+	targetQuantity: 100,
 	totalPledged: 35,
 	startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
 	endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),

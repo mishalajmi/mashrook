@@ -338,7 +338,7 @@ export default function InvoiceDetailPage(): ReactNode {
 							<div>
 								<p className="text-sm text-muted-foreground">Issue Date</p>
 								<p data-testid="invoice-issue-date" className="font-medium">
-									{formatLongDateWithWeekday(invoice.issueDate)}
+									{formatLongDateWithWeekday(invoice.issueDate ?? invoice.createdAt)}
 								</p>
 							</div>
 							<div>

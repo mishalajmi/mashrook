@@ -77,13 +77,21 @@ export function PledgeForm({
 	className,
 }: PledgeFormProps): ReactNode {
 	const { t } = useTranslation();
-	const [quantity, setQuantity] = useState(initialQuantity);
 
-	const numericUnitPrice = parseFloat(unitPrice);
+	// Ensure numeric values are valid (defensive coding for API edge cases)
+	const safeMinQuantity = Number.isFinite(minQuantity) && minQuantity > 0 ? minQuantity : 1;
+	const safeMaxQuantity = Number.isFinite(maxQuantity) && maxQuantity > 0 ? maxQuantity : 10000;
+	const safeInitialQuantity = Number.isFinite(initialQuantity) && initialQuantity >= safeMinQuantity
+		? Math.min(initialQuantity, safeMaxQuantity)
+		: safeMinQuantity;
+
+	const [quantity, setQuantity] = useState(safeInitialQuantity);
+
+	const numericUnitPrice = parseFloat(unitPrice) || 0;
 	const totalCost = numericUnitPrice * quantity;
 
-	const canDecrement = quantity > minQuantity && !isSubmitting;
-	const canIncrement = quantity < maxQuantity && !isSubmitting;
+	const canDecrement = quantity > safeMinQuantity && !isSubmitting;
+	const canIncrement = quantity < safeMaxQuantity && !isSubmitting;
 
 	// Show price range if at least one price is provided
 	const showPriceRange = bestCasePrice || currentPrice;
@@ -102,8 +110,8 @@ export function PledgeForm({
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = parseInt(e.target.value, 10);
-		if (!isNaN(value)) {
-			const clampedValue = Math.max(minQuantity, Math.min(maxQuantity, value));
+		if (Number.isFinite(value) && value > 0) {
+			const clampedValue = Math.max(safeMinQuantity, Math.min(safeMaxQuantity, value));
 			setQuantity(clampedValue);
 		}
 	};
@@ -183,8 +191,8 @@ export function PledgeForm({
 						data-testid="quantity-input"
 						value={quantity}
 						onChange={handleInputChange}
-						min={minQuantity}
-						max={maxQuantity}
+						min={safeMinQuantity}
+						max={safeMaxQuantity}
 						disabled={isSubmitting}
 						className="w-20 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 					/>

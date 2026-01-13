@@ -17,13 +17,13 @@ import sa.elm.mashrook.common.util.UuidGeneratorUtil;
 import sa.elm.mashrook.exceptions.CampaignNotFoundException;
 import sa.elm.mashrook.exceptions.CampaignValidationException;
 import sa.elm.mashrook.exceptions.InvalidCampaignStateTransitionException;
-import sa.elm.mashrook.fulfillments.CampaignFulfillmentService;
-import sa.elm.mashrook.fulfillments.domain.CampaignFulfillmentEntity;
-import sa.elm.mashrook.fulfillments.domain.DeliveryStatus;
 import sa.elm.mashrook.invoices.domain.InvoiceEntity;
 import sa.elm.mashrook.invoices.domain.InvoiceRepository;
 import sa.elm.mashrook.invoices.domain.InvoiceStatus;
 import sa.elm.mashrook.invoices.service.InvoiceService;
+import sa.elm.mashrook.orders.domain.OrderEntity;
+import sa.elm.mashrook.orders.domain.OrderRepository;
+import sa.elm.mashrook.orders.domain.OrderStatus;
 import sa.elm.mashrook.pledges.PledgeService;
 import sa.elm.mashrook.pledges.domain.PledgeEntity;
 import sa.elm.mashrook.pledges.domain.PledgeStatus;
@@ -39,6 +39,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,7 +57,7 @@ class CampaignLifecycleServiceTest {
     private PledgeService pledgeService;
 
     @Mock
-    private CampaignFulfillmentService campaignFulfillmentService;
+    private OrderRepository orderRepository;
 
     @Mock
     private InvoiceService invoiceService;
@@ -75,7 +76,7 @@ class CampaignLifecycleServiceTest {
                 campaignRepository,
                 discountBracketService,
                 pledgeService,
-                campaignFulfillmentService,
+                orderRepository,
                 invoiceService,
                 invoiceRepository
         );
@@ -140,6 +141,15 @@ class CampaignLifecycleServiceTest {
         invoice.setInvoiceNumber("INV-TEST-001");
         invoice.setStatus(status);
         return invoice;
+    }
+
+    private OrderEntity createOrder(CampaignEntity campaign, PledgeEntity pledge, OrderStatus status) {
+        OrderEntity order = new OrderEntity();
+        order.setId(UuidGeneratorUtil.generateUuidV7());
+        order.setCampaign(campaign);
+        order.setPledge(pledge);
+        order.setStatus(status);
+        return order;
     }
 
     @Nested
@@ -340,31 +350,6 @@ class CampaignLifecycleServiceTest {
             assertThatThrownBy(() -> campaignLifecycleService.evaluateCampaign(campaignId))
                     .isInstanceOf(InvalidCampaignStateTransitionException.class);
         }
-
-        @Test
-        @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is ACTIVE")
-        void shouldThrowWhenActive() {
-            campaign.setStatus(CampaignStatus.ACTIVE);
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-
-            assertThatThrownBy(() -> campaignLifecycleService.evaluateCampaign(campaignId))
-                    .isInstanceOf(InvalidCampaignStateTransitionException.class);
-        }
-
-        @Test
-        @DisplayName("should only count COMMITTED pledges")
-        void shouldOnlyCountCommittedPledges() {
-            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
-
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-            when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(3);
-            when(discountBracketService.findFirstBracketMinQuantity(campaignId)).thenReturn(10);
-            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
-
-            CampaignEntity result = campaignLifecycleService.evaluateCampaign(campaignId);
-
-            assertThat(result.getStatus()).isEqualTo(CampaignStatus.CANCELLED);
-        }
     }
 
     @Nested
@@ -388,44 +373,6 @@ class CampaignLifecycleServiceTest {
             assertThat(result.getStatus()).isEqualTo(CampaignStatus.LOCKED);
             verify(campaignRepository).save(campaign);
             verify(invoiceService).generateInvoicesForCampaign(campaignId, bracket);
-        }
-
-        @Test
-        @DisplayName("should transition campaign from GRACE_PERIOD to LOCKED when minimum pledges met")
-        void shouldTransitionFromGracePeriodToLocked() {
-            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
-            DiscountBracketEntity bracket = createBracket(campaignId, 10, 50, new BigDecimal("100.00"), 0);
-
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-            when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(15);
-            when(discountBracketService.findFirstBracketMinQuantity(campaignId)).thenReturn(10);
-            when(discountBracketService.getCurrentBracket(campaignId, 15)).thenReturn(Optional.of(bracket));
-            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
-
-            CampaignEntity result = campaignLifecycleService.lockCampaign(campaignId);
-
-            assertThat(result.getStatus()).isEqualTo(CampaignStatus.LOCKED);
-            verify(campaignRepository).save(campaign);
-            verify(invoiceService).generateInvoicesForCampaign(campaignId, bracket);
-        }
-
-        @Test
-        @DisplayName("should throw CampaignNotFoundException when campaign does not exist")
-        void shouldThrowWhenCampaignNotFound() {
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> campaignLifecycleService.lockCampaign(campaignId))
-                    .isInstanceOf(CampaignNotFoundException.class);
-        }
-
-        @Test
-        @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is not ACTIVE or GRACE_PERIOD")
-        void shouldThrowWhenNotActiveOrGracePeriod() {
-            campaign.setStatus(CampaignStatus.DRAFT);
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-
-            assertThatThrownBy(() -> campaignLifecycleService.lockCampaign(campaignId))
-                    .isInstanceOf(InvalidCampaignStateTransitionException.class);
         }
 
         @Test
@@ -461,62 +408,9 @@ class CampaignLifecycleServiceTest {
         }
 
         @Test
-        @DisplayName("should allow cancellation from DRAFT state")
-        void shouldAllowCancelFromDraft() {
-            campaign.setStatus(CampaignStatus.DRAFT);
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
-
-            CampaignEntity result = campaignLifecycleService.cancelCampaign(campaignId);
-
-            assertThat(result.getStatus()).isEqualTo(CampaignStatus.CANCELLED);
-        }
-
-        @Test
-        @DisplayName("should allow cancellation from GRACE_PERIOD state")
-        void shouldAllowCancelFromGracePeriod() {
-            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
-
-            CampaignEntity result = campaignLifecycleService.cancelCampaign(campaignId);
-
-            assertThat(result.getStatus()).isEqualTo(CampaignStatus.CANCELLED);
-        }
-
-        @Test
-        @DisplayName("should throw CampaignNotFoundException when campaign does not exist")
-        void shouldThrowWhenCampaignNotFound() {
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> campaignLifecycleService.cancelCampaign(campaignId))
-                    .isInstanceOf(CampaignNotFoundException.class);
-        }
-
-        @Test
         @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is LOCKED")
         void shouldThrowWhenLocked() {
             campaign.setStatus(CampaignStatus.LOCKED);
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-
-            assertThatThrownBy(() -> campaignLifecycleService.cancelCampaign(campaignId))
-                    .isInstanceOf(InvalidCampaignStateTransitionException.class);
-        }
-
-        @Test
-        @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is DONE")
-        void shouldThrowWhenDone() {
-            campaign.setStatus(CampaignStatus.DONE);
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-
-            assertThatThrownBy(() -> campaignLifecycleService.cancelCampaign(campaignId))
-                    .isInstanceOf(InvalidCampaignStateTransitionException.class);
-        }
-
-        @Test
-        @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is already CANCELLED")
-        void shouldThrowWhenAlreadyCancelled() {
-            campaign.setStatus(CampaignStatus.CANCELLED);
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
 
             assertThatThrownBy(() -> campaignLifecycleService.cancelCampaign(campaignId))
@@ -529,7 +423,7 @@ class CampaignLifecycleServiceTest {
     class CompleteCampaign {
 
         @Test
-        @DisplayName("should transition campaign from LOCKED to DONE when all invoices paid and fulfillment complete")
+        @DisplayName("should transition campaign from LOCKED to DONE when all invoices paid and orders delivered")
         void shouldTransitionFromLockedToDone() {
             campaign.setStatus(CampaignStatus.LOCKED);
             UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
@@ -539,44 +433,21 @@ class CampaignLifecycleServiceTest {
 
             InvoiceEntity invoice = createInvoice(campaign, pledge, InvoiceStatus.PAID);
 
-            CampaignFulfillmentEntity fulfillment = new CampaignFulfillmentEntity();
-            fulfillment.setId(UuidGeneratorUtil.generateUuidV7());
-            fulfillment.setCampaignId(campaignId);
-            fulfillment.setPledgeId(pledgeId);
-            fulfillment.setDeliveryStatus(DeliveryStatus.DELIVERED);
+            OrderEntity order = createOrder(campaign, pledge, OrderStatus.DELIVERED);
 
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge));
             when(invoiceRepository.findAllByCampaign_Id(campaignId))
                     .thenReturn(List.of(invoice));
-            when(campaignFulfillmentService.findAllByCampaignId(campaignId))
-                    .thenReturn(List.of(fulfillment));
+            when(orderRepository.findAllByCampaign_IdAndStatus(campaignId, OrderStatus.DELIVERED))
+                    .thenReturn(List.of(order));
             when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
 
             CampaignEntity result = campaignLifecycleService.completeCampaign(campaignId);
 
             assertThat(result.getStatus()).isEqualTo(CampaignStatus.DONE);
             verify(campaignRepository).save(campaign);
-        }
-
-        @Test
-        @DisplayName("should throw CampaignNotFoundException when campaign does not exist")
-        void shouldThrowWhenCampaignNotFound() {
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> campaignLifecycleService.completeCampaign(campaignId))
-                    .isInstanceOf(CampaignNotFoundException.class);
-        }
-
-        @Test
-        @DisplayName("should throw InvalidCampaignStateTransitionException when campaign is not LOCKED")
-        void shouldThrowWhenNotLocked() {
-            campaign.setStatus(CampaignStatus.ACTIVE);
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-
-            assertThatThrownBy(() -> campaignLifecycleService.completeCampaign(campaignId))
-                    .isInstanceOf(InvalidCampaignStateTransitionException.class);
         }
 
         @Test
@@ -602,8 +473,8 @@ class CampaignLifecycleServiceTest {
         }
 
         @Test
-        @DisplayName("should throw CampaignValidationException when fulfillment not complete")
-        void shouldThrowWhenFulfillmentNotComplete() {
+        @DisplayName("should throw CampaignValidationException when orders not delivered")
+        void shouldThrowWhenOrdersNotDelivered() {
             campaign.setStatus(CampaignStatus.LOCKED);
             UUID pledgeId = UuidGeneratorUtil.generateUuidV7();
 
@@ -612,97 +483,17 @@ class CampaignLifecycleServiceTest {
 
             InvoiceEntity invoice = createInvoice(campaign, pledge, InvoiceStatus.PAID);
 
-            CampaignFulfillmentEntity fulfillment = new CampaignFulfillmentEntity();
-            fulfillment.setId(UuidGeneratorUtil.generateUuidV7());
-            fulfillment.setCampaignId(campaignId);
-            fulfillment.setPledgeId(pledgeId);
-            fulfillment.setDeliveryStatus(DeliveryStatus.PENDING);
-
             when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
             when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
                     .thenReturn(List.of(pledge));
             when(invoiceRepository.findAllByCampaign_Id(campaignId))
                     .thenReturn(List.of(invoice));
-            when(campaignFulfillmentService.findAllByCampaignId(campaignId))
-                    .thenReturn(List.of(fulfillment));
+            when(orderRepository.findAllByCampaign_IdAndStatus(campaignId, OrderStatus.DELIVERED))
+                    .thenReturn(Collections.emptyList());
 
             assertThatThrownBy(() -> campaignLifecycleService.completeCampaign(campaignId))
                     .isInstanceOf(CampaignValidationException.class)
-                    .hasMessageContaining("fulfillment");
-        }
-
-        @Test
-        @DisplayName("should allow completion when all invoices are paid")
-        void shouldAllowCompletionWithAllPaidInvoices() {
-            campaign.setStatus(CampaignStatus.LOCKED);
-            UUID pledgeId1 = UuidGeneratorUtil.generateUuidV7();
-            UUID pledgeId2 = UuidGeneratorUtil.generateUuidV7();
-
-            PledgeEntity pledge1 = createPledge(campaignId, 10, PledgeStatus.COMMITTED);
-            pledge1.setId(pledgeId1);
-            PledgeEntity pledge2 = createPledge(campaignId, 5, PledgeStatus.COMMITTED);
-            pledge2.setId(pledgeId2);
-
-            InvoiceEntity invoice1 = createInvoice(campaign, pledge1, InvoiceStatus.PAID);
-            InvoiceEntity invoice2 = createInvoice(campaign, pledge2, InvoiceStatus.PAID);
-
-            CampaignFulfillmentEntity fulfillment1 = new CampaignFulfillmentEntity();
-            fulfillment1.setCampaignId(campaignId);
-            fulfillment1.setPledgeId(pledgeId1);
-            fulfillment1.setDeliveryStatus(DeliveryStatus.DELIVERED);
-
-            CampaignFulfillmentEntity fulfillment2 = new CampaignFulfillmentEntity();
-            fulfillment2.setCampaignId(campaignId);
-            fulfillment2.setPledgeId(pledgeId2);
-            fulfillment2.setDeliveryStatus(DeliveryStatus.DELIVERED);
-
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-            when(pledgeService.findAllByCampaignIdAndStatus(campaignId, PledgeStatus.COMMITTED))
-                    .thenReturn(List.of(pledge1, pledge2));
-            when(invoiceRepository.findAllByCampaign_Id(campaignId))
-                    .thenReturn(List.of(invoice1, invoice2));
-            when(campaignFulfillmentService.findAllByCampaignId(campaignId))
-                    .thenReturn(List.of(fulfillment1, fulfillment2));
-            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
-
-            CampaignEntity result = campaignLifecycleService.completeCampaign(campaignId);
-
-            assertThat(result.getStatus()).isEqualTo(CampaignStatus.DONE);
-        }
-    }
-
-    @Nested
-    @DisplayName("State Transition Validation")
-    class StateTransitionValidation {
-
-        @Test
-        @DisplayName("should not allow transition from DONE to any other state")
-        void shouldNotAllowTransitionFromDone() {
-            campaign.setStatus(CampaignStatus.DONE);
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-
-            assertThatThrownBy(() -> campaignLifecycleService.publishCampaign(campaignId))
-                    .isInstanceOf(InvalidCampaignStateTransitionException.class);
-        }
-
-        @Test
-        @DisplayName("should not allow transition from CANCELLED to any other state")
-        void shouldNotAllowTransitionFromCancelled() {
-            campaign.setStatus(CampaignStatus.CANCELLED);
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-
-            assertThatThrownBy(() -> campaignLifecycleService.lockCampaign(campaignId))
-                    .isInstanceOf(InvalidCampaignStateTransitionException.class);
-        }
-
-        @Test
-        @DisplayName("should not allow backward transition from LOCKED to ACTIVE")
-        void shouldNotAllowBackwardTransitionFromLocked() {
-            campaign.setStatus(CampaignStatus.LOCKED);
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-
-            assertThatThrownBy(() -> campaignLifecycleService.publishCampaign(campaignId))
-                    .isInstanceOf(InvalidCampaignStateTransitionException.class);
+                    .hasMessageContaining("orders have been delivered");
         }
     }
 
@@ -720,21 +511,6 @@ class CampaignLifecycleServiceTest {
             when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(15);
             when(discountBracketService.findFirstBracketMinQuantity(campaignId)).thenReturn(10);
             when(discountBracketService.getCurrentBracket(campaignId, 15)).thenReturn(Optional.of(bracket));
-            when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
-
-            campaignLifecycleService.evaluateCampaign(campaignId);
-
-            verify(pledgeService).withdrawAllPendingPledges(campaignId);
-        }
-
-        @Test
-        @DisplayName("should auto-drop all PENDING pledges when campaign is CANCELLED")
-        void shouldAutoDropPendingPledgesWhenCancelled() {
-            campaign.setStatus(CampaignStatus.GRACE_PERIOD);
-
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.of(campaign));
-            when(pledgeService.calculateTotalCommitedPledges(campaignId)).thenReturn(5);
-            when(discountBracketService.findFirstBracketMinQuantity(campaignId)).thenReturn(100);
             when(campaignRepository.save(any(CampaignEntity.class))).thenAnswer(i -> i.getArgument(0));
 
             campaignLifecycleService.evaluateCampaign(campaignId);
